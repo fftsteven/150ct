@@ -10,17 +10,26 @@
 <link rel="icon" href="/shared/icon.svg" type="image/svg+xml">
 <script src="/apps/potluck/lib.js"></script>
 <style>
-.form{display:grid;gap:18px}
+.form{display:grid;gap:22px}
 .f{display:grid;gap:6px}
 .two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
-.themes{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
-.th{border:2px solid var(--line);background:var(--panel);color:var(--ink);border-radius:10px;padding:8px 4px;display:grid;justify-items:center;gap:4px;font-size:13px;font-weight:600}
-.th svg{width:48px;height:48px}
-.th[aria-pressed=true]{border-color:var(--ink);box-shadow:inset 0 0 0 2px var(--acc)}
-.th .sw{width:100%;height:6px;border-radius:3px}
-.r .ico svg{width:28px;height:28px}
-.done{display:grid;gap:14px}
-@media(max-width:600px){.two{grid-template-columns:1fr}.themes{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.tpls{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.tp{border:2px solid var(--line);background:var(--panel);color:var(--ink);border-radius:10px;padding:10px 4px 8px;display:grid;justify-items:center;gap:6px;font-size:13px;font-weight:600;line-height:1.2;text-align:center}
+.tp svg{width:44px;height:44px}
+.tp[aria-pressed=true],.ic[aria-pressed=true]{border-color:var(--ink);box-shadow:inset 0 0 0 2px var(--acc)}
+.icons{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:6px}
+.ic{aspect-ratio:1;border:2px solid var(--line);border-radius:8px;padding:5px;display:grid;place-items:center}
+.ic svg{width:100%;height:100%;display:block}
+.emo{display:flex;gap:8px;align-items:center;margin-top:4px}
+.emo input{width:5.5em;text-align:center;font-size:22px;padding:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 2px}
+.chip{display:inline-flex;align-items:center;gap:8px;background:var(--panel);border:2px solid var(--line);border-radius:10px;padding:4px 4px 4px 8px;font-weight:600}
+.chip svg{width:24px;height:24px;flex:none}
+.chip button{width:32px;height:32px;border:0;background:transparent;color:var(--mute);font:700 16px Silkscreen,monospace;border-radius:6px}
+.chip button:hover{background:var(--line);color:var(--ink)}
+.addrow{display:flex;gap:8px}
+.addrow input{flex:1}
+@media(max-width:600px){.two{grid-template-columns:1fr}.tpls{grid-template-columns:repeat(3,minmax(0,1fr))}.icons{grid-template-columns:repeat(5,minmax(0,1fr))}}
 </style>
 </head>
 <body>
@@ -28,121 +37,100 @@
 <header class="band hero">
   <div class="wrap">
     <div>
-      <h1 id="pTitle">Your event</h1>
+      <h1 id="pTitle">Your potluck</h1>
       <div class="det" id="pDet"></div>
     </div>
-    <div class="sprite" id="pSprite" role="img" aria-label="Theme illustration"></div>
+    <div class="sprite" id="pSprite" role="img" aria-label="Invite picture"></div>
   </div>
 </header>
 
 <main class="band">
   <div class="wrap">
     <form class="form" id="form" novalidate>
-      <div><h2 id="heading">Make an invite</h2><p class="hint">Fill it in, send the link. Guests pick what they'll bring, no accounts.</p></div>
+      <h2 id="heading">Make a potluck</h2>
 
-      <div class="f"><label>Theme</label><div class="themes" id="themes"></div></div>
+      <div class="f" id="tplField"><label>Start from</label><div class="tpls" id="tpls"></div></div>
 
-      <div class="f"><label for="title">Title</label><input id="title" maxlength="80" placeholder="e.g. Thanksgiving Potluck" required></div>
+      <div class="f"><label for="title">Name</label><input id="title" maxlength="80" placeholder="e.g. Friendsgiving" required></div>
       <div class="two">
         <div class="f"><label for="date">Date</label><input id="date" type="date" required></div>
-        <div class="f"><label for="time">Starts</label><input id="time" type="time"></div>
+        <div class="f"><label for="time">Time</label><input id="time" type="time"></div>
       </div>
-      <div class="two">
-        <div class="f"><label for="place">Place name</label><input id="place" maxlength="80" placeholder="e.g. Dain and Kristina's house"></div>
-        <div class="f"><label for="address">Address</label><input id="address" maxlength="160" placeholder="Street, city, zip"></div>
-      </div>
-      <div class="f"><label for="contact">Text me at (optional)</label><input id="contact" maxlength="40" inputmode="tel" placeholder="Shown so guests can reach you"></div>
-      <div class="f"><label for="notes">Note to guests (optional)</label><textarea id="notes" maxlength="600" placeholder="Parking, dress code, kids welcome…"></textarea></div>
+      <div class="f"><label for="where">Where</label><input id="where" maxlength="160" placeholder="Address or place"></div>
+      <div class="f"><label for="note">Note (optional)</label><textarea id="note" maxlength="600" placeholder="Parking, kids, dogs, your number"></textarea></div>
 
       <div class="f">
-        <h3 class="mt">What's on the menu</h3>
-        <p class="hint">What you've already got covered. Icons are picked from the name.</p>
-        <div class="rows" id="menuRows"></div>
-        <div><button class="add" type="button" data-addrow="menu">+ Add menu item</button></div>
+        <label>Picture</label>
+        <div class="icons" id="icons"></div>
+        <div class="emo"><label for="emoji" class="hint" style="font-weight:400">Or an emoji</label><input id="emoji" maxlength="16" placeholder="🙂" autocomplete="off"></div>
       </div>
 
       <div class="f">
-        <h3 class="mt">What you need people to bring</h3>
-        <p class="hint">Name and how many. Guests claim them one at a time.</p>
-        <div class="rows" id="itemRows"></div>
-        <div><button class="add" type="button" data-addrow="items">+ Add item</button></div>
+        <label for="dishIn">Dishes</label>
+        <p class="hint">Guests pick what they'll bring and can add their own.</p>
+        <div class="chips" id="dishes"></div>
+        <div class="addrow"><input id="dishIn" maxlength="60" placeholder="Add a dish" autocomplete="off"><button class="btn ghost" type="button" id="dishAdd">Add</button></div>
       </div>
 
-      <div class="linkrow"><button class="btn" id="submit" type="submit">Create invite</button><span class="status" id="status" aria-live="polite" style="margin:0"></span></div>
+      <div class="linkrow"><button class="btn" id="submit" type="submit">Create</button><span class="status" id="status" aria-live="polite" style="margin:0"></span></div>
     </form>
-
-    <section class="done" id="done" hidden>
-      <h2>Your invite is ready</h2>
-      <div class="notice">
-        <div><b>Send this to guests:</b></div>
-        <div class="linkrow"><code id="guestUrl"></code><button class="btn" type="button" data-copy="guestUrl">Copy</button></div>
-        <div><b>Keep this one private.</b> It's your host link for editing and removing sign-ups. Bookmark it or text it to yourself; it can't be recovered.</div>
-        <div class="linkrow"><code id="hostUrl"></code><button class="btn" type="button" data-copy="hostUrl">Copy</button></div>
-      </div>
-      <p><a id="openHost" href="#">Open your invite</a> · <a href="/potluck">Make another</a></p>
-    </section>
   </div>
 </main>
-<footer class="band foot"><div class="wrap"><a class="pack" href="/"><span>150</span><span>ct</span></a><span>Free, no accounts, deletes itself 30 days after the event.</span><a href="/potluck">Make your own</a></div></footer>
+<footer class="band foot"><div class="wrap"><a class="pack" href="/"><span>150</span><span>ct</span></a><span>Free, no accounts, deletes itself 30 days after the event.</span></div></footer>
 
 <script>
 {
-const {THEMES,applyTheme,sprite,icon,iconFor,esc,fmtWhen}=window.G;
+const {ICONS,TEMPLATES,sprite,dishIcon,applyLook,isEmoji,esc,fmtWhen,normalize}=window.G;
 const $=id=>document.getElementById(id);
-const qs=new URLSearchParams(location.search);
-const editSlug=qs.get("edit")||"";
+const editSlug=new URLSearchParams(location.search).get("edit")||"";
 let hostKey="";
 const hm=location.hash.match(/host=([a-z0-9]+)/);
 if(hm)hostKey=hm[1];
 else if(editSlug){try{hostKey=localStorage.getItem("150ct-host-"+editSlug)||""}catch(e){}}
 
-let state={theme:"thanksgiving",menu:[],items:[]};
+let tpl="thanksgiving",icon="turkey",dishes=[],titleTouched=false;
 
-// theme picker
-$("themes").innerHTML=Object.entries(THEMES).map(([id,t])=>`<button type="button" class="th" data-theme-id="${id}" aria-pressed="false">${sprite(t.sprite)}<span>${t.name}</span><span class="sw" style="background:${t.hero}"></span></button>`).join("");
-$("themes").addEventListener("click",e=>{const b=e.target.closest("[data-theme-id]");if(!b)return;state.theme=b.dataset.themeId;preview()});
+$("tpls").innerHTML=Object.entries(TEMPLATES).map(([id,t])=>`<button type="button" class="tp" data-tpl="${id}" aria-pressed="false">${sprite(t.icon)}<span>${esc(t.name)}</span></button>`).join("");
+$("icons").innerHTML=Object.entries(ICONS).map(([id,t])=>`<button type="button" class="ic" data-icon="${id}" aria-pressed="false" aria-label="${esc(t.name)}" title="${esc(t.name)}" style="background:${t.hero}">${sprite(id)}</button>`).join("");
 
-function rowsHTML(kind){
-  const list=state[kind];
-  return list.map((v,i)=>kind==="menu"
-    ?`<div class="r"><span class="ico">${icon(iconFor(v))}</span><input data-kind="menu" data-i="${i}" data-f="n" maxlength="40" aria-label="Menu item ${i+1}" placeholder="e.g. Ribs" value="${esc(v)}"><button class="x" type="button" data-del="menu" data-i="${i}" aria-label="Remove">×</button></div>`
-    :`<div class="r"><span class="ico">${icon(iconFor(v.n))}</span><input data-kind="items" data-i="${i}" data-f="n" maxlength="60" aria-label="Item ${i+1}" placeholder="e.g. Bottles of red wine" value="${esc(v.n)}"><input class="qty" type="number" min="1" max="50" data-kind="items" data-i="${i}" data-f="q" aria-label="How many" value="${v.q}"><button class="x" type="button" data-del="items" data-i="${i}" aria-label="Remove">×</button></div>`
-  ).join("");
+function useTemplate(id){
+  const t=TEMPLATES[id];tpl=id;icon=t.icon;$("emoji").value="";
+  dishes=t.dishes.map(n=>({n}));
+  if(!titleTouched)$("title").value=t.title;
+  renderDishes();preview();
+  if(id==="custom"&&!titleTouched)$("title").focus();
 }
-function renderRows(){$("menuRows").innerHTML=rowsHTML("menu");$("itemRows").innerHTML=rowsHTML("items")}
-
+function renderDishes(){
+  $("dishes").innerHTML=dishes.length?dishes.map((d,i)=>`<span class="chip">${dishIcon(d.n)}<span>${esc(d.n)}</span><button type="button" data-del="${i}" aria-label="Remove ${esc(d.n)}">×</button></span>`).join(""):`<span class="hint">No dishes yet. Guests can still add theirs.</span>`;
+}
 function preview(){
-  const t=applyTheme(state.theme);
-  document.querySelectorAll("[data-theme-id]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.themeId===state.theme));
-  $("pSprite").innerHTML=sprite(t.sprite);
-  $("pTitle").textContent=$("title").value.trim()||"Your event";
-  const when=fmtWhen($("date").value,$("time").value),place=$("place").value.trim(),addr=$("address").value.trim();
-  $("pDet").innerHTML=(when?`<div><b>When</b><span>${esc(when)}</span></div>`:"")+((place||addr)?`<div><b>Where</b><span>${esc(place)}${place&&addr?"<br>":""}${esc(addr)}</span></div>`:"");
+  applyLook(icon);
+  document.querySelectorAll("[data-tpl]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.tpl===tpl));
+  document.querySelectorAll("[data-icon]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.icon===icon));
+  $("pSprite").innerHTML=sprite(icon);
+  $("pTitle").textContent=$("title").value.trim()||"Your potluck";
+  const when=fmtWhen($("date").value,$("time").value),where=$("where").value.trim();
+  $("pDet").innerHTML=(when?`<div><b>When</b><span>${esc(when)}</span></div>`:"")+(where?`<div><b>Where</b><span>${esc(where)}</span></div>`:"");
+}
+function addDish(){
+  const n=$("dishIn").value.trim();if(!n)return;
+  dishes.push({n});$("dishIn").value="";renderDishes();$("dishIn").focus();
 }
 
-document.addEventListener("click",e=>{
-  const a=e.target.closest("[data-addrow]");
-  if(a){const k=a.dataset.addrow;state[k].push(k==="menu"?"":{n:"",q:1});renderRows();const ins=$(k==="menu"?"menuRows":"itemRows").querySelectorAll("input[data-f=n]");ins[ins.length-1].focus();return}
-  const d=e.target.closest("[data-del]");
-  if(d){state[d.dataset.del].splice(+d.dataset.i,1);renderRows()}
-});
-document.addEventListener("input",e=>{
-  const el=e.target;
-  if(el.dataset.kind){
-    const i=+el.dataset.i,k=el.dataset.kind;
-    if(k==="menu")state.menu[i]=el.value;
-    else state.items[i][el.dataset.f]=el.dataset.f==="q"?Math.max(1,Math.min(50,+el.value||1)):el.value;
-    if(el.dataset.f==="n"){const ico=el.parentElement.querySelector(".ico");ico.innerHTML=icon(iconFor(el.value))}
-    return;
-  }
-  preview();
-});
+$("tpls").addEventListener("click",e=>{const b=e.target.closest("[data-tpl]");if(b)useTemplate(b.dataset.tpl)});
+$("icons").addEventListener("click",e=>{const b=e.target.closest("[data-icon]");if(!b)return;icon=b.dataset.icon;$("emoji").value="";preview()});
+$("emoji").addEventListener("input",e=>{const v=e.target.value.trim();if(v&&isEmoji(v))icon=v;preview()});
+$("dishes").addEventListener("click",e=>{const b=e.target.closest("[data-del]");if(!b)return;dishes.splice(+b.dataset.del,1);renderDishes()});
+$("dishAdd").addEventListener("click",addDish);
+$("dishIn").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();addDish()}});
+$("title").addEventListener("input",()=>{titleTouched=true});
+$("form").addEventListener("input",e=>{if(e.target.id!=="dishIn"&&e.target.id!=="emoji")preview()});
 
 $("form").addEventListener("submit",async e=>{
   e.preventDefault();
-  const payload={theme:state.theme,title:$("title").value,date:$("date").value,time:$("time").value,place:$("place").value,address:$("address").value,contact:$("contact").value,notes:$("notes").value,
-    menu:state.menu.map(s=>s.trim()).filter(Boolean),items:state.items.filter(i=>i.n.trim()).map(i=>({...i,n:i.n.trim()}))};
-  if(!payload.title.trim()){$("status").textContent="Give it a title.";$("title").focus();return}
+  if($("dishIn").value.trim())addDish();
+  const payload={title:$("title").value,date:$("date").value,time:$("time").value,where:$("where").value,note:$("note").value,icon,dishes};
+  if(!payload.title.trim()){$("status").textContent="Give it a name.";$("title").focus();return}
   if(!payload.date){$("status").textContent="Pick a date.";$("date").focus();return}
   $("submit").disabled=true;$("status").textContent=editSlug?"Saving…":"Creating…";
   try{
@@ -151,32 +139,24 @@ $("form").addEventListener("submit",async e=>{
     if(!r.ok)throw new Error(j.error||"Couldn't save.");
     if(editSlug){location.href="/potluck/"+editSlug;return}
     try{localStorage.setItem("150ct-host-"+j.slug,j.hostKey)}catch(err){}
-    const g=location.origin+"/potluck/"+j.slug,h=g+"#host="+j.hostKey;
-    $("guestUrl").textContent=g;$("hostUrl").textContent=h;$("openHost").href=h;
-    $("form").hidden=true;$("done").hidden=false;window.scrollTo(0,0);
-  }catch(err){$("status").textContent=err.message||"Couldn't save. Try again."}
-  $("submit").disabled=false;
-});
-$("done").addEventListener("click",async e=>{
-  const b=e.target.closest("[data-copy]");if(!b)return;
-  try{await navigator.clipboard.writeText($(b.dataset.copy).textContent);b.textContent="Copied"}catch(err){b.textContent="Select and copy"}
+    location.href="/potluck/"+j.slug+"#host="+j.hostKey;
+  }catch(err){$("status").textContent=err.message||"Couldn't save. Try again.";$("submit").disabled=false}
 });
 
 async function init(){
   if(editSlug){
-    $("heading").textContent="Edit invite";$("submit").textContent="Save changes";
+    $("heading").innerHTML=`Edit potluck <a href="/potluck/${encodeURIComponent(editSlug)}" style="font:600 15px 'Work Sans',sans-serif;margin-left:10px">Back</a>`;$("submit").textContent="Save";$("tplField").hidden=true;titleTouched=true;
     try{
       const r=await fetch("/api/links?slug="+encodeURIComponent(editSlug),{headers:hostKey?{"x-host-key":hostKey}:{}});
       const j=await r.json();
       if(!r.ok||!j.isHost)throw 0;
-      const ev=j.link.data;
-      ["title","date","time","place","address","contact","notes"].forEach(k=>$(k).value=ev[k]||"");
-      state={theme:ev.theme,menu:[...ev.menu],items:ev.items.map(i=>({...i}))};
-    }catch(e){$("status").textContent="That edit link isn't valid.";$("submit").disabled=true}
-  }else{
-    state.items=[{n:"",q:1}];
-  }
-  renderRows();preview();
+      const ev=normalize(j.link.data);
+      ["title","date","time","where","note"].forEach(k=>$(k).value=ev[k]||"");
+      icon=ev.icon;if(isEmoji(icon))$("emoji").value=icon;
+      dishes=ev.dishes.map(d=>({...d}));tpl="";
+      renderDishes();preview();
+    }catch(e){$("status").textContent="Only the host can edit this.";$("submit").disabled=true}
+  }else useTemplate("thanksgiving");
 }
 init();
 }
