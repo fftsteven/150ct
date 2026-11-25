@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About 150ct</title>
+<meta name="description" content="Why 150ct exists: small, free, one-time use tools for getting together.">
+<meta name="theme-color" content="#fff6ee">
+<link rel="icon" href="/shared/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/shared/icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="/shared/shelf.js"></script>
+<style>
+:root{color-scheme:light;--bg:#fff6ee;--bg2:#fdeee6;--ink:#3c3a4f;--soft:#6a6680;--check:rgba(232,96,110,.28);--cloth:#fffaf6}
+*{box-sizing:border-box;min-width:0}
+html{min-height:100%;background:linear-gradient(180deg,var(--bg),var(--bg2));background-color:var(--bg)}
+body{margin:0;font:17px/1.65 Quicksand,system-ui,sans-serif;color:var(--ink);overflow-x:clip;min-height:100vh;display:flex;flex-direction:column}
+svg.sp{display:block;shape-rendering:crispEdges}
+a{color:inherit;text-underline-offset:3px}
+:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+main{width:100%;max-width:620px;margin:0 auto;padding:clamp(28px,5vw,56px) 20px 64px}
+.home{display:inline-block;width:76px;transform:rotate(-8deg);transition:transform .3s}
+.home:hover{transform:rotate(4deg)}
+.home svg{width:100%;height:auto}
+h1{font:700 clamp(30px,4.4vw,40px)/1.15 Quicksand,sans-serif;margin:22px 0 18px;text-wrap:balance}
+h2{font:700 21px/1.3 Quicksand,sans-serif;margin:0 0 6px}
+p{margin:0 0 16px;text-wrap:pretty}
+.card{background:#fff;border-radius:18px;padding:20px 22px;box-shadow:0 8px 24px rgba(60,58,79,.08);margin-top:28px}
+.card p:last-child{margin:0}
+.mail{display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border:2px solid var(--ink);border-radius:999px;background:#fff;font-weight:700;text-decoration:none;box-shadow:0 3px 0 var(--ink);margin-top:4px;overflow-wrap:anywhere}
+.mail:hover{transform:translateY(-1px)}
+footer{margin-top:auto;text-align:center;font-size:14px;padding:48px 16px 40px;display:grid;gap:8px;background:linear-gradient(90deg,var(--check) 50%,transparent 0) 0 0/28px 28px,linear-gradient(var(--check) 50%,transparent 0) 0 0/28px 28px,var(--cloth);-webkit-mask:radial-gradient(circle at 14px 0,transparent 13px,#000 14px) 0 0/28px 100% repeat-x;mask:radial-gradient(circle at 14px 0,transparent 13px,#000 14px) 0 0/28px 100% repeat-x}
+footer nav{display:flex;gap:18px;justify-content:center;flex-wrap:wrap}
+footer nav a{min-height:32px;display:inline-flex;align-items:center}
+</style>
+</head>
+<body>
+<main>
+  <a class="home" href="/" aria-label="150ct home" id="home"></a>
+  <h1>Why I made this</h1>
+  <p>Not everything needs to be a SaaS. Figuring out who's bringing what to Thanksgiving, finding a night that works for six friends, picking where to eat: none of that should take an app download, an account and a subscription.</p>
+  <p>These are small problems, but they still deserve a fix. So I make small ones. Each tool does one job, works from a link, and gets thrown out when the event is over, like a pack of paper plates.</p>
+  <p>They're free, with no ads and nothing to sign up for. If one helped you out, you can <a id="chip" href="https://ko-fi.com/150ct" target="_blank" rel="noopener">chip in</a>.</p>
+
+  <div class="card">
+    <h2>Have a small problem?</h2>
+    <p>If there's something you wish existed for your group, tell me. It might end up on the shelf.</p>
+    <h2 style="margin-top:18px">Need help with something bigger?</h2>
+    <p>I also do consulting and custom builds. Reach out and tell me what you're working on.</p>
+    <p><a class="mail" href="mailto:150countapp@gmail.com">150countapp@gmail.com</a></p>
+  </div>
+</main>
+<footer>
+  <div>no accounts · no ads · gone when you're done</div>
+  <nav><a href="/">All tools</a><a id="chip2" href="https://ko-fi.com/150ct" target="_blank" rel="noopener">Chip in</a></nav>
+</footer>
+<script>
+document.getElementById("home").innerHTML=window.SHELF.burst();
+const d=window.SHELF.SITE.donate;if(d){chip.href=d;chip2.href=d}
+</script>
+</body>
+</html>
