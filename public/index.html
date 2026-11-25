@@ -88,7 +88,7 @@ footer nav span{opacity:.6}
   <div class="burst" id="burst" role="img" aria-label="150ct"></div>
   <h1>Free tools for getting together</h1>
   <p>One-time use links. No sign-up.</p>
-  <button class="install" id="install" type="button"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="1.5" width="8" height="13" rx="1.5"/><path d="M8 5v5M5.8 7.8 8 10l2.2-2.2"/></svg>Add to home screen</button>
+  <button class="install" id="install" type="button"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="1.5" width="8" height="13" rx="1.5"/><path d="M8 5v5M5.8 7.8 8 10l2.2-2.2"/></svg><span id="installLabel">Add to home screen</span></button>
 </header>
 <dialog class="how" id="how"><b>Add to home screen</b><p id="howText"></p><form method="dialog"><button>Got it</button></form></dialog>
 <main class="shelf" id="shelf"></main>
@@ -109,19 +109,34 @@ document.getElementById("shelf").innerHTML=SHELF.map(a=>a.status==="live"
 const link=(url,label)=>url?`<a href="${esc(url)}" target="_blank" rel="noopener">${label}</a>`:`<span>${label} · soon</span>`;
 if(SITE.donate){const t=document.getElementById("tip");t.href=SITE.donate;t.hidden=false}
 document.getElementById("links").innerHTML=`<a href="/about">About</a>`+link(SITE.donate,"Chip in")+link(SITE.discord,"Discord");
-// Add to home screen: Android/Chrome gets the real prompt, iPhone gets the two steps.
-const ua=navigator.userAgent,ios=/iPhone|iPad|iPod/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1);
+// Add to home screen: use the browser's install prompt when there is one, otherwise show the steps for this browser.
+const ua=navigator.userAgent;
+const ios=/iPhone|iPad|iPod/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1);
+const android=/Android/.test(ua);
+const macSafari=!ios&&/Macintosh/.test(ua)&&/Safari/.test(ua)&&!/Chrome|Chromium|Edg|Firefox/.test(ua);
 const standalone=matchMedia("(display-mode: standalone)").matches||navigator.standalone;
-const phone=ios||/Android/.test(ua);
+if(macSafari)document.getElementById("installLabel").textContent="Add to Dock";
+function howTo(){
+  if(ios){
+    if(/CriOS/.test(ua))return "Tap the Share button in the address bar, then Add to Home Screen.";
+    if(/FxiOS|EdgiOS/.test(ua))return "Tap the menu, then Share, then Add to Home Screen.";
+    return "Tap the Share button at the bottom of Safari, then Add to Home Screen.";
+  }
+  if(android){
+    if(/SamsungBrowser/.test(ua))return "Tap the menu (three lines), then Add page to, then Home screen.";
+    if(/Firefox/.test(ua))return "Tap the menu (three dots), then Add to Home screen.";
+    return "Tap the menu (three dots), then Add to Home screen.";
+  }
+  if(macSafari)return "In the menu bar, choose File, then Add to Dock.";
+  return "Click the install icon at the right end of the address bar.";
+}
 let deferred=null;
-if(!standalone&&phone)document.body.classList.add("can-install");
+if(!standalone&&(ios||android||macSafari))document.body.classList.add("can-install");
 addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferred=e;if(!standalone)document.body.classList.add("can-install")});
 addEventListener("appinstalled",()=>document.body.classList.remove("can-install"));
 document.getElementById("install").onclick=async()=>{
   if(deferred){deferred.prompt();await deferred.userChoice.catch(()=>{});deferred=null;return}
-  document.getElementById("howText").textContent=ios
-    ?"Tap the Share button at the bottom of Safari, then Add to Home Screen."
-    :"Open your browser menu (the three dots), then Add to Home screen.";
+  document.getElementById("howText").textContent=howTo();
   document.getElementById("how").showModal();
 };
 }
