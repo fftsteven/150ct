@@ -23,11 +23,14 @@
 /* Whole days: one row per day */
 .days{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .day{position:relative;width:100%;text-align:left;border:2px solid var(--line);background:var(--panel);color:var(--ink);border-radius:10px;padding:10px 12px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;min-height:60px;overflow:hidden}
-.day .bar{position:absolute;inset:0 auto 0 0;background:color-mix(in srgb,var(--heat) 22%,transparent);pointer-events:none}
-.day>*:not(.bar){position:relative}
+.day.s-none{background:var(--none);border-color:var(--none)}
+.day.s-none .nm,.day.s-none .who,.day.s-none .n{opacity:.7}
+.day.s-some{background:var(--some);border-color:var(--some);color:#fff}
+.day.s-all{background:var(--all);border-color:var(--all);color:#fff}
+.day.s-some .who,.day.s-all .who,.day.s-some .n,.day.s-all .n{color:rgba(255,255,255,.85)}
+.day.s-some .box,.day.s-all .box{border-color:#fff}
 .day .box{width:28px;height:28px;border:2px solid var(--hero);border-radius:6px;display:grid;place-items:center;color:#fff;font:700 15px Silkscreen,monospace}
-.day[aria-pressed=true]{border-color:var(--hero)}
-.day[aria-pressed=true] .box{background:var(--hero)}
+.day[aria-pressed=true] .box{background:var(--acc);border-color:var(--acc);color:#21160f}
 .day .nm{font-weight:600;font-size:17px}
 .day .who{font-size:14px;color:var(--mute);overflow-wrap:anywhere}
 .day .n{font:700 15px Silkscreen,monospace;color:var(--mute)}
@@ -38,21 +41,26 @@
 .hg .dh{border:0;background:transparent;color:var(--ink);font:600 13px/1.2 "Work Sans",sans-serif;text-align:center;padding:4px 2px 6px;border-radius:6px;min-width:52px}
 .hg .dh small{display:block;font-weight:400;color:var(--mute)}
 .hg .hl{font:700 11px Silkscreen,monospace;color:var(--mute);text-align:right;padding-right:6px;position:sticky;left:0;background:var(--bg);display:flex;align-items:start;justify-content:flex-end;transform:translateY(-7px)}
-.hg .c{height:34px;border:0;border-radius:4px;background:color-mix(in srgb,var(--heat) calc(var(--h,0) * 85%),var(--panel));outline:1px solid var(--line);outline-offset:-1px;touch-action:none;padding:0;position:relative}
+.hg .c{height:34px;border:0;border-radius:4px;background:var(--none);touch-action:none;padding:0;position:relative}
+.hg .c.s-some{background:var(--some)}
+.hg .c.s-all{background:var(--all)}
 .hg .off{height:34px;border-radius:4px;background:repeating-linear-gradient(135deg,transparent 0 5px,var(--line) 5px 6px)}
-.hg .c.me{outline:3px solid var(--hero);outline-offset:-3px}
-.hg .c.me::after{content:"";position:absolute;top:5px;right:5px;width:7px;height:7px;background:var(--acc);border:1px solid var(--hero)}
+.hg .c.me{outline:3px solid var(--acc);outline-offset:-3px}
+.hg .c.me::after{content:"";position:absolute;top:5px;right:5px;width:7px;height:7px;background:var(--acc)}
 .hg .c.top{box-shadow:0 0 0 2px var(--acc)}
 .legend{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--mute);margin-top:10px}
-.legend i{display:inline-block;width:16px;height:16px;border-radius:3px;vertical-align:-3px;margin-right:5px;outline:1px solid var(--line)}
+.legend i{display:inline-block;width:16px;height:16px;border-radius:3px;vertical-align:-3px;margin-right:5px}
 .submitbar{position:sticky;bottom:0;z-index:2;background:var(--bg);margin-top:16px;padding-block:12px calc(12px + env(safe-area-inset-bottom,0px));border-top:2px solid var(--line);display:flex;gap:14px;align-items:center;flex-wrap:wrap}
 .submitbar .status{margin:0}
 .submitbar .btn{min-width:140px}
 .submitbar .btn.done{background:var(--hero);border-color:var(--hero);color:#fff;opacity:1}
 /* Host sees results only */
-.ro .day .box,.ro .legend span:first-child{display:none}
+.ro .day .box{display:none}
 .ro .day,.ro .c,.ro .dh{cursor:default}
 .ro .day{grid-template-columns:minmax(0,1fr) auto}
+.foothost{margin-top:40px;padding-top:20px;border-top:2px dashed var(--line);display:grid;gap:12px}
+.foothost .people{display:grid}
+.foothost .people div{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)}
 .admin{display:grid;gap:12px}
 .admin h2{font-size:20px;margin:0}
 .admin .people{display:grid;gap:2px}
@@ -88,6 +96,7 @@
     <div class="submitbar" id="submitbar"><button class="btn" id="submit" type="button" disabled>Submit</button><span class="status" id="status" aria-live="polite"></span></div>
   </div>
   <div class="wrap" id="missing" hidden><p class="hint" id="missingText"></p><p><a href="/meet">Make your own</a></p></div>
+  <div class="wrap col" id="hostFoot" hidden></div>
 </main>
 <footer class="band foot"><div class="wrap"><a class="pack" href="/"><span>150</span><span>ct</span></a><span>Free, no accounts, deletes itself 30 days after the last day.</span><a href="/meet">Make your own</a></div></footer>
 
@@ -157,14 +166,16 @@ function renderBest(t){
 
 function render(){
   const t=tally(),top=renderBest(t),n=t.ps.length;
+  const st=s=>!t.count[s]?"s-none":t.count[s]===n?"s-all":"s-some";
+  const legend=`<div class="legend">${hours()&&!isHost?`<span><i style="outline:3px solid var(--acc);outline-offset:-3px;background:var(--none)"></i>You</span>`:""}<span><i style="background:var(--all)"></i>Everyone free</span><span><i style="background:var(--some)"></i>Some can't</span><span><i style="background:var(--none)"></i>No one</span></div>`;
   if(!hours()){
     $("pickHint").textContent=isHost?"":"Tap every day that works";
     $("picker").innerHTML=`<ul class="days">${ev.days.map(d=>{
       const on=mine.has(d),names=t.ps.filter(p=>p.yes.has(d)).map(p=>p.name);
-      return `<li><button type="button" class="day${top.has(d)&&n>1?" top":""}" data-s="${d}" aria-pressed="${on}"><span class="bar" style="width:${n?t.count[d]/n*100:0}%"></span><span class="box">${on?"✓":""}</span><span><span class="nm">${esc(fmtDay(d,{weekday:"long",month:"short",day:"numeric"}))}</span><span class="who" style="display:block">${names.length?esc(names.join(", ")):"No one yet"}</span></span><span class="n">${t.count[d]}/${n}</span></button></li>`;
-    }).join("")}</ul>`;
+      return `<li><button type="button" class="day ${st(d)}${top.has(d)&&n>1?" top":""}" data-s="${d}" aria-pressed="${on}"><span class="box">${on?"✓":""}</span><span><span class="nm">${esc(fmtDay(d,{weekday:"long",month:"short",day:"numeric"}))}</span><span class="who" style="display:block">${names.length?esc(names.join(", ")):"No one yet"}</span></span><span class="n">${t.count[d]}/${n}</span></button></li>`;
+    }).join("")}</ul>${legend}`;
   }else{
-    $("pickHint").textContent=isHost?"Darker means more people are free.":"Tap or drag the hours you're free. Tap a day to fill it.";
+    $("pickHint").textContent=isHost?"Green works for everyone.":"Tap or drag the hours you're free. Tap a day to fill it.";
     const cols=ev.days.length,rows=[];
     rows.push(`<div></div>`+ev.days.map(d=>`<button type="button" class="dh" data-day="${d}">${esc(fmtDay(d,{weekday:"short"}))}<small>${esc(fmtDay(d,{month:"short",day:"numeric"}))}</small></button>`).join(""));
     // Rows cover every day's window; hours outside a day's own window are blank.
@@ -173,26 +184,29 @@ function render(){
       rows.push(`<div class="hl">${shortHour(h)}</div>`+ev.days.map((d,x)=>{
         const s=`${d}T${hh(h)}`,c=t.count[s],names=t.ps.filter(p=>p.yes.has(s)).map(p=>p.name);
         if(h<ev.hours[d][0]||h>=ev.hours[d][1])return `<div class="off" aria-hidden="true"></div>`;
-        return `<button type="button" class="c${mine.has(s)?" me":""}${top.has(s)&&n>1?" top":""}" data-s="${s}" data-x="${x}" data-y="${h-lo}" style="--h:${n?c/n:0}" aria-pressed="${mine.has(s)}" aria-label="${esc(fmtDay(d)+", "+hourLabel(h))}: ${c} free" title="${esc(names.join(", ")||"No one")}"></button>`;
+        return `<button type="button" class="c ${st(s)}${mine.has(s)?" me":""}${top.has(s)&&n>1?" top":""}" data-s="${s}" data-x="${x}" data-y="${h-lo}" aria-pressed="${mine.has(s)}" aria-label="${esc(fmtDay(d)+", "+hourLabel(h))}: ${c} free" title="${esc(names.join(", ")||"No one")}"></button>`;
       }).join(""));
     }
-    $("picker").innerHTML=`<div class="gridwrap"><div class="hg" id="hg" style="grid-template-columns:44px repeat(${cols},minmax(52px,1fr))">${rows.join("")}</div></div>
-      <div class="legend"><span><i style="outline:3px solid var(--hero);outline-offset:-3px"></i>You</span><span><i style="background:color-mix(in srgb,var(--heat) 85%,var(--panel))"></i>Everyone free</span><span><i style="background:var(--panel)"></i>No one</span></div>`;
+    $("picker").innerHTML=`<div class="gridwrap"><div class="hg" id="hg" style="grid-template-columns:44px repeat(${cols},minmax(52px,1fr))">${rows.join("")}</div></div>${legend}`;
   }
   if(isHost)renderAdmin(t);
 }
 
+// Host: the link up top, responses and controls at the bottom.
 function renderAdmin(t){
   const others=Object.entries(docs).filter(([id])=>id!==myId);
   const host=guestUrl+"#host="+hostKey;
   $("admin").innerHTML=`<div class="band" style="padding-block:16px"><div class="wrap notice admin">
-    <h2>Host</h2>
     <div><b>Send this link</b></div>
     <div class="linkrow"><code>${esc(guestUrl)}</code><button class="btn" data-copy="${esc(guestUrl)}" type="button">Copy</button>${navigator.share?`<button class="btn ghost" id="share" type="button">Share</button>`:""}</div>
-    <div class="linkrow"><a href="/meet?edit=${esc(slug)}">Change days</a> · <button class="btn ghost" id="delEv" type="button">Delete</button></div>
-    ${others.length?`<div class="people">${others.map(([id,r])=>`<div><span><b>${esc(r.name||"Someone")}</b> · ${(r.yes||[]).length} ${hours()?"hour":"day"}${(r.yes||[]).length===1?"":"s"}</span><button class="rm" data-rm="${esc(id)}" type="button">Remove</button></div>`).join("")}</div>`:""}
-    <div class="small">This browser remembers you as host. To manage from another device, open your host link there. <button class="btn ghost" data-copy="${esc(host)}" data-label="Copy host link" type="button" style="min-height:32px;font-size:12px;padding:0 10px">Copy host link</button></div>
   </div></div>`;
+  $("hostFoot").hidden=false;
+  $("hostFoot").innerHTML=`<div class="foothost">
+    <h3>Responses</h3>
+    ${others.length?`<div class="people">${others.map(([id,r])=>`<div><span><b>${esc(r.name||"Someone")}</b> · ${(r.yes||[]).length} ${hours()?"hour":"day"}${(r.yes||[]).length===1?"":"s"}</span><button class="rm" data-rm="${esc(id)}" type="button">Remove</button></div>`).join("")}</div>`:`<p class="hint">No one yet.</p>`}
+    <div class="linkrow"><a href="/meet?edit=${esc(slug)}">Change days</a> · <button class="btn ghost" id="delEv" type="button">Delete</button></div>
+    <p class="hint">This browser remembers you as host. To manage from another device, open your host link there. <button class="btn ghost" data-copy="${esc(host)}" data-label="Copy host link" type="button" style="min-height:32px;font-size:12px;padding:0 10px">Copy host link</button></p>
+  </div>`;
 }
 
 function renderEvent(){
@@ -298,7 +312,7 @@ async function removePerson(id,b){
   try{const r=await fetch(`/api/responses?slug=${encodeURIComponent(slug)}&id=${encodeURIComponent(id)}`,{method:"DELETE",headers:hdr()});if(!r.ok)throw 0;status("Removed.");load()}
   catch(err){status("Couldn't remove that.")}
 }
-$("admin").addEventListener("click",async e=>{
+const hostClick=async e=>{
   const c=e.target.closest("[data-copy]");
   if(c){const ok=await copyText(c.dataset.copy);c.textContent=ok?"Copied":"Couldn't copy";if(!ok){const code=c.parentElement.querySelector("code");if(code)getSelection().selectAllChildren(code)}setTimeout(()=>c.textContent=c.dataset.label||"Copy",1800);return}
   const rm=e.target.closest("[data-rm]");
@@ -310,7 +324,8 @@ $("admin").addEventListener("click",async e=>{
     const r=await fetch(`/api/links?slug=${encodeURIComponent(slug)}`,{method:"DELETE",headers:hdr()});
     if(r.ok){try{localStorage.removeItem("150ct-host-"+slug)}catch(err){}location.href="/meet"}else b.textContent="Couldn't delete";
   }
-});
+};
+$("admin").addEventListener("click",hostClick);$("hostFoot").addEventListener("click",hostClick);
 
 load();
 setInterval(()=>{if(!document.hidden&&ev&&!drag&&!saving)load()},8000);
