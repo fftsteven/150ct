@@ -108,7 +108,7 @@ document.getElementById("shelf").innerHTML=SHELF.map(a=>a.status==="live"
 ).join("");
 const link=(url,label)=>url?`<a href="${esc(url)}" target="_blank" rel="noopener">${label}</a>`:`<span>${label} · soon</span>`;
 if(SITE.donate){const t=document.getElementById("tip");t.href=SITE.donate;t.hidden=false}
-document.getElementById("links").innerHTML=link(SITE.donate,"Chip in")+link(SITE.discord,"Discord");
+document.getElementById("links").innerHTML=`<a href="/about">About</a>`+link(SITE.donate,"Chip in")+link(SITE.discord,"Discord");
 // Add to home screen: Android/Chrome gets the real prompt, iPhone gets the two steps.
 const ua=navigator.userAgent,ios=/iPhone|iPad|iPod/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1);
 const standalone=matchMedia("(display-mode: standalone)").matches||navigator.standalone;
