@@ -1,0 +1,5 @@
+/* Gift exchange: deep berry ground, pink gift, yellow accent. Layout comes from /shared/app.css. */
+:root{--hero:#7a1f45;--acc:#ffd23f;--slot:#7a1f45}
+.hero .sprite svg{filter:drop-shadow(0 6px 0 rgba(0,0,0,.25))}
+.anim-b{animation:bob .8s steps(1) infinite}
+@media(max-width:600px){.hero .sprite{max-width:120px}}

@@ -10,12 +10,14 @@ public/                     static site (Vercel outputDirectory)
   shared/shelf.js           shelf tiles, sprites, donate/Discord links  <- edit to launch an app
   shared/app.css            look shared by every app page (each app sets --hero/--acc)
   apps/potluck/             new.html (create/edit), view.html (guest/host), lib.js
+  apps/gift/                Gift exchange: new.html (names, draw on create), view.html (tap your name, see your match), lib.js
   apps/eat/                 Where to eat: one page, no link. Places saved in this browser, tick some, send one text
 api/links.js, responses.js  Vercel entries; both just call core/handler.js
 core/                       platform: link model, expiry, host keys, rate limits, storage
 apps/                       server side of each app (validation, responses)
   index.js                  registry
   potluck/server.js
+  gift/server.js            the draw; pairs never leave the server, responder ids hidden even from the host
 core/unfurl.js              Google Maps share link -> place name (no API key), GET /api/unfurl
 core/places.js              Google Places search for Where to eat, GET /api/places (needs GOOGLE_MAPS_API_KEY)
 dev.js                      local server, in-memory Redis

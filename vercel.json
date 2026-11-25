@@ -21,6 +21,14 @@
     {
       "source": "/meet/:slug",
       "destination": "/api/page?app=meet&slug=:slug"
+    },
+    {
+      "source": "/gift",
+      "destination": "/apps/gift/new"
+    },
+    {
+      "source": "/gift/:slug",
+      "destination": "/api/page?app=gift&slug=:slug"
     }
   ],
   "functions": {
