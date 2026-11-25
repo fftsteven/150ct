@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>When works · 150ct</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared/app.css">
+<link rel="stylesheet" href="/apps/meet/style.css">
+<link rel="icon" href="/shared/icon.svg" type="image/svg+xml">
+<script src="/apps/meet/lib.js"></script>
+<style>
+.col{max-width:720px}
+.nameRow{display:grid;gap:6px;margin:0 0 18px}
+.nameRow.need input{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc)}
+.best{background:var(--panel);border:2px solid var(--hero);border-radius:10px;padding:14px 16px;margin-bottom:22px;display:grid;gap:8px}
+.best h3{font-size:14px;color:var(--mute);font-weight:400}
+.best .pick{display:grid;gap:2px}
+.best .pick b{font-size:19px;font-weight:600}
+.best .pick span{color:var(--mute);font-size:14px}
+.head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+/* Whole days: one row per day */
+.days{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.day{position:relative;width:100%;text-align:left;border:2px solid var(--line);background:var(--panel);color:var(--ink);border-radius:10px;padding:10px 12px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;min-height:60px;overflow:hidden}
+.day .bar{position:absolute;inset:0 auto 0 0;background:color-mix(in srgb,var(--heat) 22%,transparent);pointer-events:none}
+.day>*:not(.bar){position:relative}
+.day .box{width:28px;height:28px;border:2px solid var(--hero);border-radius:6px;display:grid;place-items:center;color:#fff;font:700 15px Silkscreen,monospace}
+.day[aria-pressed=true]{border-color:var(--hero)}
+.day[aria-pressed=true] .box{background:var(--hero)}
+.day .nm{font-weight:600;font-size:17px}
+.day .who{font-size:14px;color:var(--mute);overflow-wrap:anywhere}
+.day .n{font:700 15px Silkscreen,monospace;color:var(--mute)}
+.day.top{box-shadow:inset 0 0 0 2px var(--acc)}
+/* Hours: a grid, days across, hours down */
+.gridwrap{overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch}
+.hg{display:grid;gap:3px;user-select:none;-webkit-user-select:none;min-width:min-content}
+.hg .dh{border:0;background:transparent;color:var(--ink);font:600 13px/1.2 "Work Sans",sans-serif;text-align:center;padding:4px 2px 6px;border-radius:6px;min-width:52px}
+.hg .dh small{display:block;font-weight:400;color:var(--mute)}
+.hg .hl{font:700 11px Silkscreen,monospace;color:var(--mute);text-align:right;padding-right:6px;position:sticky;left:0;background:var(--bg);display:flex;align-items:start;justify-content:flex-end;transform:translateY(-7px)}
+.hg .c{height:34px;border:0;border-radius:4px;background:color-mix(in srgb,var(--heat) calc(var(--h,0) * 85%),var(--panel));outline:1px solid var(--line);outline-offset:-1px;touch-action:none;padding:0;position:relative}
+.hg .c.me{outline:3px solid var(--hero);outline-offset:-3px}
+.hg .c.me::after{content:"";position:absolute;top:5px;right:5px;width:7px;height:7px;background:var(--acc);border:1px solid var(--hero)}
+.hg .c.top{box-shadow:0 0 0 2px var(--acc)}
+.legend{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--mute);margin-top:10px}
+.legend i{display:inline-block;width:16px;height:16px;border-radius:3px;vertical-align:-3px;margin-right:5px;outline:1px solid var(--line)}
+.admin{display:grid;gap:12px}
+.admin h2{font-size:20px;margin:0}
+.admin .people{display:grid;gap:2px}
+.admin .people div{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px dashed rgba(0,0,0,.2)}
+.admin .rm{color:#21160f}
+.admin .small{font-size:14px}
+.admin .btn{background:#21160f;color:#fff;border-color:#21160f}
+.admin .btn.ghost{background:transparent;color:#21160f}
+</style>
+</head>
+<body>
+<nav class="top"><div class="wrap"><a href="/">150ct</a></div></nav>
+<div id="admin"></div>
+<header class="band hero">
+  <div class="wrap">
+    <div>
+      <h1 id="title">Loading…</h1>
+      <div class="det" id="det"></div>
+    </div>
+    <div class="sprite" id="sprite" role="img" aria-label="Calendar"></div>
+  </div>
+</header>
+
+<main class="band">
+  <div class="wrap col" id="main" hidden>
+    <div class="nameRow" id="nameRow">
+      <label for="name">Your name</label>
+      <input id="name" autocomplete="given-name" maxlength="40" placeholder="So people know who's free">
+    </div>
+    <div class="best" id="best"></div>
+    <div class="head"><h2 id="pickH">When are you free?</h2><span class="hint" id="pickHint"></span></div>
+    <div id="picker"></div>
+    <p class="status" id="status" aria-live="polite"></p>
+  </div>
+  <div class="wrap" id="missing" hidden><p class="hint" id="missingText"></p><p><a href="/meet">Make your own</a></p></div>
+</main>
+<footer class="band foot"><div class="wrap"><a class="pack" href="/"><span>150</span><span>ct</span></a><span>Free, no accounts, deletes itself 30 days after the last day.</span><a href="/meet">Make your own</a></div></footer>
+
+<script>
+{
+const {cal,esc,copyText,fmtDay,hourLabel,shortHour,hh,slotsOf}=window.M;
+const $=id=>document.getElementById(id);
+const slug=location.pathname.split("/").filter(Boolean).pop();
+const guestUrl=location.origin+"/meet/"+slug;
+$("sprite").innerHTML=cal();
+
+let hostKey="";
+try{
+  const m=location.hash.match(/host=([a-z0-9]+)/);
+  if(m){hostKey=m[1];localStorage.setItem("150ct-host-"+slug,hostKey);history.replaceState(null,"",location.pathname)}
+  else hostKey=localStorage.getItem("150ct-host-"+slug)||"";
+}catch(e){}
+
+// One identity per browser, shared with the other apps so the name is filled in.
+let myId="",myName="";
+try{const s=JSON.parse(localStorage.getItem("150ct-me")||"null");if(s){myId=s.id||"";myName=s.name||""}}catch(e){}
+if(!/^[a-z0-9]{20,40}$/.test(myId))myId=Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>b.toString(36).padStart(2,"0")).join("").slice(0,28);
+const remember=()=>{try{localStorage.setItem("150ct-me",JSON.stringify({id:myId,name:myName}))}catch(e){}};
+remember();$("name").value=myName;
+
+let ev=null,docs={},isHost=false,mine=new Set(),dirty=false,saving=false,pending=false,saveT=null;
+const hdr=()=>hostKey?{"x-host-key":hostKey}:{};
+const status=t=>$("status").textContent=t;
+const hours=()=>ev.from!=null;
+
+// Everyone's rows, with mine as it is on screen right now.
+function people(){
+  const all={...docs};
+  if(mine.size)all[myId]={name:myName.trim()||(isHost?"Host":"You"),yes:[...mine]};else delete all[myId];
+  return Object.entries(all).map(([id,r])=>({id,name:id===myId?"You":r.name||"Someone",yes:new Set(r.yes||[])})).filter(p=>p.yes.size);
+}
+function tally(){
+  const ps=people(),slots=slotsOf(ev),count={};
+  for(const s of slots)count[s]=ps.filter(p=>p.yes.has(s)).length;
+  return {ps,slots,count,max:Math.max(0,...Object.values(count))};
+}
+
+// Best: the slots most people can do. Hours get merged into ranges when the same people are free.
+function bestPicks(t){
+  if(!t.max)return [];
+  const who=s=>t.ps.filter(p=>p.yes.has(s)).map(p=>p.id).join(",");
+  const top=t.slots.filter(s=>t.count[s]===t.max);
+  if(!hours())return top.map(s=>({label:fmtDay(s),slots:[s]}));
+  const out=[];
+  for(const s of top){
+    const [d,h]=s.split("T"),last=out.at(-1);
+    if(last&&last.d===d&&last.to===+h&&last.who===who(s)){last.to=+h+1;last.slots.push(s)}
+    else out.push({d,from:+h,to:+h+1,who:who(s),slots:[s]});
+  }
+  return out.map(r=>({label:`${fmtDay(r.d)}, ${hourLabel(r.from)} to ${r.to===24?"midnight":hourLabel(r.to)}`,slots:r.slots}));
+}
+function renderBest(t){
+  const picks=bestPicks(t),n=t.ps.length;
+  if(!picks.length){$("best").innerHTML=`<h3>Best so far</h3><div class="pick"><b>No one yet</b><span>Be the first. The best ${hours()?"time":"day"} shows up here.</span></div>`;return new Set()}
+  const shown=picks.slice(0,3).map(p=>{
+    const s=p.slots[0],free=t.ps.filter(x=>x.yes.has(s)).map(x=>x.name),out=t.ps.filter(x=>!x.yes.has(s)).map(x=>x.name);
+    return `<div class="pick"><b>${esc(p.label)}</b><span>${t.max} of ${n}${n>1?`: ${esc(free.join(", "))}`:""}${out.length?`. Can't: ${esc(out.join(", "))}`:""}</span></div>`;
+  });
+  $("best").innerHTML=`<h3>${picks.length>1?"Best so far, tied":"Best so far"}</h3>${shown.join("")}${picks.length>3?`<span class="hint">and ${picks.length-3} more</span>`:""}`;
+  return new Set(t.max>0?t.slots.filter(s=>t.count[s]===t.max):[]);
+}
+
+function render(){
+  const t=tally(),top=renderBest(t),n=t.ps.length;
+  if(!hours()){
+    $("pickHint").textContent="Tap every day that works";
+    $("picker").innerHTML=`<ul class="days">${ev.days.map(d=>{
+      const on=mine.has(d),names=t.ps.filter(p=>p.yes.has(d)).map(p=>p.name);
+      return `<li><button type="button" class="day${top.has(d)&&n>1?" top":""}" data-s="${d}" aria-pressed="${on}"><span class="bar" style="width:${n?t.count[d]/n*100:0}%"></span><span class="box">${on?"✓":""}</span><span><span class="nm">${esc(fmtDay(d,{weekday:"long",month:"short",day:"numeric"}))}</span><span class="who" style="display:block">${names.length?esc(names.join(", ")):"No one yet"}</span></span><span class="n">${t.count[d]}/${n}</span></button></li>`;
+    }).join("")}</ul>`;
+  }else{
+    $("pickHint").textContent="Tap or drag the hours you're free. Tap a day to fill it.";
+    const cols=ev.days.length,rows=[];
+    rows.push(`<div></div>`+ev.days.map(d=>`<button type="button" class="dh" data-day="${d}">${esc(fmtDay(d,{weekday:"short"}))}<small>${esc(fmtDay(d,{month:"short",day:"numeric"}))}</small></button>`).join(""));
+    for(let h=ev.from;h<ev.to;h++){
+      rows.push(`<div class="hl">${shortHour(h)}</div>`+ev.days.map((d,x)=>{
+        const s=`${d}T${hh(h)}`,c=t.count[s],names=t.ps.filter(p=>p.yes.has(s)).map(p=>p.name);
+        return `<button type="button" class="c${mine.has(s)?" me":""}${top.has(s)&&n>1?" top":""}" data-s="${s}" data-x="${x}" data-y="${h-ev.from}" style="--h:${n?c/n:0}" aria-pressed="${mine.has(s)}" aria-label="${esc(fmtDay(d)+", "+hourLabel(h))}: ${c} free" title="${esc(names.join(", ")||"No one")}"></button>`;
+      }).join(""));
+    }
+    $("picker").innerHTML=`<div class="gridwrap"><div class="hg" id="hg" style="grid-template-columns:44px repeat(${cols},minmax(52px,1fr))">${rows.join("")}</div></div>
+      <div class="legend"><span><i style="outline:3px solid var(--hero);outline-offset:-3px"></i>You</span><span><i style="background:color-mix(in srgb,var(--heat) 85%,var(--panel))"></i>Everyone free</span><span><i style="background:var(--panel)"></i>No one</span></div>`;
+  }
+  if(isHost)renderAdmin(t);
+}
+
+function renderAdmin(t){
+  const others=Object.entries(docs).filter(([id])=>id!==myId);
+  const host=guestUrl+"#host="+hostKey;
+  $("admin").innerHTML=`<div class="band" style="padding-block:16px"><div class="wrap notice admin">
+    <h2>Host</h2>
+    <div><b>Send this link</b></div>
+    <div class="linkrow"><code>${esc(guestUrl)}</code><button class="btn" data-copy="${esc(guestUrl)}" type="button">Copy</button>${navigator.share?`<button class="btn ghost" id="share" type="button">Share</button>`:""}</div>
+    <div class="linkrow"><a href="/meet?edit=${esc(slug)}">Change days</a> · <button class="btn ghost" id="delEv" type="button">Delete</button></div>
+    ${others.length?`<div class="people">${others.map(([id,r])=>`<div><span><b>${esc(r.name||"Someone")}</b> · ${(r.yes||[]).length} ${hours()?"hours":"days"}</span><button class="rm" data-rm="${esc(id)}" type="button">Remove</button></div>`).join("")}</div>`:""}
+    <div class="small">This browser remembers you as host. To manage from another device, open your host link there. <button class="btn ghost" data-copy="${esc(host)}" data-label="Copy host link" type="button" style="min-height:32px;font-size:12px;padding:0 10px">Copy host link</button></div>
+  </div></div>`;
+}
+
+function renderEvent(){
+  const title=ev.title||"When works?";
+  document.title=title;$("title").textContent=title;
+  const first=ev.days[0],last=ev.days.at(-1);
+  const range=first===last?fmtDay(first):`${fmtDay(first,{month:"short",day:"numeric"})} to ${fmtDay(last,{month:"short",day:"numeric"})}`;
+  $("det").innerHTML=`<div><b>Days</b><span>${esc(range)} · ${ev.days.length} day${ev.days.length>1?"s":""}</span></div>`+(hours()?`<div><b>Hours</b><span>${esc(hourLabel(ev.from))} to ${esc(ev.to===24?"midnight":hourLabel(ev.to))}</span></div>`:"");
+  $("main").hidden=false;
+}
+
+async function load(){
+  try{
+    const r=await fetch(`/api/links?slug=${encodeURIComponent(slug)}&me=${myId}`,{headers:hdr(),cache:"no-store"});
+    const j=await r.json();
+    if(!r.ok){$("title").textContent="Not found";$("missingText").textContent=j.error||"This link doesn't exist.";$("missing").hidden=false;return}
+    const first=!ev;
+    ev=j.link.data;docs=j.responses||{};
+    if(first){
+      isHost=j.isHost;
+      if(!isHost&&hostKey){hostKey="";try{localStorage.removeItem("150ct-host-"+slug)}catch(e){}}
+      renderEvent();
+    }
+    const valid=new Set(slotsOf(ev));
+    if(!dirty&&!saving)mine=new Set((docs[myId]?.yes||[]).filter(s=>valid.has(s)));
+    if(first&&docs[myId]?.name&&!myName){myName=docs[myId].name;$("name").value=myName;remember()}
+    if(!drag)render();
+  }catch(e){if(!ev)$("title").textContent="Couldn't load this"}
+}
+
+async function save(){
+  if(!myName.trim()&&!isHost){$("nameRow").classList.add("need");status("Add your name to save.");return}
+  if(saving){pending=true;return}
+  saving=true;dirty=false;status("Saving…");
+  try{
+    const r=await fetch(`/api/responses?slug=${encodeURIComponent(slug)}`,{method:"POST",headers:{"content-type":"application/json",...hdr()},body:JSON.stringify({id:myId,name:myName.trim(),yes:[...mine]})});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(j.error);
+    status("Saved.");
+    if(j.responses){docs=j.responses;if(!drag)render()}
+  }catch(e){status(e.message||"Couldn't save that. Try again in a sec.")}
+  saving=false;
+  if(pending){pending=false;save()}
+}
+const queue=()=>{dirty=true;clearTimeout(saveT);saveT=setTimeout(save,500)};
+const toggle=s=>{mine.has(s)?mine.delete(s):mine.add(s)};
+
+// Whole days: tap a row.
+$("picker").addEventListener("click",e=>{
+  const d=e.target.closest(".day");if(d){toggle(d.dataset.s);render();queue();return}
+  // Day header in the hour grid: fill the column, or clear it if it's already full.
+  const h=e.target.closest(".dh");
+  if(h){const col=slotsOf(ev).filter(s=>s.startsWith(h.dataset.day+"T")),full=col.every(s=>mine.has(s));col.forEach(s=>full?mine.delete(s):mine.add(s));render();queue();return}
+  const c=e.target.closest(".c");
+  if(c&&e.detail===0){toggle(c.dataset.s);render();queue()}
+});
+
+// Hours: tap or drag to paint a rectangle. The first cell decides add or remove.
+let drag=null;
+function paintTo(el){
+  if(!el||!el.classList.contains("c"))return;
+  const x0=Math.min(drag.x,+el.dataset.x),x1=Math.max(drag.x,+el.dataset.x),y0=Math.min(drag.y,+el.dataset.y),y1=Math.max(drag.y,+el.dataset.y);
+  mine=new Set(drag.before);
+  document.querySelectorAll("#hg .c").forEach(c=>{
+    const x=+c.dataset.x,y=+c.dataset.y;
+    if(x>=x0&&x<=x1&&y>=y0&&y<=y1)drag.add?mine.add(c.dataset.s):mine.delete(c.dataset.s);
+    const on=mine.has(c.dataset.s);c.classList.toggle("me",on);c.setAttribute("aria-pressed",on);
+  });
+}
+$("picker").addEventListener("pointerdown",e=>{
+  const c=e.target.closest(".c");if(!c)return;
+  e.preventDefault();drag={add:!mine.has(c.dataset.s),x:+c.dataset.x,y:+c.dataset.y,before:new Set(mine)};paintTo(c);
+});
+addEventListener("pointermove",e=>{if(drag){const el=document.elementFromPoint(e.clientX,e.clientY);paintTo(el&&el.closest&&el.closest(".c"))}});
+const endDrag=()=>{if(!drag)return;drag=null;render();queue()};
+addEventListener("pointerup",endDrag);addEventListener("pointercancel",endDrag);
+
+$("name").addEventListener("input",e=>{
+  myName=e.target.value;remember();
+  if(myName.trim()){$("nameRow").classList.remove("need");if(mine.size||docs[myId])queue()}
+  render();
+});
+
+async function removePerson(id,b){
+  if(b.dataset.armed!=="1"){b.dataset.armed="1";b.textContent="Tap again";return}
+  try{const r=await fetch(`/api/responses?slug=${encodeURIComponent(slug)}&id=${encodeURIComponent(id)}`,{method:"DELETE",headers:hdr()});if(!r.ok)throw 0;status("Removed.");load()}
+  catch(err){status("Couldn't remove that.")}
+}
+$("admin").addEventListener("click",async e=>{
+  const c=e.target.closest("[data-copy]");
+  if(c){const ok=await copyText(c.dataset.copy);c.textContent=ok?"Copied":"Couldn't copy";if(!ok){const code=c.parentElement.querySelector("code");if(code)getSelection().selectAllChildren(code)}setTimeout(()=>c.textContent=c.dataset.label||"Copy",1800);return}
+  const rm=e.target.closest("[data-rm]");
+  if(rm)return removePerson(rm.dataset.rm,rm);
+  if(e.target.id==="share"){try{await navigator.share({title:ev.title||"When works?",text:(ev.title||"When works?")+" Tap the days you're free:",url:guestUrl})}catch(err){}return}
+  if(e.target.id==="delEv"){
+    const b=e.target;
+    if(b.dataset.armed!=="1"){b.dataset.armed="1";b.textContent="Tap again to delete for everyone";return}
+    const r=await fetch(`/api/links?slug=${encodeURIComponent(slug)}`,{method:"DELETE",headers:hdr()});
+    if(r.ok){try{localStorage.removeItem("150ct-host-"+slug)}catch(err){}location.href="/meet"}else b.textContent="Couldn't delete";
+  }
+});
+
+load();
+setInterval(()=>{if(!document.hidden&&ev&&!drag&&!dirty&&!saving)load()},8000);
+}
+</script>
+</body>
+</html>

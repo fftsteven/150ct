@@ -8,5 +8,6 @@
 //                              -> { row | null, conflict?, error? }   one guest's response
 //   view(row)                  -> what other guests may see of a response
 import potluck from "./potluck/server.js";
+import meet from "./meet/server.js";
 
-export const APPS = { potluck };
+export const APPS = { potluck, meet };
