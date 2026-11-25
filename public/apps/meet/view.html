@@ -177,9 +177,10 @@ function render(){
   $("picker").classList.toggle("ro",!pick);
   $("nameRow").hidden=!pick;
   $("pickH").textContent=pick?"When are you free?":"Who's free";
-  const st=s=>pick?(mine.has(s)?"s-mine":""):!t.count[s]?"s-none":t.count[s]===n?"s-all":"s-some";
+  // Before anyone answers, the results stay plain instead of all gray.
+  const st=s=>pick?(mine.has(s)?"s-mine":""):!n?"":!t.count[s]?"s-none":t.count[s]===n?"s-all":"s-some";
   const legend=`<div class="legend">${hours()&&!isHost?`<span><i style="outline:3px solid var(--acc);outline-offset:-3px;background:var(--none)"></i>You</span>`:""}<span><i style="background:var(--all)"></i>Everyone free</span><span><i style="background:var(--some)"></i>Some can't</span><span><i style="background:var(--none)"></i>No one</span></div>`;
-  const legendOut=pick?"":legend;
+  const legendOut=pick||!n?"":legend;
   if(!hours()){
     $("pickHint").textContent=pick?"Tap every day that works":"";
     $("picker").innerHTML=`<ul class="days">${ev.days.map(d=>{
