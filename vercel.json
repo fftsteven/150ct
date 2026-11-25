@@ -9,6 +9,10 @@
     {
       "source": "/potluck/:slug",
       "destination": "/apps/potluck/view"
+    },
+    {
+      "source": "/eat",
+      "destination": "/apps/eat/new"
     }
   ]
 }

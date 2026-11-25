@@ -7,12 +7,16 @@
 // DELETE /api/links?slug=                            host only
 // POST   /api/responses?slug=        { id, ...app fields }
 // DELETE /api/responses?slug=&id=                    host only
+// GET    /api/unfurl?u=<google maps link>  -> { name }
+// GET    /api/places?q=|id=&s=             Google Places search (see core/places.js)
 //
 // Host key travels in the x-host-key header.
 
 import { APPS } from "../apps/index.js";
 import { json } from "./util.js";
 import { limited } from "./ratelimit.js";
+import { unfurl, isMapsUrl } from "./unfurl.js";
+import { placesKey, autocomplete, details } from "./places.js";
 import {
   loadLink, isHostOf, createLink, updateLink, deleteLink, loadResponses, saveResponse,
   removeResponse, publicLink, maskResponses, RESPONDER_RE,
@@ -99,12 +103,34 @@ async function responses(request, q, hostKey) {
   return json(405, { error: "Method not allowed" }, { allow: "POST, DELETE" });
 }
 
+async function unfurlRoute(request, q) {
+  const u = q.get("u") || "";
+  if (!isMapsUrl(u)) return json(400, { error: "That isn't a Google Maps link." });
+  if (await limited(request, "unfurl", 120)) return json(429, { error: "Too many links. Type the name instead." });
+  try { return json(200, { name: await unfurl(u) }); } catch { return json(200, { name: "" }); }
+}
+
+async function placesRoute(request, q) {
+  const key = placesKey();
+  if (!key) return json(501, { error: "Search isn't set up." });
+  if (await limited(request, "places", 600)) return json(429, { error: "Too many searches. Type the name instead." });
+  try {
+    if (q.get("id")) return json(200, { place: await details(q.get("id"), q.get("s"), key) });
+    return json(200, { results: await autocomplete(request, q.get("q"), q.get("s"), key) });
+  } catch (e) {
+    console.error(e);
+    return json(502, { error: "Search isn't working right now. Type the name instead." });
+  }
+}
+
 export async function handle(request) {
   try {
     const url = new URL(request.url);
     const hostKey = request.headers.get("x-host-key") || "";
     if (url.pathname === "/api/links") return await links(request, url.searchParams, hostKey);
     if (url.pathname === "/api/responses") return await responses(request, url.searchParams, hostKey);
+    if (url.pathname === "/api/unfurl") return await unfurlRoute(request, url.searchParams);
+    if (url.pathname === "/api/places") return await placesRoute(request, url.searchParams);
     return json(404, { error: "Not found" });
   } catch (e) {
     console.error(e);

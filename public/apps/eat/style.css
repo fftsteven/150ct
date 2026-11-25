@@ -1,0 +1,3 @@
+/* Where to eat: forest ground so the fox reads, warm yellow accent. Layout comes from /shared/app.css. */
+:root{--hero:#2f4a3a;--acc:#f2c230;--slot:#e8862e}
+.hero .sprite svg{filter:drop-shadow(0 6px 0 rgba(0,0,0,.25))}
