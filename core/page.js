@@ -1,11 +1,11 @@
-// Guest pages (/potluck/<slug>, /meet/<slug>) with the event name in the link preview,
+// Guest pages (/potluck/<slug>, /meet/<slug>, /gift/<slug>) with the event name in the link preview,
 // so a link pasted in a group chat shows "Thanksgiving at Dana's" instead of just "Potluck".
 // The page itself is the static view.html; only <title> and og:title change.
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { loadLink, SLUG_RE } from "./links.js";
 
-const APPS = new Set(["potluck", "meet"]);
+const APPS = new Set(["potluck", "meet", "gift"]);
 const cache = {};
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 

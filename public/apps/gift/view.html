@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gift exchange · 150ct</title>
+<meta name="description" content="Tap your name to see who you're getting a gift for. Free, no sign-up.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="150ct">
+<meta property="og:title" content="Gift exchange">
+<meta property="og:description" content="Tap your name to see who you're getting a gift for. Free, no sign-up.">
+<meta property="og:image" content="https://150ct.com/shared/og-gift.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared/app.css">
+<link rel="stylesheet" href="/apps/gift/style.css">
+<link rel="icon" href="/shared/icon.svg" type="image/svg+xml">
+<script src="/apps/gift/lib.js"></script>
+<style>
+.col{max-width:640px}
+.who{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:14px}
+.who button{min-height:56px;border:2px solid var(--line);background:var(--panel);color:var(--ink);border-radius:10px;font:600 17px "Work Sans",sans-serif;padding:8px 12px;text-align:left;overflow-wrap:anywhere}
+.who button:not(:disabled):hover{border-color:var(--hero)}
+.who button:disabled{opacity:.45;cursor:default}
+.who button small{display:block;font-weight:400;font-size:13px;color:var(--mute)}
+.confirm{display:grid;gap:14px;background:var(--panel);border:2px solid var(--hero);border-radius:12px;padding:18px}
+.confirm p{margin:0}
+.btns{display:flex;gap:10px;flex-wrap:wrap}
+.got{background:var(--hero);color:#fff;border-radius:14px;padding:22px 20px;display:grid;gap:6px;text-align:center}
+.got small{font-size:15px;opacity:.85}
+.got b{font:700 clamp(30px,8vw,44px)/1.1 Silkscreen,monospace;overflow-wrap:anywhere}
+.got .wish{margin-top:10px;background:rgba(255,255,255,.12);border-radius:10px;padding:10px 12px;font-size:16px;text-align:left}
+.got .wish i{font-style:normal;opacity:.75;display:block;font-size:13px}
+.open{width:100%;border:2px dashed var(--hero);background:var(--panel);color:var(--ink);border-radius:14px;padding:22px;display:grid;gap:8px;justify-items:center;font:700 18px Silkscreen,monospace}
+.open svg{width:96px;height:96px}
+.mywish{display:grid;gap:6px;margin-top:22px}
+.mywish .linkrow input{flex:1 1 220px}
+.foothost{margin-top:40px;padding-top:20px;border-top:2px dashed var(--line);display:grid;gap:12px}
+.people{display:grid}
+.people div{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)}
+.people .ok{color:light-dark(#1f7a4d,#5fd39a);font-weight:600}
+.people .no{color:var(--mute)}
+.admin{display:grid;gap:12px}
+.admin .btn{background:#21160f;color:#fff;border-color:#21160f}
+.admin .btn.ghost{background:transparent;color:#21160f}
+</style>
+</head>
+<body>
+<nav class="top"><div class="wrap"><a href="/">150ct</a></div></nav>
+<div id="admin"></div>
+<header class="band hero">
+  <div class="wrap">
+    <div>
+      <h1 id="title">Loading…</h1>
+      <div class="det" id="det"></div>
+    </div>
+    <div class="sprite" id="sprite" role="img" aria-label="Gift"></div>
+  </div>
+</header>
+
+<main class="band">
+  <div class="wrap col" id="main" hidden>
+    <div id="pick" hidden>
+      <h2>Which one are you?</h2>
+      <p class="hint">Tap your name to see who you're getting a gift for. It stays with this phone.</p>
+      <div class="who" id="who"></div>
+    </div>
+    <div id="sure" hidden></div>
+    <div id="mine" hidden></div>
+    <p class="status" id="status" aria-live="polite"></p>
+    <div class="nudge" id="nudge" hidden><p><b>You're in.</b>Running one yourself? Make your own in a minute.</p><a class="btn" href="/gift">Make your own</a></div>
+  </div>
+  <div class="wrap" id="missing" hidden><p class="hint" id="missingText"></p><p><a href="/gift">Make your own</a></p></div>
+  <div class="wrap col" id="hostFoot" hidden></div>
+</main>
+<footer class="band foot"><div class="wrap"><a class="pack" href="/"><span>150</span><span>ct</span></a><span>Free, no accounts, deletes itself 30 days after the swap.</span><a href="/gift">Make your own</a></div></footer>
+
+<script>
+{
+const {gift,esc,copyText,fmtDay}=window.S;
+const $=id=>document.getElementById(id);
+const slug=location.pathname.split("/").filter(Boolean).pop();
+const guestUrl=location.origin+"/gift/"+slug;
+$("sprite").innerHTML=gift();
+
+let hostKey="";
+try{
+  const m=location.hash.match(/host=([a-z0-9]+)/);
+  if(m){hostKey=m[1];localStorage.setItem("150ct-host-"+slug,hostKey);history.replaceState(null,"",location.pathname)}
+  else hostKey=localStorage.getItem("150ct-host-"+slug)||"";
+}catch(e){}
+
+// One identity per browser, shared with the other apps.
+let myId="",myName="";
+try{const s=JSON.parse(localStorage.getItem("150ct-me")||"null");if(s){myId=s.id||"";myName=s.name||""}}catch(e){}
+if(!/^[a-z0-9]{20,40}$/.test(myId))myId=Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>b.toString(36).padStart(2,"0")).join("").slice(0,28);
+try{localStorage.setItem("150ct-me",JSON.stringify({id:myId,name:myName}))}catch(e){}
+
+// Opened once on this phone: after that the name shows straight away.
+const openKey="150ct-gift-open-"+slug;
+let opened=false;try{opened=localStorage.getItem(openKey)==="1"}catch(e){}
+
+let ev=null,docs={},isHost=false,sure=null,busy=false,wishEditing=false;
+const hdr=()=>hostKey?{"x-host-key":hostKey}:{};
+const status=t=>$("status").textContent=t;
+const taken=()=>new Set(Object.values(docs).map(r=>r.k));
+const nameOf=k=>(ev.people.find(p=>p.k===k)||{}).n||"";
+
+function render(){
+  const mine=ev.mine,t=taken();
+  $("pick").hidden=!!mine||!!sure;
+  $("sure").hidden=!sure||!!mine;
+  $("mine").hidden=!mine;
+  $("nudge").hidden=!mine||!opened||isHost;
+  if(!mine&&!sure){
+    $("who").innerHTML=ev.people.map(p=>`<button type="button" data-k="${esc(p.k)}" ${t.has(p.k)?"disabled":""}>${esc(p.n)}${t.has(p.k)?"<small>Taken</small>":""}</button>`).join("");
+  }
+  if(!mine&&sure){
+    $("sure").innerHTML=`<div class="confirm"><p style="font-size:20px"><b>You're ${esc(nameOf(sure))}?</b></p><p class="hint">This phone will be ${esc(nameOf(sure))} for this exchange.</p><div class="btns"><button class="btn" id="yes" type="button">Yes, that's me</button><button class="btn ghost" id="no" type="button">Back</button></div></div>`;
+  }
+  if(mine){
+    const card=!opened
+      ?`<button class="open" id="openIt" type="button">${gift()}Tap to see who you got</button>`
+      :`<div class="got"><small>${esc(nameOf(mine.k))}, you're getting a gift for</small><b>${esc(mine.to)}</b><div class="wish"><i>${esc(mine.to)}'s wishlist</i>${mine.toWish?esc(mine.toWish):"Nothing yet. Check back later."}</div></div>`;
+    const keep=$("wishIn")&&document.activeElement===$("wishIn")?$("wishIn").value:null;
+    $("mine").innerHTML=card+(opened?`<div class="mywish"><label for="wishIn">Your wishlist</label><p class="hint">One line. Only whoever drew you sees it.</p><div class="linkrow"><input id="wishIn" maxlength="120" placeholder="e.g. Coffee, socks, anything blue" value="${esc(keep??mine.wish)}"><button class="btn" id="saveWish" type="button">Save</button></div></div>`:"");
+    if(keep!=null){$("wishIn").focus()}
+  }
+  if(isHost)renderHost();
+}
+
+function renderHost(){
+  const t=taken(),n=ev.people.length,done=ev.people.filter(p=>t.has(p.k)).length;
+  $("admin").innerHTML=`<div class="band" style="padding-block:16px"><div class="wrap notice admin">
+    <div><b>Send this link to the group</b></div>
+    <div class="linkrow"><code>${esc(guestUrl)}</code><button class="btn" data-copy="${esc(guestUrl)}" type="button">Copy</button>${navigator.share?`<button class="btn ghost" id="share" type="button">Share</button>`:""}</div>
+  </div></div>`;
+  const host=guestUrl+"#host="+hostKey;
+  $("hostFoot").hidden=false;
+  $("hostFoot").innerHTML=`<div class="foothost">
+    <h3>Opened ${done} of ${n}</h3>
+    <p class="hint">You can see who has looked, never who has who.</p>
+    <div class="people">${ev.people.map(p=>`<div><span><b>${esc(p.n)}</b> · ${t.has(p.k)?`<span class="ok">Opened</span>`:`<span class="no">Not yet</span>`}</span>${t.has(p.k)?`<button class="rm" data-reset="${esc(p.k)}" type="button">Reset</button>`:""}</div>`).join("")}</div>
+    <p class="hint">Reset frees a name if someone tapped the wrong one or lost their phone.</p>
+    <div class="linkrow"><a href="/gift?edit=${esc(slug)}">Change budget or date</a> · <button class="btn ghost" id="delEv" type="button">Delete</button></div>
+    <p class="hint">This browser remembers you as host. To manage from another device, open your host link there. <button class="btn ghost" data-copy="${esc(host)}" data-label="Copy host link" type="button" style="min-height:32px;font-size:12px;padding:0 10px">Copy host link</button></p>
+  </div>`;
+}
+
+function renderEvent(){
+  const title=ev.title||"Gift exchange";
+  document.title=title;$("title").textContent=title;
+  $("det").innerHTML=[
+    ev.budget&&`<div><b>Budget</b><span>${esc(ev.budget)}</span></div>`,
+    ev.date&&`<div><b>Swap</b><span>${esc(fmtDay(ev.date))}</span></div>`,
+    `<div><b>People</b><span>${ev.people.length}</span></div>`,
+  ].filter(Boolean).join("");
+  $("main").hidden=false;
+}
+
+async function load(){
+  try{
+    const r=await fetch(`/api/links?slug=${encodeURIComponent(slug)}&me=${myId}`,{headers:hdr(),cache:"no-store"});
+    const j=await r.json();
+    if(!r.ok){$("title").textContent="Not found";$("missingText").textContent=j.error||"This link doesn't exist.";$("missing").hidden=false;$("main").hidden=true;return}
+    const first=!ev;
+    ev=j.link.data;docs=j.responses||{};
+    if(first){
+      isHost=j.isHost;
+      if(!isHost&&hostKey){hostKey="";try{localStorage.removeItem("150ct-host-"+slug)}catch(e){}}
+    }
+    // Reset by the host: start over on this phone.
+    if(!ev.mine&&opened){opened=false;try{localStorage.removeItem(openKey)}catch(e){}}
+    renderEvent();render();
+  }catch(e){if(!ev)$("title").textContent="Couldn't load this"}
+}
+
+async function post(body){
+  const r=await fetch(`/api/responses?slug=${encodeURIComponent(slug)}`,{method:"POST",headers:{"content-type":"application/json",...hdr()},body:JSON.stringify({id:myId,...body})});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(j.error||"Couldn't save that. Try again in a sec.");
+}
+
+$("main").addEventListener("click",async e=>{
+  const b=e.target.closest("[data-k]");
+  if(b&&!b.disabled){sure=b.dataset.k;status("");render();return}
+  if(e.target.id==="no"){sure=null;render();return}
+  if(e.target.id==="yes"&&!busy){
+    busy=true;e.target.disabled=true;status("");
+    try{await post({k:sure});sure=null;await load()}
+    catch(err){status(err.message);sure=null;await load()}
+    busy=false;return
+  }
+  if(e.target.closest("#openIt")){opened=true;try{localStorage.setItem(openKey,"1")}catch(err){}render();return}
+  if(e.target.id==="saveWish"&&!busy){
+    busy=true;const v=$("wishIn").value;e.target.textContent="Saving…";
+    try{await post({k:ev.mine.k,wish:v});ev.mine.wish=v.trim();$("wishIn").blur();render();status(v.trim()?"Saved. Whoever drew you will see it.":"Cleared.")}
+    catch(err){status(err.message);e.target.textContent="Save"}
+    busy=false;
+  }
+});
+$("main").addEventListener("keydown",e=>{if(e.target.id==="wishIn"&&e.key==="Enter"){e.preventDefault();$("saveWish").click()}});
+
+const hostClick=async e=>{
+  const c=e.target.closest("[data-copy]");
+  if(c){const ok=await copyText(c.dataset.copy);c.textContent=ok?"Copied":"Couldn't copy";if(!ok){const code=c.parentElement.querySelector("code");if(code)getSelection().selectAllChildren(code)}setTimeout(()=>c.textContent=c.dataset.label||"Copy",1800);return}
+  const rs=e.target.closest("[data-reset]");
+  if(rs){
+    if(rs.dataset.armed!=="1"){rs.dataset.armed="1";rs.textContent="Tap again";return}
+    try{const r=await fetch(`/api/responses?slug=${encodeURIComponent(slug)}&k=${encodeURIComponent(rs.dataset.reset)}`,{method:"DELETE",headers:hdr()});if(!r.ok)throw 0;await load()}
+    catch(err){rs.textContent="Couldn't reset"}
+    return;
+  }
+  if(e.target.id==="share"){try{await navigator.share({title:ev.title||"Gift exchange",text:(ev.title||"Gift exchange")+": tap your name to see who you're getting a gift for.",url:guestUrl})}catch(err){}return}
+  if(e.target.id==="delEv"){
+    const b=e.target;
+    if(b.dataset.armed!=="1"){b.dataset.armed="1";b.textContent="Tap again to delete for everyone";return}
+    const r=await fetch(`/api/links?slug=${encodeURIComponent(slug)}`,{method:"DELETE",headers:hdr()});
+    if(r.ok){try{localStorage.removeItem("150ct-host-"+slug)}catch(err){}location.href="/gift"}else b.textContent="Couldn't delete";
+  }
+};
+$("admin").addEventListener("click",hostClick);$("hostFoot").addEventListener("click",hostClick);
+
+load();
+setInterval(()=>{if(!document.hidden&&ev&&!busy&&!sure&&!(document.activeElement&&document.activeElement.id==="wishIn"))load()},10000);
+}
+</script>
+</body>
+</html>

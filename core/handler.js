@@ -6,7 +6,7 @@
 // PUT    /api/links?slug=            { data }        host only
 // DELETE /api/links?slug=                            host only
 // POST   /api/responses?slug=        { id, ...app fields }
-// DELETE /api/responses?slug=&id=                    host only
+// DELETE /api/responses?slug=&id=                    host only (gift: &k=<name key>)
 // GET    /api/unfurl?u=<google maps link>  -> { name }
 // GET    /api/places?q=|id=&s=             Google Places search (see core/places.js)
 //
@@ -28,9 +28,16 @@ async function body(request) {
   try { return await request.json(); } catch { return {}; }
 }
 
+// Apps marked private (gift) never show responder ids, not even to the host.
 function viewResponses(app, all, me, host) {
   const shaped = Object.fromEntries(Object.entries(all).map(([id, r]) => [id, app.view(r)]));
-  return maskResponses(shaped, me, host);
+  return maskResponses(shaped, me, host && !app.private);
+}
+
+// An app can hide parts of its data or add what only this browser may see (gift: your match).
+function viewLink(app, link, all, me, host) {
+  const pub = publicLink(link);
+  return app.publicData ? { ...pub, data: app.publicData(link.data, { me, all, host }) } : pub;
 }
 
 async function links(request, q, hostKey) {
@@ -41,8 +48,9 @@ async function links(request, q, hostKey) {
     const app = link && APPS[link.type];
     if (!app) return json(404, { error: GONE });
     const host = await isHostOf(link, hostKey);
-    const responses = viewResponses(app, await loadResponses(slug), q.get("me") || "", host);
-    return json(200, { link: publicLink(link), responses, isHost: host });
+    const all = await loadResponses(slug), me = q.get("me") || "";
+    const responses = viewResponses(app, all, me, host);
+    return json(200, { link: viewLink(app, link, all, me, host), responses, isHost: host });
   }
 
   if (request.method === "POST") {
@@ -96,7 +104,8 @@ async function responses(request, q, hostKey) {
 
   if (request.method === "DELETE") {
     if (!host) return json(403, { error: "Not allowed." });
-    await removeResponse(slug, q.get("id") || "");
+    const id = app.responderFor ? app.responderFor(await loadResponses(slug), q.get("k") || "") : q.get("id") || "";
+    if (id) await removeResponse(slug, id);
     return json(200, { ok: true });
   }
 

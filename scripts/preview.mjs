@@ -64,6 +64,8 @@ const pages = {
   eatCreate: await page("apps/eat/new.html"),
   meetCreate: await page("apps/meet/new.html"),
   meetView: await page("apps/meet/view.html"),
+  giftCreate: await page("apps/gift/new.html"),
+  giftView: await page("apps/gift/view.html"),
 };
 
 // Written as a page fragment: the artifact host adds the document skeleton.
@@ -92,7 +94,7 @@ function route(u){
   var x=new URL(u, __ORIGIN);
   window.__ROUTE={path:x.pathname,search:x.search,hash:x.hash};
   var p=x.pathname.replace(/\\/$/,"")||"/";
-  var key=p==="/about"?"about":p==="/potluck"?"create":/^\\/potluck\\/[a-z0-9]+$/.test(p)?"view":p==="/eat"?"eatCreate":p==="/meet"?"meetCreate":/^\\/meet\\/[a-z0-9]+$/.test(p)?"meetView":"landing";
+  var key=p==="/about"?"about":p==="/potluck"?"create":/^\\/potluck\\/[a-z0-9]+$/.test(p)?"view":p==="/eat"?"eatCreate":p==="/meet"?"meetCreate":/^\\/meet\\/[a-z0-9]+$/.test(p)?"meetView":p==="/gift"?"giftCreate":/^\\/gift\\/[a-z0-9]+$/.test(p)?"giftView":"landing";
   document.getElementById("url").textContent="150ct.com"+(p==="/"?"/":p)+x.search;
   document.getElementById("f").srcdoc=PAGES[key];
 }

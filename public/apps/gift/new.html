@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gift exchange · 150ct</title>
+<meta name="description" content="Draw names for a gift exchange. Nobody sees the pairs, not even you. Free, no sign-up.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="150ct">
+<meta property="og:title" content="Gift exchange">
+<meta property="og:description" content="Draw names for a gift exchange. Nobody sees the pairs, not even you. Free, no sign-up.">
+<meta property="og:image" content="https://150ct.com/shared/og-gift.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared/app.css">
+<link rel="stylesheet" href="/apps/gift/style.css">
+<link rel="icon" href="/shared/icon.svg" type="image/svg+xml">
+<script src="/apps/gift/lib.js"></script>
+<style>
+.form{display:grid;gap:22px;max-width:560px}
+.f{display:grid;gap:6px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.rows{margin:4px 0 0}
+.r .n{flex:none;width:26px;text-align:right;font:700 13px Silkscreen,monospace;color:var(--mute)}
+.r select{flex:1}
+.r .x{font:600 22px "Work Sans",sans-serif}
+.r .and{flex:none;color:var(--mute);font-size:14px}
+.lock{background:var(--panel);border:2px solid var(--line);border-radius:10px;padding:12px 14px}
+.lock b{font-weight:600}
+@media(max-width:600px){.two{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<nav class="top"><div class="wrap"><a href="/">150ct</a></div></nav>
+<header class="band hero">
+  <div class="wrap">
+    <div>
+      <h1>Gift exchange</h1>
+      <div class="det"><div><span>Type everyone's name. Names get drawn right away, and nobody sees who has who, not even you. Send one link to the group.</span></div></div>
+    </div>
+    <div class="sprite" id="sprite" role="img" aria-label="Gift"></div>
+  </div>
+</header>
+
+<main class="band">
+  <div class="wrap">
+    <form class="form" id="form" novalidate>
+      <h2 id="heading" hidden></h2>
+      <div class="f"><label for="title">What's it for?</label><input id="title" maxlength="80" placeholder="e.g. Office gift exchange"></div>
+
+      <div class="f" id="namesF">
+        <label id="namesL">Names</label>
+        <p class="hint">Everyone in the exchange, you too if you're in it.</p>
+        <div class="rows" id="names" aria-labelledby="namesL"></div>
+        <div><button class="add" type="button" id="addName">+ Add a name</button></div>
+      </div>
+      <div class="lock" id="lock" hidden><b>Names are already drawn.</b> To change who's in, start a new one.</div>
+
+      <div class="two">
+        <div class="f"><label for="budget">Budget <span class="hint">(optional)</span></label><input id="budget" maxlength="30" placeholder="e.g. $30"></div>
+        <div class="f"><label for="date">Swap day <span class="hint">(optional)</span></label><input id="date" type="date"></div>
+      </div>
+
+      <div class="f" id="avoidF">
+        <label>Keep apart <span class="hint">(optional)</span></label>
+        <p class="hint">Couples or roommates who shouldn't draw each other.</p>
+        <div class="rows" id="avoid"></div>
+        <div><button class="add" type="button" id="addAvoid">+ Add a pair</button></div>
+      </div>
+
+      <div class="linkrow"><button class="btn" id="submit" type="submit">Draw names</button><span class="status" id="status" aria-live="polite" style="margin:0"></span></div>
+    </form>
+  </div>
+</main>
+<footer class="band foot"><div class="wrap"><a class="pack" href="/"><span>150</span><span>ct</span></a><span>Free, no accounts, deletes itself 30 days after the swap.</span></div></footer>
+
+<script>
+{
+const {gift,esc}=window.S;
+const $=id=>document.getElementById(id);
+const editSlug=new URLSearchParams(location.search).get("edit")||"";
+let hostKey="";
+try{hostKey=editSlug?localStorage.getItem("150ct-host-"+editSlug)||"":""}catch(e){}
+$("sprite").innerHTML=gift();
+
+let names=["","","",""],avoid=[];
+const list=()=>names.map((n,i)=>({n:n.trim(),i})).filter(x=>x.n);
+
+function renderNames(){
+  $("names").innerHTML=names.map((n,i)=>`<div class="r"><span class="n">${i+1}</span><input data-i="${i}" maxlength="40" value="${esc(n)}" placeholder="Name" aria-label="Name ${i+1}" enterkeyhint="next" autocapitalize="words"><button class="x" type="button" data-rm="${i}" aria-label="Remove ${esc(n||"name "+(i+1))}">×</button></div>`).join("");
+}
+function renderAvoid(){
+  const opts=sel=>`<option value="">Pick</option>`+list().map(x=>`<option value="${x.i}"${x.i===sel?" selected":""}>${esc(x.n)}</option>`).join("");
+  $("avoid").innerHTML=avoid.map((p,j)=>`<div class="r"><select data-a="${j}" data-s="0" aria-label="Pair ${j+1}, first">${opts(p[0])}</select><span class="and">and</span><select data-a="${j}" data-s="1" aria-label="Pair ${j+1}, second">${opts(p[1])}</select><button class="x" type="button" data-arm="${j}" aria-label="Remove pair">×</button></div>`).join("");
+}
+$("names").addEventListener("input",e=>{const i=e.target.dataset.i;if(i!=null){names[+i]=e.target.value;renderAvoid()}});
+$("names").addEventListener("keydown",e=>{
+  const i=e.target.dataset.i;if(i==null||e.key!=="Enter")return;
+  e.preventDefault();
+  if(+i===names.length-1){names.push("");renderNames()}
+  $("names").querySelector(`[data-i="${+i+1}"]`).focus();
+});
+$("names").addEventListener("click",e=>{
+  const b=e.target.closest("[data-rm]");if(!b)return;
+  const i=+b.dataset.rm;names.splice(i,1);
+  // Pairs point at row numbers, so shift them along with the names.
+  avoid=avoid.filter(p=>!p.includes(i)).map(p=>p.map(x=>x==null?x:x>i?x-1:x));
+  if(!names.length)names.push("");
+  renderNames();renderAvoid();
+});
+$("addName").addEventListener("click",()=>{names.push("");renderNames();$("names").querySelector(`[data-i="${names.length-1}"]`).focus()});
+$("avoid").addEventListener("change",e=>{const j=e.target.dataset.a;if(j!=null)avoid[+j][+e.target.dataset.s]=e.target.value===""?null:+e.target.value});
+$("avoid").addEventListener("click",e=>{const b=e.target.closest("[data-arm]");if(b){avoid.splice(+b.dataset.arm,1);renderAvoid()}});
+$("addAvoid").addEventListener("click",()=>{avoid.push([null,null]);renderAvoid()});
+
+$("form").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const st=t=>$("status").textContent=t;
+  let payload={title:$("title").value,budget:$("budget").value,date:$("date").value};
+  if(!editSlug){
+    const l=list();
+    if(l.length<3){st("Add at least 3 names.");return}
+    const idx=new Map(l.map((x,j)=>[x.i,j]));
+    payload.people=l.map(x=>x.n);
+    payload.avoid=avoid.filter(p=>idx.has(p[0])&&idx.has(p[1])&&p[0]!==p[1]).map(p=>[idx.get(p[0]),idx.get(p[1])]);
+  }
+  $("submit").disabled=true;st(editSlug?"Saving…":"Drawing names…");
+  try{
+    const r=await fetch("/api/links"+(editSlug?"?slug="+encodeURIComponent(editSlug):""),{method:editSlug?"PUT":"POST",headers:{"content-type":"application/json",...(hostKey?{"x-host-key":hostKey}:{})},body:JSON.stringify(editSlug?{data:payload}:{type:"gift",data:payload})});
+    const j=await r.json();
+    if(!r.ok)throw new Error(j.error||"Couldn't save.");
+    if(editSlug){location.href="/gift/"+editSlug;return}
+    try{localStorage.setItem("150ct-host-"+j.slug,j.hostKey)}catch(err){}
+    location.href="/gift/"+j.slug+"#host="+j.hostKey;
+  }catch(err){st(err.message||"Couldn't save. Try again.");$("submit").disabled=false}
+});
+
+async function init(){
+  if(editSlug){
+    $("heading").hidden=false;
+    $("heading").innerHTML=`Edit <a href="/gift/${encodeURIComponent(editSlug)}" style="font:600 15px 'Work Sans',sans-serif;margin-left:10px">Back</a>`;
+    $("submit").textContent="Save";
+    $("namesF").hidden=true;$("avoidF").hidden=true;$("lock").hidden=false;
+    try{
+      const r=await fetch("/api/links?slug="+encodeURIComponent(editSlug),{headers:hostKey?{"x-host-key":hostKey}:{}});
+      const j=await r.json();
+      if(!r.ok||!j.isHost)throw 0;
+      const ev=j.link.data;
+      $("title").value=ev.title||"";$("budget").value=ev.budget||"";$("date").value=ev.date||"";
+    }catch(e){$("status").textContent="Only the host can edit this.";$("submit").disabled=true}
+    return;
+  }
+  renderNames();renderAvoid();
+}
+init();
+}
+</script>
+</body>
+</html>
