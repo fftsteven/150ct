@@ -111,11 +111,12 @@ if(SITE.donate){const t=document.getElementById("tip");t.href=SITE.donate;t.hidd
 document.getElementById("links").innerHTML=`<a href="/about">About</a>`+link(SITE.donate,"Chip in")+link(SITE.discord,"Discord");
 // Add to home screen, phones only.
 const ua=navigator.userAgent;
-const phone=/iPhone|iPad|iPod|Android/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1);
+const ios=/iPhone|iPad|iPod/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1);
+const phone=ios||/Android/.test(ua);
 const standalone=matchMedia("(display-mode: standalone)").matches||navigator.standalone;
 if(phone&&!standalone)document.body.classList.add("can-install");
 document.getElementById("install").onclick=()=>{
-  document.getElementById("howText").textContent="Tap the browser menu, then Add to Home Screen.";
+  document.getElementById("howText").textContent=ios?"Tap Share, then Add to Home Screen.":"Tap the browser menu, then Add to Home screen.";
   document.getElementById("how").showModal();
 };
 }
