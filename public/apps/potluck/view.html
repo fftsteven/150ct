@@ -64,7 +64,7 @@
 
 <script>
 {
-const {esc,dishIcon,applyLook,sprite,fmtWhen,mapsUrl,normalize}=window.G;
+const {copyText,esc,dishIcon,applyLook,sprite,fmtWhen,mapsUrl,normalize}=window.G;
 const $=id=>document.getElementById(id);
 const slug=location.pathname.split("/").filter(Boolean).pop();
 const guestUrl=location.origin+"/potluck/"+slug;
@@ -139,7 +139,7 @@ function renderAdmin(){
     <div class="linkrow"><code>${esc(guestUrl)}</code><button class="btn" data-copy="${esc(guestUrl)}" type="button">Copy</button>${navigator.share?`<button class="btn ghost" id="share" type="button">Share</button>`:""}</div>
     <div class="linkrow"><a href="/potluck?edit=${esc(slug)}">Edit</a> · <button class="btn ghost" id="copyList" type="button">Copy the list</button> · <button class="btn ghost" id="delEv" type="button">Delete</button></div>
     ${people.length?`<div class="people">${people.map(([id,r])=>`<div><span><b>${esc(r.name||"Someone")}</b> · ${esc([...(r.take||[]).map(k=>(ev.dishes.find(d=>d.k===k)||{}).n).filter(Boolean),...(r.add||[])].join(", "))}</span><button class="rm" data-rm="${esc(id)}" type="button">Remove</button></div>`).join("")}</div>`:""}
-    <div class="small">This browser remembers you as host. To manage from another device, open your host link there. <button class="btn ghost" data-copy="${esc(host)}" type="button" style="min-height:32px;font-size:12px;padding:0 10px">Copy host link</button></div>
+    <div class="small">This browser remembers you as host. To manage from another device, open your host link there. <button class="btn ghost" data-copy="${esc(host)}" data-label="Copy host link" type="button" style="min-height:32px;font-size:12px;padding:0 10px">Copy host link</button></div>
   </div></div>`;
 }
 
@@ -200,7 +200,7 @@ async function removePerson(id,b){
 }
 $("admin").addEventListener("click",async e=>{
   const c=e.target.closest("[data-copy]");
-  if(c){try{await navigator.clipboard.writeText(c.dataset.copy);c.textContent="Copied"}catch(err){c.textContent="Select and copy"}return}
+  if(c){const ok=await copyText(c.dataset.copy);c.textContent=ok?"Copied":"Couldn't copy";if(!ok){const code=c.parentElement.querySelector("code");if(code)getSelection().selectAllChildren(code)}setTimeout(()=>c.textContent=c.dataset.label||"Copy",1800);return}
   const rm=e.target.closest("[data-rm]");
   if(rm)return removePerson(rm.dataset.rm,rm);
   if(e.target.id==="share"){try{await navigator.share({title:ev.title,url:guestUrl})}catch(err){}return}
@@ -208,7 +208,7 @@ $("admin").addEventListener("click",async e=>{
     const all=rows(),lines=[];
     ev.dishes.forEach(d=>{const t=takerOf(d.k);lines.push(`${d.n}: ${t?(t[0]===myId?"Host":t[1].name||"Someone"):"open"}`)});
     Object.entries(all).forEach(([id,r])=>(r.add||[]).forEach(n=>lines.push(`${n}: ${id===myId?"Host":r.name||"Someone"}`)));
-    try{await navigator.clipboard.writeText(`${ev.title}\n\n${lines.join("\n")}`);e.target.textContent="Copied"}catch(err){e.target.textContent="Couldn't copy"}
+    const ok=await copyText(`${ev.title}\n\n${lines.join("\n")}`);e.target.textContent=ok?"Copied":"Couldn't copy";setTimeout(()=>e.target.textContent="Copy the list",1800);
     return;
   }
   if(e.target.id==="delEv"){

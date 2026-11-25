@@ -161,5 +161,13 @@ function normalize(d){
   const icon={thanksgiving:"turkey",bbq:"grill",birthday:"cake",holiday:"tree",party:"balloons"}[d.theme]||"smiley";
   return {...d,icon,where:[d.place,d.address].filter(Boolean).join(", "),note:d.notes||"",dishes:(d.items||[]).map(i=>({k:i.k,n:i.n}))};
 }
-window.G={ICONS,TEMPLATES,sprite,dishIcon,applyLook,isEmoji,esc,fmtWhen,mapsUrl,normalize};
+// Clipboard API first; falls back to a hidden textarea for embedded or older browsers.
+async function copyText(t){
+  try{await navigator.clipboard.writeText(t);return true}catch(e){}
+  const a=document.createElement("textarea");a.value=t;a.setAttribute("readonly","");a.style.cssText="position:fixed;top:0;left:0;opacity:0";
+  document.body.appendChild(a);a.select();a.setSelectionRange(0,t.length);
+  let ok=false;try{ok=document.execCommand("copy")}catch(e){}
+  a.remove();return ok;
+}
+window.G={copyText,ICONS,TEMPLATES,sprite,dishIcon,applyLook,isEmoji,esc,fmtWhen,mapsUrl,normalize};
 })();
