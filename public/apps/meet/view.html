@@ -26,7 +26,9 @@
 .day.s-none{background:var(--none);border-color:var(--none)}
 .day.s-none .nm,.day.s-none .who,.day.s-none .n{opacity:.7}
 .day.s-some{background:var(--some);border-color:var(--some);color:#fff}
-.day.s-all{background:var(--all);border-color:var(--all);color:#fff}
+.day.s-all,.day.s-mine{background:var(--all);border-color:var(--all);color:#fff}
+.day.s-mine .who,.day.s-mine .n{color:rgba(255,255,255,.85)}
+.day.s-mine .box{border-color:#fff}
 .day.s-some .who,.day.s-all .who,.day.s-some .n,.day.s-all .n{color:rgba(255,255,255,.85)}
 .day.s-some .box,.day.s-all .box{border-color:#fff}
 .day .box{width:28px;height:28px;border:2px solid var(--hero);border-radius:6px;display:grid;place-items:center;color:#fff;font:700 15px Silkscreen,monospace}
@@ -41,9 +43,11 @@
 .hg .dh{border:0;background:transparent;color:var(--ink);font:600 13px/1.2 "Work Sans",sans-serif;text-align:center;padding:4px 2px 6px;border-radius:6px;min-width:52px}
 .hg .dh small{display:block;font-weight:400;color:var(--mute)}
 .hg .hl{font:700 11px Silkscreen,monospace;color:var(--mute);text-align:right;padding-right:6px;position:sticky;left:0;background:var(--bg);display:flex;align-items:start;justify-content:flex-end;transform:translateY(-7px)}
-.hg .c{height:34px;border:0;border-radius:4px;background:var(--none);touch-action:none;padding:0;position:relative}
-.hg .c.s-some{background:var(--some)}
-.hg .c.s-all{background:var(--all)}
+.hg .c{height:34px;border:0;border-radius:4px;background:var(--panel);outline:1px solid var(--line);outline-offset:-1px;touch-action:none;padding:0;position:relative}
+.hg .c.s-mine{background:var(--all);outline-color:var(--all)}
+.hg .c.s-none{background:var(--none);outline:0}
+.hg .c.s-some{background:var(--some);outline:0}
+.hg .c.s-all{background:var(--all);outline:0}
 .hg .off{height:34px;border-radius:4px;background:repeating-linear-gradient(135deg,transparent 0 5px,var(--line) 5px 6px)}
 .hg .c.me{outline:3px solid var(--acc);outline-offset:-3px}
 .hg .c.me::after{content:"";position:absolute;top:5px;right:5px;width:7px;height:7px;background:var(--acc)}
@@ -56,6 +60,7 @@
 .submitbar .btn.done{background:var(--hero);border-color:var(--hero);color:#fff;opacity:1}
 /* Host sees results only */
 .ro .day .box{display:none}
+.submitbar .btn.change{background:transparent;color:var(--ink)}
 .ro .day,.ro .c,.ro .dh{cursor:default}
 .ro .day{grid-template-columns:minmax(0,1fr) auto}
 .foothost{margin-top:40px;padding-top:20px;border-top:2px dashed var(--line);display:grid;gap:12px}
@@ -122,10 +127,12 @@ if(!/^[a-z0-9]{20,40}$/.test(myId))myId=Array.from(crypto.getRandomValues(new Ui
 const remember=()=>{try{localStorage.setItem("150ct-me",JSON.stringify({id:myId,name:myName}))}catch(e){}};
 remember();$("name").value=myName;
 
-let ev=null,docs={},isHost=false,mine=new Set(),dirty=false,saving=false,pending=false,saveT=null;
+let editing=false,ev=null,docs={},isHost=false,mine=new Set(),dirty=false,saving=false,pending=false,saveT=null;
 const hdr=()=>hostKey?{"x-host-key":hostKey}:{};
 const status=t=>$("status").textContent=t;
 const hours=()=>!!ev.hours;
+// Guests pick (plain, your taps turn green) until they submit; then they see the group colors.
+const picking=()=>!isHost&&(editing||!docs[myId]);
 
 // Everyone's rows, with mine as it is on screen right now.
 function people(){
@@ -166,16 +173,21 @@ function renderBest(t){
 
 function render(){
   const t=tally(),top=renderBest(t),n=t.ps.length;
-  const st=s=>!t.count[s]?"s-none":t.count[s]===n?"s-all":"s-some";
+  const pick=picking();
+  $("picker").classList.toggle("ro",!pick);
+  $("nameRow").hidden=!pick;
+  $("pickH").textContent=pick?"When are you free?":"Who's free";
+  const st=s=>pick?(mine.has(s)?"s-mine":""):!t.count[s]?"s-none":t.count[s]===n?"s-all":"s-some";
   const legend=`<div class="legend">${hours()&&!isHost?`<span><i style="outline:3px solid var(--acc);outline-offset:-3px;background:var(--none)"></i>You</span>`:""}<span><i style="background:var(--all)"></i>Everyone free</span><span><i style="background:var(--some)"></i>Some can't</span><span><i style="background:var(--none)"></i>No one</span></div>`;
+  const legendOut=pick?"":legend;
   if(!hours()){
-    $("pickHint").textContent=isHost?"":"Tap every day that works";
+    $("pickHint").textContent=pick?"Tap every day that works":"";
     $("picker").innerHTML=`<ul class="days">${ev.days.map(d=>{
       const on=mine.has(d),names=t.ps.filter(p=>p.yes.has(d)).map(p=>p.name);
-      return `<li><button type="button" class="day ${st(d)}${top.has(d)&&n>1?" top":""}" data-s="${d}" aria-pressed="${on}"><span class="box">${on?"✓":""}</span><span><span class="nm">${esc(fmtDay(d,{weekday:"long",month:"short",day:"numeric"}))}</span><span class="who" style="display:block">${names.length?esc(names.join(", ")):"No one yet"}</span></span><span class="n">${t.count[d]}/${n}</span></button></li>`;
-    }).join("")}</ul>${legend}`;
+      return `<li><button type="button" class="day ${st(d)}${!pick&&top.has(d)&&n>1?" top":""}" data-s="${d}" aria-pressed="${on}"><span class="box">${on?"✓":""}</span><span><span class="nm">${esc(fmtDay(d,{weekday:"long",month:"short",day:"numeric"}))}</span><span class="who" style="display:block">${names.length?esc(names.join(", ")):"No one yet"}</span></span><span class="n">${t.count[d]}/${n}</span></button></li>`;
+    }).join("")}</ul>${legendOut}`;
   }else{
-    $("pickHint").textContent=isHost?"Green works for everyone.":"Tap or drag the hours you're free. Tap a day to fill it.";
+    $("pickHint").textContent=pick?"Tap or drag the hours you're free. Tap a day to fill it.":"Green works for everyone.";
     const cols=ev.days.length,rows=[];
     rows.push(`<div></div>`+ev.days.map(d=>`<button type="button" class="dh" data-day="${d}">${esc(fmtDay(d,{weekday:"short"}))}<small>${esc(fmtDay(d,{month:"short",day:"numeric"}))}</small></button>`).join(""));
     // Rows cover every day's window; hours outside a day's own window are blank.
@@ -184,10 +196,10 @@ function render(){
       rows.push(`<div class="hl">${shortHour(h)}</div>`+ev.days.map((d,x)=>{
         const s=`${d}T${hh(h)}`,c=t.count[s],names=t.ps.filter(p=>p.yes.has(s)).map(p=>p.name);
         if(h<ev.hours[d][0]||h>=ev.hours[d][1])return `<div class="off" aria-hidden="true"></div>`;
-        return `<button type="button" class="c ${st(s)}${mine.has(s)?" me":""}${top.has(s)&&n>1?" top":""}" data-s="${s}" data-x="${x}" data-y="${h-lo}" aria-pressed="${mine.has(s)}" aria-label="${esc(fmtDay(d)+", "+hourLabel(h))}: ${c} free" title="${esc(names.join(", ")||"No one")}"></button>`;
+        return `<button type="button" class="c ${st(s)}${!pick&&mine.has(s)?" me":""}${!pick&&top.has(s)&&n>1?" top":""}" data-s="${s}" data-x="${x}" data-y="${h-lo}" aria-pressed="${mine.has(s)}" aria-label="${esc(fmtDay(d)+", "+hourLabel(h))}: ${c} free" title="${esc(names.join(", ")||"No one")}"></button>`;
       }).join(""));
     }
-    $("picker").innerHTML=`<div class="gridwrap"><div class="hg" id="hg" style="grid-template-columns:44px repeat(${cols},minmax(52px,1fr))">${rows.join("")}</div></div>${legend}`;
+    $("picker").innerHTML=`<div class="gridwrap"><div class="hg" id="hg" style="grid-template-columns:44px repeat(${cols},minmax(52px,1fr))">${rows.join("")}</div></div>${legendOut}`;
   }
   if(isHost)renderAdmin(t);
 }
@@ -216,8 +228,7 @@ function renderEvent(){
   const range=first===last?fmtDay(first):`${fmtDay(first,{month:"short",day:"numeric"})} to ${fmtDay(last,{month:"short",day:"numeric"})}`;
   $("det").innerHTML=`<div><b>Days</b><span>${esc(range)} · ${ev.days.length} day${ev.days.length>1?"s":""}</span></div>`+(hours()?`<div><b>Hours</b><span>${esc(new Set(ev.days.map(d=>ev.hours[d].join())).size===1?span(...ev.hours[ev.days[0]]):"Set for each day")}</span></div>`:"");
   if(isHost){
-    $("nameRow").hidden=$("submitbar").hidden=true;$("picker").classList.add("ro");
-    $("pickH").textContent="Who's free";
+    $("submitbar").hidden=true;
   }
   $("main").hidden=false;
 }
@@ -245,11 +256,13 @@ async function load(){
 // Nothing saves until Submit. After that the button reads Submitted until something changes, then Update.
 function syncSubmit(){
   const b=$("submit"),sent=!!docs[myId];
+  b.classList.toggle("change",!picking());
+  if(!picking()){b.classList.remove("done");b.textContent="Change my days";b.disabled=false;status("Submitted ✓");return}
   b.classList.toggle("done",sent&&!dirty&&!saving);
   if(saving){b.textContent="Saving…";b.disabled=true;return}
   if(dirty){b.textContent=sent?"Update":"Submit";b.disabled=false;status(sent?"You have changes.":"");return}
-  b.textContent=sent?"Submitted ✓":"Submit";b.disabled=true;
-  status(sent?"Change anything to update.":"Pick when you're free, then submit.");
+  b.textContent=sent?"Update":"Submit";b.disabled=true;
+  status(sent?"Change anything, then update.":"Pick when you're free, then submit.");
 }
 async function save(){
   if(!myName.trim()&&!isHost){$("nameRow").classList.add("need");$("name").focus();status("Add your name first.");return}
@@ -259,19 +272,22 @@ async function save(){
     const r=await fetch(`/api/responses?slug=${encodeURIComponent(slug)}`,{method:"POST",headers:{"content-type":"application/json",...hdr()},body:JSON.stringify({id:myId,name:myName.trim(),yes:[...mine]})});
     const j=await r.json().catch(()=>({}));
     if(!r.ok)throw new Error(j.error);
-    dirty=false;
+    dirty=false;editing=false;
     if(j.responses){docs=j.responses;if(!drag)render()}
     saving=false;syncSubmit();
     if(!mine.size)status("Cleared.");
   }catch(e){saving=false;syncSubmit();status(e.message||"Couldn't save that. Try again in a sec.")}
 }
-$("submit").addEventListener("click",save);
+$("submit").addEventListener("click",()=>{
+  if(picking())return save();
+  editing=true;dirty=false;render();syncSubmit();scrollTo({top:$("pickH").getBoundingClientRect().top+scrollY-12,behavior:"smooth"});
+});
 const queue=()=>{dirty=!!(mine.size||docs[myId]);syncSubmit()};
 const toggle=s=>{mine.has(s)?mine.delete(s):mine.add(s)};
 
 // Whole days: tap a row.
 $("picker").addEventListener("click",e=>{
-  if(isHost)return;
+  if(!picking())return;
   const d=e.target.closest(".day");if(d){toggle(d.dataset.s);render();queue();return}
   // Day header in the hour grid: fill the column, or clear it if it's already full.
   const h=e.target.closest(".dh");
@@ -293,7 +309,7 @@ function paintTo(el){
   });
 }
 $("picker").addEventListener("pointerdown",e=>{
-  const c=e.target.closest(".c");if(!c||isHost)return;
+  const c=e.target.closest(".c");if(!c||!picking())return;
   e.preventDefault();drag={add:!mine.has(c.dataset.s),x:+c.dataset.x,y:+c.dataset.y,before:new Set(mine)};paintTo(c);
 });
 addEventListener("pointermove",e=>{if(drag){const el=document.elementFromPoint(e.clientX,e.clientY);paintTo(el&&el.closest&&el.closest(".c"))}});
