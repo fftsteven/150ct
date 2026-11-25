@@ -59,6 +59,8 @@ const SHIM = `(function(){
 const pages = {
   landing: await page("index.html"),
   about: await page("about.html"),
+  terms: await page("terms.html"),
+  privacy: await page("privacy.html"),
   create: await page("apps/potluck/new.html"),
   view: await page("apps/potluck/view.html"),
   eatCreate: await page("apps/eat/new.html"),
@@ -94,7 +96,7 @@ function route(u){
   var x=new URL(u, __ORIGIN);
   window.__ROUTE={path:x.pathname,search:x.search,hash:x.hash};
   var p=x.pathname.replace(/\\/$/,"")||"/";
-  var key=p==="/about"?"about":p==="/potluck"?"create":/^\\/potluck\\/[a-z0-9]+$/.test(p)?"view":p==="/eat"?"eatCreate":p==="/meet"?"meetCreate":/^\\/meet\\/[a-z0-9]+$/.test(p)?"meetView":p==="/gift"?"giftCreate":/^\\/gift\\/[a-z0-9]+$/.test(p)?"giftView":"landing";
+  var key=p==="/about"?"about":p==="/terms"?"terms":p==="/privacy"?"privacy":p==="/potluck"?"create":/^\\/potluck\\/[a-z0-9]+$/.test(p)?"view":p==="/eat"?"eatCreate":p==="/meet"?"meetCreate":/^\\/meet\\/[a-z0-9]+$/.test(p)?"meetView":p==="/gift"?"giftCreate":/^\\/gift\\/[a-z0-9]+$/.test(p)?"giftView":"landing";
   document.getElementById("url").textContent="150ct.com"+(p==="/"?"/":p)+x.search;
   document.getElementById("f").srcdoc=PAGES[key];
 }

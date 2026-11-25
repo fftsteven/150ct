@@ -1,0 +1,7 @@
+# Search engines and AI answer engines are welcome on public pages.
+# Event links (/potluck/..., /meet/..., /gift/...) are private and marked noindex.
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://150ct.com/sitemap.xml
