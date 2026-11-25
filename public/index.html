@@ -4,26 +4,39 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>150ct</title>
-<meta name="description" content="Small free web apps for getting together. No accounts, no ads, gone when you're done.">
+<meta name="theme-color" content="#fff6ee">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/shared/icon-180.png">
+<meta name="apple-mobile-web-app-title" content="150ct">
+<meta name="description" content="Free tools for getting together. One-time use links, no sign-up.">
 <link rel="icon" href="/shared/icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="/shared/shelf.js"></script>
 <style>
-:root{color-scheme:light dark;--sky1:light-dark(#fde8dc,#1b1a2e);--sky2:light-dark(#e4edfb,#25304a);--ink:light-dark(#3c3a4f,#ecebf5);--soft:light-dark(#5d5a72,#c9c6dc)}
-:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+:root{color-scheme:light;--bg:#fff6ee;--bg2:#fdeee6;--ink:#3c3a4f;--soft:#6a6680;--check:rgba(232,96,110,.28);--cloth:#fffaf6}
 *{box-sizing:border-box;min-width:0}
-html{min-height:100%;background:linear-gradient(180deg,var(--sky1),var(--sky2))}
-body{margin:0;font:16px/1.55 Quicksand,system-ui,sans-serif;color:var(--ink);overflow-x:clip}
+html{min-height:100%;background:linear-gradient(180deg,var(--bg),var(--bg2));background-color:var(--bg)}
+body{margin:0;font:16px/1.55 Quicksand,system-ui,sans-serif;color:var(--ink);overflow-x:clip;min-height:100vh;display:flex;flex-direction:column}
 svg.sp{display:block;shape-rendering:crispEdges}
 a{color:inherit;text-underline-offset:3px}
 :focus-visible{outline:3px solid var(--ink);outline-offset:3px}
-header{text-align:center;padding:clamp(36px,6vw,80px) 16px 10px}
-.mark{font:600 15px Quicksand,sans-serif;letter-spacing:.02em;opacity:.8}
-h1{font:600 clamp(30px,4vw,44px)/1.1 Quicksand,sans-serif;margin:10px auto 8px;max-width:16em;text-wrap:balance}
-header p{color:var(--soft);margin:0 auto;max-width:30em}
-.shelf{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(14px,2.4vw,28px);max-width:1180px;margin:clamp(24px,4vw,48px) auto 0;padding:0 max(4vw,16px) 60px}
+header{text-align:center;padding:clamp(28px,5vw,60px) 16px 0}
+.burst{width:clamp(104px,16vw,140px);margin:0 auto;transform:rotate(-8deg);filter:drop-shadow(0 5px 0 rgba(150,40,50,.18));transition:transform .4s}
+.burst svg{width:100%;height:auto}
+.burst:hover{transform:rotate(4deg) scale(1.04)}
+h1{font:700 clamp(28px,4vw,42px)/1.12 Quicksand,sans-serif;margin:clamp(14px,2vw,22px) auto 6px;max-width:16em;text-wrap:balance}
+header p{color:var(--soft);margin:0 auto;max-width:30em;text-wrap:pretty}
+.install{display:none;margin:16px auto 0;min-height:44px;padding:0 18px 0 14px;border:2px solid var(--ink);border-radius:999px;background:#fff;color:var(--ink);font:600 15px Quicksand,sans-serif;cursor:pointer;align-items:center;gap:8px}
+.install svg{width:18px;height:18px}
+.can-install .install{display:inline-flex}
+dialog.how{border:0;border-radius:18px;padding:22px 22px 18px;max-width:min(340px,calc(100vw - 32px));color:var(--ink);background:#fffaf6;box-shadow:0 20px 50px rgba(60,58,79,.25);font:16px/1.5 Quicksand,sans-serif}
+dialog.how::backdrop{background:rgba(60,58,79,.35)}
+dialog.how b{display:block;font-size:18px;margin-bottom:6px}
+dialog.how p{margin:0 0 14px}
+dialog.how button{min-height:44px;width:100%;border:0;border-radius:12px;background:var(--ink);color:#fff;font:600 15px Quicksand,sans-serif;cursor:pointer}
+.shelf{flex:none;width:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(14px,2.4vw,28px);max-width:1180px;margin:clamp(24px,4vw,48px) auto 0;padding:0 max(4vw,16px) 64px}
 .tile{all:unset;cursor:pointer;display:grid;gap:10px;text-align:center;align-content:start;color:inherit}
 .tile .box{aspect-ratio:1;border-radius:22px;position:relative;overflow:hidden;box-shadow:0 10px 30px rgba(60,58,79,.12),inset 0 -40px 0 rgba(255,255,255,.18);transition:transform .25s}
 .tile:hover .box,.tile:focus-visible .box{transform:translateY(-6px)}
@@ -33,7 +46,7 @@ header p{color:var(--soft);margin:0 auto;max-width:30em}
 .tile .ground{position:absolute;left:0;right:0;bottom:0;height:20%;background:rgba(255,255,255,.35)}
 .tile b{font:600 18px Quicksand,sans-serif}
 .tile small{color:var(--soft);font-size:14px;line-height:1.4;display:block;max-width:22em;margin:0 auto}
-.tile.soon{cursor:default}.tile.soon .box{filter:grayscale(1) opacity(.45)}
+.tile.soon{cursor:default}.tile.soon .box{filter:grayscale(1) brightness(1.04);box-shadow:none}.tile.soon .box>*{opacity:.4}
 .tile.soon:hover .box{transform:none}
 .tile.soon b::after{content:" · soon";font-weight:400;opacity:.7}
 .flake{position:absolute;width:6px;height:6px;border-radius:1px;opacity:.8;animation:fall 5s linear infinite;animation-play-state:paused}
@@ -46,9 +59,13 @@ header p{color:var(--soft);margin:0 auto;max-width:30em}
 @keyframes slide{from{transform:translateX(0)}to{transform:translateX(-3px)}}
 .bob{animation:bob .9s steps(1) infinite}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-.7px)}}
+.rise{animation:rise 1.2s steps(3) infinite}
+@keyframes rise{from{transform:translateY(1px);opacity:.9}to{transform:translateY(-2px);opacity:0}}
+.hop{animation:hop2 .9s steps(2) infinite}
+@keyframes hop2{0%,100%{transform:translateY(0)}50%{transform:translateY(-1px)}}
 .fan2{transform-box:view-box;transform-origin:50% 61%;animation:fanx 1.6s steps(2) infinite}
 @keyframes fanx{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
-footer{text-align:center;color:var(--soft);font-size:14px;padding:0 16px 40px;display:grid;gap:8px}
+footer{margin-top:auto;text-align:center;color:var(--ink);font-size:14px;padding:48px 16px 40px;display:grid;gap:8px;background:linear-gradient(90deg,var(--check) 50%,transparent 0) 0 0/28px 28px,linear-gradient(var(--check) 50%,transparent 0) 0 0/28px 28px,var(--cloth);-webkit-mask:radial-gradient(circle at 14px 0,transparent 13px,#000 14px) 0 0/28px 100% repeat-x;mask:radial-gradient(circle at 14px 0,transparent 13px,#000 14px) 0 0/28px 100% repeat-x}
 footer nav{display:flex;gap:18px;justify-content:center;flex-wrap:wrap}
 footer nav a,footer nav span{min-height:32px;display:inline-flex;align-items:center}
 footer nav span{opacity:.6}
@@ -60,10 +77,12 @@ footer nav span{opacity:.6}
 </head>
 <body>
 <header>
-  <div class="mark">150ct</div>
-  <h1>small things for getting together</h1>
-  <p>Each one is made for a single occasion and quietly disappears when it's over. Tap one to make it.</p>
+  <div class="burst" id="burst" role="img" aria-label="150ct"></div>
+  <h1>Free tools for getting together</h1>
+  <p>One-time use links. No sign-up.</p>
+  <button class="install" id="install" type="button"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="1.5" width="8" height="13" rx="1.5"/><path d="M8 5v5M5.8 7.8 8 10l2.2-2.2"/></svg>Add to home screen</button>
 </header>
+<dialog class="how" id="how"><b>Add to home screen</b><p id="howText"></p><form method="dialog"><button>Got it</button></form></dialog>
 <main class="shelf" id="shelf"></main>
 <footer>
   <div>no accounts · no ads · gone when you're done</div>
@@ -71,7 +90,8 @@ footer nav span{opacity:.6}
 </footer>
 <script>
 {
-const {SITE,SHELF,sprite}=window.SHELF;
+const {SITE,SHELF,sprite,burst:SHELF_burst}=window.SHELF;
+document.getElementById("burst").innerHTML=SHELF_burst();
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const flakes=cols=>Array.from({length:7},(_,i)=>`<span class="flake" style="left:${(i*37)%92+4}%;top:-10px;background:${cols[i%cols.length]};animation-delay:${-(i*0.7)}s;animation-duration:${4+i%3}s"></span>`).join("");
 document.getElementById("shelf").innerHTML=SHELF.map(a=>a.status==="live"
@@ -80,6 +100,21 @@ document.getElementById("shelf").innerHTML=SHELF.map(a=>a.status==="live"
 ).join("");
 const link=(url,label)=>url?`<a href="${esc(url)}" target="_blank" rel="noopener">${label}</a>`:`<span>${label} · soon</span>`;
 document.getElementById("links").innerHTML=link(SITE.donate,"Chip in")+link(SITE.discord,"Discord");
+// Add to home screen: Android/Chrome gets the real prompt, iPhone gets the two steps.
+const ua=navigator.userAgent,ios=/iPhone|iPad|iPod/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1);
+const standalone=matchMedia("(display-mode: standalone)").matches||navigator.standalone;
+const phone=ios||/Android/.test(ua);
+let deferred=null;
+if(!standalone&&phone)document.body.classList.add("can-install");
+addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferred=e;if(!standalone)document.body.classList.add("can-install")});
+addEventListener("appinstalled",()=>document.body.classList.remove("can-install"));
+document.getElementById("install").onclick=async()=>{
+  if(deferred){deferred.prompt();await deferred.userChoice.catch(()=>{});deferred=null;return}
+  document.getElementById("howText").textContent=ios
+    ?"Tap the Share button at the bottom of Safari, then Add to Home Screen."
+    :"Open your browser menu (the three dots), then Add to Home screen.";
+  document.getElementById("how").showModal();
+};
 }
 </script>
 </body>
