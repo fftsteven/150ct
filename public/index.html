@@ -29,14 +29,14 @@ header{text-align:center;padding:clamp(28px,5vw,60px) 16px 0;position:relative}
 .tip:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
 .tip svg{width:30px;height:22px;transform:rotate(-8deg);animation:coin 1.4s steps(1) infinite}
 @keyframes coin{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(-8deg) translateY(-2px)}}
-@media(max-width:480px){.tip{top:10px;right:10px;padding:0 12px 0 8px;font-size:14px}.tip svg{width:26px;height:19px}}
+@media(max-width:480px){header{padding-top:68px}.tip{top:10px;right:10px;padding:0 12px 0 8px;font-size:14px}.tip svg{width:26px;height:19px}}
 .burst{width:clamp(104px,16vw,140px);margin:0 auto;transform:rotate(-8deg);filter:drop-shadow(0 5px 0 rgba(150,40,50,.18));transition:transform .4s}
 .burst svg{width:100%;height:auto}
 .burst:hover{transform:rotate(4deg) scale(1.04)}
 h1{font:700 clamp(28px,4vw,42px)/1.12 Quicksand,sans-serif;margin:clamp(14px,2vw,22px) auto 6px;max-width:16em;text-wrap:balance}
 header p{color:var(--soft);margin:0 auto;max-width:30em;text-wrap:pretty}
-.install{display:none;margin:16px auto 0;min-height:44px;padding:0 18px 0 14px;border:2px solid var(--ink);border-radius:999px;background:#fff;color:var(--ink);font:600 15px Quicksand,sans-serif;cursor:pointer;align-items:center;gap:8px}
-.install svg{width:18px;height:18px}
+.install{display:none;position:absolute;top:10px;left:10px;min-height:44px;padding:0 12px 0 10px;border:2px solid var(--ink);border-radius:999px;background:#fff;color:var(--ink);font:700 14px Quicksand,sans-serif;cursor:pointer;align-items:center;gap:6px;box-shadow:0 3px 0 var(--ink)}
+.install svg{width:18px;height:18px;flex:none}
 .can-install .install{display:inline-flex}
 dialog.how{border:0;border-radius:18px;padding:22px 22px 18px;max-width:min(340px,calc(100vw - 32px));color:var(--ink);background:#fffaf6;box-shadow:0 20px 50px rgba(60,58,79,.25);font:16px/1.5 Quicksand,sans-serif}
 dialog.how::backdrop{background:rgba(60,58,79,.35)}
@@ -88,7 +88,7 @@ footer nav span{opacity:.6}
   <div class="burst" id="burst" role="img" aria-label="150ct"></div>
   <h1>Free tools for getting together</h1>
   <p>One-time use links. No sign-up.</p>
-  <button class="install" id="install" type="button"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="1.5" width="8" height="13" rx="1.5"/><path d="M8 5v5M5.8 7.8 8 10l2.2-2.2"/></svg>Add to home screen</button>
+  <button class="install" id="install" type="button"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="1.5" width="8" height="13" rx="1.5"/><path d="M8 5v5M5.8 7.8 8 10l2.2-2.2"/></svg>Add to home</button>
 </header>
 <dialog class="how" id="how"><b>Add to home screen</b><p id="howText"></p><form method="dialog"><button>Got it</button></form></dialog>
 <main class="shelf" id="shelf"></main>
@@ -109,19 +109,13 @@ document.getElementById("shelf").innerHTML=SHELF.map(a=>a.status==="live"
 const link=(url,label)=>url?`<a href="${esc(url)}" target="_blank" rel="noopener">${label}</a>`:`<span>${label} · soon</span>`;
 if(SITE.donate){const t=document.getElementById("tip");t.href=SITE.donate;t.hidden=false}
 document.getElementById("links").innerHTML=`<a href="/about">About</a>`+link(SITE.donate,"Chip in")+link(SITE.discord,"Discord");
-// Add to home screen: Android/Chrome gets the real prompt, iPhone gets the two steps.
-const ua=navigator.userAgent,ios=/iPhone|iPad|iPod/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1);
+// Add to home screen, phones only.
+const ua=navigator.userAgent;
+const phone=/iPhone|iPad|iPod|Android/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1);
 const standalone=matchMedia("(display-mode: standalone)").matches||navigator.standalone;
-const phone=ios||/Android/.test(ua);
-let deferred=null;
-if(!standalone&&phone)document.body.classList.add("can-install");
-addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferred=e;if(!standalone)document.body.classList.add("can-install")});
-addEventListener("appinstalled",()=>document.body.classList.remove("can-install"));
-document.getElementById("install").onclick=async()=>{
-  if(deferred){deferred.prompt();await deferred.userChoice.catch(()=>{});deferred=null;return}
-  document.getElementById("howText").textContent=ios
-    ?"Tap the Share button at the bottom of Safari, then Add to Home Screen."
-    :"Open your browser menu (the three dots), then Add to Home screen.";
+if(phone&&!standalone)document.body.classList.add("can-install");
+document.getElementById("install").onclick=()=>{
+  document.getElementById("howText").textContent="Tap the browser menu, then Add to Home Screen.";
   document.getElementById("how").showModal();
 };
 }
