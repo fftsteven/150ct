@@ -14,6 +14,7 @@ function fmtWhen(date,time){
   if(time){const [h,m]=time.split(":").map(Number);out+=` · ${((h+11)%12)+1}${m?":"+String(m).padStart(2,"0"):""} ${h<12?"AM":"PM"}`}
   return out;
 }
+const mapLink=(p,near)=>p.url||mapsUrl(p.n,near);
 const mapsUrl=(name,near)=>"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent([name,near].filter(Boolean).join(" "));
 async function copyText(t){
   try{await navigator.clipboard.writeText(t);return true}catch(e){}
@@ -24,5 +25,10 @@ async function copyText(t){
 }
 const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`};
 const key=()=>"a"+Array.from(crypto.getRandomValues(new Uint8Array(6)),b=>"abcdefghjkmnpqrstuvwxyz23456789"[b%31]).join("");
-window.E={fox,mini,esc,fmtWhen,mapsUrl,copyText,today,key};
+// A pasted Google Maps link: ask the server for the place name. "" when it can't tell.
+const looksLikeUrl=s=>/^https?:\/\//i.test(s.trim());
+async function nameFromLink(u){
+  try{const r=await fetch("/api/unfurl?u="+encodeURIComponent(u.trim()));const j=await r.json();return r.ok?(j.name||""):null}catch(e){return ""}
+}
+window.E={fox,mini,esc,fmtWhen,mapsUrl,mapLink,copyText,today,key,looksLikeUrl,nameFromLink};
 })();

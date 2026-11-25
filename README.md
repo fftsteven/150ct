@@ -17,6 +17,7 @@ apps/                       server side of each app (validation, responses)
   index.js                  registry
   potluck/server.js
   eat/server.js
+core/unfurl.js              Google Maps share link -> place name (no API key), GET /api/unfurl
 dev.js                      local server, in-memory Redis
 scripts/preview.mjs         one-file clickable preview (dist/preview.html)
 test/                       node --test

@@ -1,6 +1,7 @@
 // Where to eat: the host lists a few places, everyone taps yes on the ones that work,
 // the leader shows on top. Guests can add a place. The host can lock in the pick.
 import { str, rand } from "../../core/util.js";
+import { isMapsUrl } from "../../core/unfurl.js";
 
 const MAX_PLACES = 15;
 const MAX_ADDS = 3;
@@ -8,7 +9,9 @@ const KEY_RE = /^[a-z0-9]{4,12}$/;
 
 const place = (p, k) => {
   const n = str(p?.n, 60);
-  return n ? { k, n, note: str(p?.note, 100) } : null;
+  if (!n) return null;
+  const url = str(p?.url, 300);
+  return { k, n, note: str(p?.note, 100), ...(isMapsUrl(url) ? { url } : {}) };
 };
 
 // Every key a guest can vote for: the host's places plus places guests added.

@@ -65,7 +65,7 @@
       <input id="name" autocomplete="given-name" maxlength="40" placeholder="So people know who said yes">
     </div>
     <ul class="pl" id="list"></ul>
-    <div class="addrow" id="addRow"><input id="addIn" maxlength="60" placeholder="Somewhere else?" autocomplete="off" aria-label="Add a place"><button class="btn ghost" id="addBtn" type="button">Add</button></div>
+    <div class="addrow" id="addRow"><input id="addIn" maxlength="300" placeholder="Add a place or a maps link" autocomplete="off" aria-label="Add a place"><button class="btn ghost" id="addBtn" type="button">Add</button></div>
     <p class="status" id="status" aria-live="polite"></p>
   </div>
   <div class="wrap" id="missing" hidden><p class="hint" id="missingText"></p><p><a href="/eat">Start one</a></p></div>
@@ -74,7 +74,7 @@
 
 <script>
 {
-const {fox,mini,esc,fmtWhen,mapsUrl,copyText,key}=window.E;
+const {fox,mini,esc,fmtWhen,mapsUrl,mapLink,copyText,key,looksLikeUrl,nameFromLink}=window.E;
 const $=id=>document.getElementById(id);
 const slug=location.pathname.split("/").filter(Boolean).pop();
 const guestUrl=location.origin+"/eat/"+slug;
@@ -123,7 +123,7 @@ function renderEvent(){
   const out=[];
   const when=fmtWhen(ev.date,ev.time);
   if(when)out.push(`<div><b>When</b><span>${esc(when)}</span></div>`);
-  if(ev.pick)out.push(`<div><b>Going</b><span><a href="${esc(mapsUrl(ev.pick.n,ev.near))}" target="_blank" rel="noopener">${esc(ev.pick.n)}</a></span></div>`);
+  if(ev.pick)out.push(`<div><b>Going</b><span><a href="${esc(mapLink(ev.pick,ev.near))}" target="_blank" rel="noopener">${esc(ev.pick.n)}</a></span></div>`);
   else if(ev.near)out.push(`<div><b>Area</b><span>${esc(ev.near)}</span></div>`);
   $("det").innerHTML=out.join("");
   $("nameRow").hidden=isHost||!!ev.pick;
@@ -139,7 +139,7 @@ function render(){
     :L?`<div class="lead">${mini()}<div><small>${L.tied?"Tied":"Leading"} · ${L.p.yes.length} yes</small><b>${esc((L.tied||[L.p]).map(p=>p.n).join(" or "))}</b></div></div>`:"";
   $("list").innerHTML=list.map(p=>{
     const on=mine.yes.includes(p.k),picked=closed&&ev.pick.k===p.k;
-    const sub=[p.note?esc(p.note):"",`<a href="${esc(mapsUrl(p.n,ev.near))}" target="_blank" rel="noopener">Map</a>`,p.by?`added by ${esc(label(p.by,rows()[p.by]||{}))}`:""].filter(Boolean).join(" · ");
+    const sub=[p.note?esc(p.note):"",`<a href="${esc(mapLink(p,ev.near))}" target="_blank" rel="noopener">Map</a>`,p.by?`added by ${esc(label(p.by,rows()[p.by]||{}))}`:""].filter(Boolean).join(" · ");
     const acts=[];
     if(isHost&&!closed)acts.push(`<button class="go" data-pick="${esc(p.k)}" type="button">Go here</button>`);
     if(p.by===myId&&!closed)acts.push(`<button class="undo" data-unadd="${esc(p.k)}" type="button">Remove</button>`);
@@ -150,11 +150,13 @@ function render(){
   if(isHost)renderAdmin(list);
 }
 
-function resultText(list){
+// The one text for the group chat: places with map links and the vote link, or the final call.
+function groupText(list){
   const head=[ev.title,fmtWhen(ev.date,ev.time)].filter(Boolean).join(", ");
-  if(ev.pick)return `${head}\nGoing with ${ev.pick.n}\n${mapsUrl(ev.pick.n,ev.near)}`;
-  const sorted=[...list].sort((a,b)=>b.yes.length-a.yes.length);
-  return head+"\n\n"+sorted.map(p=>`${p.n} (${p.yes.length} yes)${p.note?", "+p.note:""}\n${mapsUrl(p.n,ev.near)}`).join("\n\n");
+  if(ev.pick)return `${head}\nWe're going to ${ev.pick.n}${ev.pick.note?", "+ev.pick.note:""}\n${mapLink(ev.pick,ev.near)}`;
+  const voted=list.some(p=>p.yes.length);
+  const sorted=voted?[...list].sort((a,b)=>b.yes.length-a.yes.length):list;
+  return head+"\n\n"+sorted.map(p=>`${p.n}${p.yes.length?` (${p.yes.length} yes)`:""}${p.note?", "+p.note:""}\n${mapLink(p,ev.near)}`).join("\n\n")+`\n\nVote: ${guestUrl}`;
 }
 
 function renderAdmin(list){
@@ -163,9 +165,10 @@ function renderAdmin(list){
   const name=k=>(list.find(p=>p.k===k)||{}).n;
   $("admin").innerHTML=`<div class="band" style="padding-block:16px"><div class="wrap notice admin">
     <h2>Host</h2>
-    <div><b>Send this link to the group</b></div>
-    <div class="linkrow"><code>${esc(guestUrl)}</code><button class="btn" data-copy="${esc(guestUrl)}" type="button">Copy</button>${navigator.share?`<button class="btn ghost" id="share" type="button">Share</button>`:""}</div>
-    <div class="linkrow"><a href="/eat?edit=${esc(slug)}">Edit</a> · <button class="btn ghost" id="copyRes" type="button">Copy results</button>${ev.pick?` · <button class="btn ghost" id="reopen" type="button">Reopen</button>`:""} · <button class="btn ghost" id="delEv" type="button">Delete</button></div>
+    <div class="linkrow"><button class="btn" id="textGroup" type="button">${ev.pick?"Text the group where":"Text the group"}</button><button class="btn ghost" id="copyText" type="button">Copy text</button></div>
+    <pre class="small" id="textPrev" style="white-space:pre-wrap;margin:0;font:inherit;font-size:14px;background:rgba(0,0,0,.06);padding:10px;border-radius:6px">${esc(groupText(list))}</pre>
+    <div class="linkrow"><code>${esc(guestUrl)}</code><button class="btn ghost" data-copy="${esc(guestUrl)}" type="button">Copy link</button></div>
+    <div class="linkrow"><a href="/eat?edit=${esc(slug)}">Edit</a>${ev.pick?` · <button class="btn ghost" id="reopen" type="button">Reopen</button>`:""} · <button class="btn ghost" id="delEv" type="button">Delete</button></div>
     ${people.length?`<div class="people">${people.map(([id,r])=>`<div><span><b>${esc(r.name||"Someone")}</b> · ${esc([...(r.yes||[]).map(name).filter(Boolean)].join(", ")||"added a place")}</span><button class="rm" data-rm="${esc(id)}" type="button">Remove</button></div>`).join("")}</div>`:""}
     <div class="small">This browser remembers you as host. To manage from another device, open your host link there. <button class="btn ghost" data-copy="${esc(host)}" data-label="Copy host link" type="button" style="min-height:32px;font-size:12px;padding:0 10px">Copy host link</button></div>
   </div></div>`;
@@ -217,12 +220,22 @@ $("list").addEventListener("click",e=>{
   const a=e.target.closest("[data-unadd]");
   if(a){const k=a.dataset.unadd;mine.add=mine.add.filter(x=>x.k!==k);mine.yes=mine.yes.filter(x=>x!==k);render();queue();return}
   const g=e.target.closest("[data-pick]");
-  if(g){const p=tally().find(x=>x.k===g.dataset.pick);if(p)setPick({k:p.k,n:p.n,note:p.note||""})}
+  if(g){const p=tally().find(x=>x.k===g.dataset.pick);if(p)setPick({k:p.k,n:p.n,note:p.note||"",...(p.url?{url:p.url}:{})})}
 });
-function addMine(){
-  const n=$("addIn").value.trim();if(!n||!live||needName())return;
+let pendingUrl="";
+async function addMine(){
+  const v=$("addIn").value.trim();if(!v||!live||needName())return;
+  let n=v,url=pendingUrl;
+  if(looksLikeUrl(v)){
+    status("Looking it up…");
+    n=await nameFromLink(v);
+    if(n===null){status("That isn't a Google Maps link. Type the name instead.");return}
+    url=v;
+    if(!n){pendingUrl=v;$("addIn").value="";$("addIn").placeholder="Name for that link";status("Got the link. What's the place called?");return}
+  }
   const k=key();
-  mine.add=[...mine.add,{k,n,note:""}];mine.yes=[...mine.yes,k];$("addIn").value="";render();queue();
+  mine.add=[...mine.add,{k,n,note:"",...(url?{url}:{})}];mine.yes=[...mine.yes,k];
+  pendingUrl="";$("addIn").value="";$("addIn").placeholder="Add a place or a maps link";render();queue();
 }
 $("addBtn").addEventListener("click",addMine);
 $("addIn").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();addMine()}});
@@ -238,9 +251,12 @@ $("admin").addEventListener("click",async e=>{
   if(c){const ok=await copyText(c.dataset.copy);c.textContent=ok?"Copied":"Couldn't copy";if(!ok){const code=c.parentElement.querySelector("code");if(code)getSelection().selectAllChildren(code)}setTimeout(()=>c.textContent=c.dataset.label||"Copy",1800);return}
   const rm=e.target.closest("[data-rm]");
   if(rm)return removePerson(rm.dataset.rm,rm);
-  if(e.target.id==="share"){try{await navigator.share({title:ev.title,url:guestUrl})}catch(err){}return}
+  if(e.target.id==="textGroup"||e.target.id==="copyText"){
+    const t=groupText(tally()),b=e.target,was=b.textContent;
+    if(b.id==="textGroup"&&navigator.share){try{await navigator.share({text:t});return}catch(err){if(err&&err.name==="AbortError")return}}
+    const ok=await copyText(t);b.textContent=ok?"Copied, paste it in the chat":"Couldn't copy";setTimeout(()=>b.textContent=was,2200);return;
+  }
   if(e.target.id==="reopen")return setPick(null);
-  if(e.target.id==="copyRes"){const ok=await copyText(resultText(tally()));e.target.textContent=ok?"Copied":"Couldn't copy";setTimeout(()=>e.target.textContent="Copy results",1800);return}
   if(e.target.id==="delEv"){
     const b=e.target;
     if(b.dataset.armed!=="1"){b.dataset.armed="1";b.textContent="Tap again to delete for everyone";return}

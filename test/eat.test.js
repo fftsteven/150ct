@@ -12,7 +12,7 @@ const call = async (method, path, body, headers = {}) => {
   }));
   return { status: r.status, j: await r.json() };
 };
-const eat = { title: "Friday dinner", date: "2026-12-04", near: "Koreatown", places: [{ n: "Sonoratown", note: "cash only" }, { n: "Loqui" }, { n: "" }] };
+const eat = { title: "Friday dinner", date: "2026-12-04", near: "Koreatown", places: [{ n: "Sonoratown", note: "cash only", url: "https://maps.app.goo.gl/abc" }, { n: "Loqui", url: "javascript:alert(1)" }, { n: "" }] };
 const G1 = "a".repeat(24), G2 = "b".repeat(24);
 
 test("yes votes, guest-added places, pick locks voting", async () => {
@@ -22,6 +22,8 @@ test("yes votes, guest-added places, pick locks voting", async () => {
   const { j: got } = await call("GET", "/api/links" + q);
   assert.equal(got.link.data.places.length, 2, "blank place dropped");
   assert.equal(got.link.data.places[0].note, "cash only");
+  assert.equal(got.link.data.places[0].url, "https://maps.app.goo.gl/abc");
+  assert.equal(got.link.data.places[1].url, undefined, "only Google Maps links kept");
   const [a, b] = got.link.data.places.map((p) => p.k);
 
   assert.equal((await call("POST", "/api/responses" + q, { id: G1, yes: [a] })).status, 400, "name required");

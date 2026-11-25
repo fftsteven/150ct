@@ -7,12 +7,14 @@
 // DELETE /api/links?slug=                            host only
 // POST   /api/responses?slug=        { id, ...app fields }
 // DELETE /api/responses?slug=&id=                    host only
+// GET    /api/unfurl?u=<google maps link>  -> { name }
 //
 // Host key travels in the x-host-key header.
 
 import { APPS } from "../apps/index.js";
 import { json } from "./util.js";
 import { limited } from "./ratelimit.js";
+import { unfurl, isMapsUrl } from "./unfurl.js";
 import {
   loadLink, isHostOf, createLink, updateLink, deleteLink, loadResponses, saveResponse,
   removeResponse, publicLink, maskResponses, RESPONDER_RE,
@@ -99,12 +101,20 @@ async function responses(request, q, hostKey) {
   return json(405, { error: "Method not allowed" }, { allow: "POST, DELETE" });
 }
 
+async function unfurlRoute(request, q) {
+  const u = q.get("u") || "";
+  if (!isMapsUrl(u)) return json(400, { error: "That isn't a Google Maps link." });
+  if (await limited(request, "unfurl", 120)) return json(429, { error: "Too many links. Type the name instead." });
+  try { return json(200, { name: await unfurl(u) }); } catch { return json(200, { name: "" }); }
+}
+
 export async function handle(request) {
   try {
     const url = new URL(request.url);
     const hostKey = request.headers.get("x-host-key") || "";
     if (url.pathname === "/api/links") return await links(request, url.searchParams, hostKey);
     if (url.pathname === "/api/responses") return await responses(request, url.searchParams, hostKey);
+    if (url.pathname === "/api/unfurl") return await unfurlRoute(request, url.searchParams);
     return json(404, { error: "Not found" });
   } catch (e) {
     console.error(e);

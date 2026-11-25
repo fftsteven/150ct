@@ -50,10 +50,10 @@
 
       <div class="f">
         <label for="placeIn">Places</label>
-        <p class="hint">Everyone taps yes on the ones that work for them. Guests can add a place too.</p>
+        <p class="hint">Type a name or paste a Google Maps link. Everyone taps yes on the ones that work, and guests can add a place.</p>
         <ul class="pl" id="places"></ul>
         <div class="addrow">
-          <input id="placeIn" maxlength="60" placeholder="Add a place" autocomplete="off">
+          <input id="placeIn" maxlength="300" placeholder="Name or Google Maps link" autocomplete="off">
           <input id="noteIn" maxlength="100" placeholder="Note, e.g. book ahead" autocomplete="off" aria-label="Note for this place">
           <button class="btn ghost" type="button" id="placeAdd">Add</button>
         </div>
@@ -67,7 +67,7 @@
 
 <script>
 {
-const {fox,esc,fmtWhen,today}=window.E;
+const {fox,esc,fmtWhen,today,looksLikeUrl,nameFromLink}=window.E;
 const $=id=>document.getElementById(id);
 const editSlug=new URLSearchParams(location.search).get("edit")||"";
 let hostKey="";
@@ -75,20 +75,33 @@ const hm=location.hash.match(/host=([a-z0-9]+)/);
 if(hm)hostKey=hm[1];
 else if(editSlug){try{hostKey=localStorage.getItem("150ct-host-"+editSlug)||""}catch(e){}}
 
-let places=[],pick=null;
+let places=[],pick=null,pendingUrl="";
 $("pSprite").innerHTML=fox();
 
 function renderPlaces(){
-  $("places").innerHTML=places.length?places.map((p,i)=>`<li><span><b>${esc(p.n)}</b>${p.note?`<small>${esc(p.note)}</small>`:""}</span><button type="button" data-del="${i}" aria-label="Remove ${esc(p.n)}">×</button></li>`).join(""):`<li class="hint" style="background:none;border:0;padding:0">No places yet. Add two or three.</li>`;
+  $("places").innerHTML=places.length?places.map((p,i)=>`<li><span><b>${esc(p.n)}</b>${p.note||p.url?`<small>${[p.note?esc(p.note):"",p.url?"Google Maps link":""].filter(Boolean).join(" · ")}</small>`:""}</span><button type="button" data-del="${i}" aria-label="Remove ${esc(p.n)}">×</button></li>`).join(""):`<li class="hint" style="background:none;border:0;padding:0">No places yet. Add two or three.</li>`;
 }
 function preview(){
   $("pTitle").textContent=$("title").value.trim()||"Where to eat";
   const when=fmtWhen($("date").value,$("time").value),near=$("near").value.trim();
   $("pDet").innerHTML=(when?`<div><b>When</b><span>${esc(when)}</span></div>`:"")+(near?`<div><b>Area</b><span>${esc(near)}</span></div>`:"");
 }
-function addPlace(){
-  const n=$("placeIn").value.trim();if(!n)return;
-  places.push({n,note:$("noteIn").value.trim()});$("placeIn").value="";$("noteIn").value="";renderPlaces();$("placeIn").focus();
+// Type a name, or paste a Google Maps link. If the link doesn't give a name, ask for one.
+async function addPlace(){
+  const v=$("placeIn").value.trim();if(!v)return;
+  if(looksLikeUrl(v)){
+    $("status").textContent="Looking it up…";
+    const n=await nameFromLink(v);
+    if(n===null){$("status").textContent="That isn't a Google Maps link. Type the name instead.";return}
+    if(!n){pendingUrl=v;$("placeIn").value="";$("placeIn").placeholder="Name for that link";$("status").textContent="Got the link. What's the place called?";$("placeIn").focus();return}
+    $("status").textContent="";
+    return push(n,v);
+  }
+  push(v,pendingUrl);
+}
+function push(n,url){
+  places.push({n,note:$("noteIn").value.trim(),...(url?{url}:{})});
+  pendingUrl="";$("placeIn").value="";$("noteIn").value="";$("placeIn").placeholder="Name or Google Maps link";$("status").textContent="";renderPlaces();$("placeIn").focus();
 }
 $("places").addEventListener("click",e=>{const b=e.target.closest("[data-del]");if(!b)return;places.splice(+b.dataset.del,1);renderPlaces()});
 $("placeAdd").addEventListener("click",addPlace);
@@ -97,7 +110,7 @@ $("form").addEventListener("input",e=>{if(e.target.id!=="placeIn"&&e.target.id!=
 
 $("form").addEventListener("submit",async e=>{
   e.preventDefault();
-  if($("placeIn").value.trim())addPlace();
+  if($("placeIn").value.trim())await addPlace();
   const payload={title:$("title").value,date:$("date").value,time:$("time").value,near:$("near").value,places,pick};
   if(!payload.title.trim()){$("status").textContent="Give it a name.";$("title").focus();return}
   if(!payload.date){$("status").textContent="Pick a date.";$("date").focus();return}
