@@ -60,6 +60,13 @@ const pages = {
   landing: await page("index.html"),
   about: await page("about.html"),
   terms: await page("terms.html"),
+  "g_thanksgiving-potluck-list": await page("guides/thanksgiving-potluck-list.html"),
+  "g_secret-santa-rules-for-families": await page("guides/secret-santa-rules-for-families.html"),
+  "g_potluck-without-duplicates": await page("guides/potluck-without-duplicates.html"),
+  "g_index": await page("guides/index.html"),
+  "g_find-a-date-for-a-group": await page("guides/find-a-date-for-a-group.html"),
+  "g_secret-santa-without-anyone-knowing": await page("guides/secret-santa-without-anyone-knowing.html"),
+  "g_office-gift-exchange-ideas": await page("guides/office-gift-exchange-ideas.html"),
   privacy: await page("privacy.html"),
   create: await page("apps/potluck/new.html"),
   view: await page("apps/potluck/view.html"),
@@ -96,7 +103,7 @@ function route(u){
   var x=new URL(u, __ORIGIN);
   window.__ROUTE={path:x.pathname,search:x.search,hash:x.hash};
   var p=x.pathname.replace(/\\/$/,"")||"/";
-  var key=p==="/about"?"about":p==="/terms"?"terms":p==="/privacy"?"privacy":p==="/potluck"?"create":/^\\/potluck\\/[a-z0-9]+$/.test(p)?"view":p==="/eat"?"eatCreate":p==="/meet"?"meetCreate":/^\\/meet\\/[a-z0-9]+$/.test(p)?"meetView":p==="/gift"?"giftCreate":/^\\/gift\\/[a-z0-9]+$/.test(p)?"giftView":"landing";
+  var key=p==="/guides"?"g_index":/^\\/guides\\/[a-z0-9-]+$/.test(p)&&PAGES["g_"+p.slice(8)]?"g_"+p.slice(8):p==="/about"?"about":p==="/terms"?"terms":p==="/privacy"?"privacy":p==="/potluck"?"create":/^\\/potluck\\/[a-z0-9]+$/.test(p)?"view":p==="/eat"?"eatCreate":p==="/meet"?"meetCreate":/^\\/meet\\/[a-z0-9]+$/.test(p)?"meetView":p==="/gift"?"giftCreate":/^\\/gift\\/[a-z0-9]+$/.test(p)?"giftView":"landing";
   document.getElementById("url").textContent="150ct.com"+(p==="/"?"/":p)+x.search;
   document.getElementById("f").srcdoc=PAGES[key];
 }

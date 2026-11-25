@@ -15,6 +15,15 @@
 - Links are deleted automatically, generally 30 days after the event.
 - Gift exchange: names are drawn when the link is made. Each person sees only who they're buying for. The organizer can see who has looked, never who has who.
 
+## Guides
+
+- [How to do Secret Santa without anyone knowing who has who](https://150ct.com/guides/secret-santa-without-anyone-knowing): The easiest way to draw Secret Santa names so nobody, including the organizer, sees the pairs. Works over text with no sign-up.
+- [Secret Santa rules for families](https://150ct.com/guides/secret-santa-rules-for-families): Simple Secret Santa rules that work for families: budget, who draws who, kids, couples, and what to do when someone can't make it.
+- [Office gift exchange: budget, rules and ideas](https://150ct.com/guides/office-gift-exchange-ideas): How to run an office gift exchange: a fair budget, simple rules, gift ideas that work for coworkers, and how to draw names without anyone peeking.
+- [How to organize a potluck so nothing doubles up](https://150ct.com/guides/potluck-without-duplicates): Stop getting five bags of chips and no main dish. A simple way to organize a potluck so every dish is covered once.
+- [Thanksgiving and Friendsgiving potluck sign-up list](https://150ct.com/guides/thanksgiving-potluck-list): A ready-to-use Thanksgiving potluck list, from turkey to cranberry sauce, plus how to share it so nobody brings the same dish.
+- [How to find a date that works for a big group](https://150ct.com/guides/find-a-date-for-a-group): Skip the 80-message group chat. A fast way to find a day or time that works for everyone, with no sign-up.
+
 ## More
 
 - [About and FAQ](https://150ct.com/about)
