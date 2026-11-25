@@ -1,8 +1,66 @@
-/* Gather: shared themes, pixel art and helpers. Plain script, sets window.G. */
+/* Potluck: icons, templates, colour and helpers. Plain script, sets window.G. */
 (function(){
-const PC={s:"#8b3a1e",d:"#4a2210",w:"#f4ead8",b:"#8a5a2b",g:"#6aa84f",G:"#2f6b2f",y:"#f2c230",c:"#f6d14a",k:"#9a8f88",K:"#3a3633",r:"#c62828",R:"#a31d1d",B:"#c98a3d",o:"#e8862e",l:"#a9c7d8",e:"#e0a85a",p:"#f48fb1",P:"#d81b60",Y:"#f3e39a",n:"#2b59c3"};
-const HERO={"cake": ["................", "....y....y....y.", "...yoy..yoy..yo.", "....w....w....w.", "....w....w....w.", "..cccccccccccc..", "..cPcccPccPccc..", "..pPpppPppPppp..", "..pppppppppppp..", "..bbbbbbbbbbbb..", "..pppppppppppp..", "..pppppPpppppp..", "..bbbbbbbbbbbb..", ".kkkkkkkkkkkkkk.", "..kkkkkkkkkkkk..", "................"], "tree": [".......yy.......", "......yyyy......", ".......yy.......", "......gGgg......", ".....gGgggg.....", "....gGrgggGg....", "...gGggggGggg...", "....ggggGbgg....", "...ggggGgggyG...", "..gggyGggggGgg..", ".ggggGggggGgggg.", "...gGggggGrgg...", "..gGyggbGggggG..", ".gGggggGggggGgg.", ".......dd.......", ".....RRddRR....."], "grill": ["....o...o...o...", "...oyo.oyo.oyo..", "...oyo.oyo.oyo..", "..ssssssssssss..", "..sddsssdddsss..", "kkkkkkkkkkkkkkkk", ".KKKKKKKKKKKKKK.", ".KKKKKKKKKKKKKK.", "..KKKKKKKKKKKK..", "...KKKKKKKKKK...", ".....KKKKKK.....", "......K..K......", ".....K....K.....", "....K......K....", "...K........K...", "................"], "balloons": ["...rr.....bb....", "..rrrr...bbbb...", ".rrwrrr.bbwbbb..", ".rrrrrr.bbbbbb..", ".rrrrrr.bbbbbb..", "..rrrr...bbbb...", "...rr..yy.bb....", "....k.yyyy.k....", "....k.ywyyyk....", ".....kyyyyk.....", "......kyyk......", ".......kk.......", ".......k........", "........k.......", ".......k........", "................"]};
-// procedural turkey (24x23)
+const PC={s:"#8b3a1e",d:"#4a2210",w:"#f4ead8",W:"#ffffff",b:"#8a5a2b",g:"#6aa84f",G:"#2f6b2f",y:"#f2c230",c:"#f6d14a",h:"#fff3b0",k:"#9a8f88",K:"#3a3633",x:"#1b1716",r:"#c62828",R:"#a31d1d",B:"#c98a3d",o:"#e8862e",O:"#b85a14",l:"#a9c7d8",e:"#e0a85a",p:"#f48fb1",P:"#d81b60",Y:"#f3e39a",n:"#2b59c3",N:"#1c3d8f",v:"#8e5bd6",m:"#4cc9a0"};
+
+// 16x16 card icons. Rows shorter than 16 are padded.
+const ART={
+cake:["................","....y....y....y.","...yoy..yoy..yo.","....w....w....w.","....w....w....w.","..cccccccccccc..","..cPcccPccPccc..","..pPpppPppPppp..","..pppppppppppp..","..bbbbbbbbbbbb..","..pppppppppppp..","..pppppPpppppp..","..bbbbbbbbbbbb..",".kkkkkkkkkkkkkk.","..kkkkkkkkkkkk..","................"],
+tree:[".......yy.......","......yyyy......",".......yy.......","......gGgg......",".....gGgggg.....","....gGrgggGg....","...gGggggGggg...","....ggggGbgg....","...ggggGgggyG...","..gggyGggggGgg..",".ggggGggggGgggg.","...gGggggGrgg...","..gGyggbGggggG..",".gGggggGggggGgg.",".......dd.......",".....RRddRR....."],
+grill:["....o...o...o...","...oyo.oyo.oyo..","...oyo.oyo.oyo..","..ssssssssssss..","..sddsssdddsss..","kkkkkkkkkkkkkkkk",".KKKKKKKKKKKKKK.",".KKKKKKKKKKKKKK.","..KKKKKKKKKKKK..","...KKKKKKKKKK...",".....KKKKKK.....","......K..K......",".....K....K.....","....K......K....","...K........K...","................"],
+balloons:["...rr.....nn....","..rrrr...nnnn...",".rrwrrr.nnwnnn..",".rrrrrr.nnnnnn..",".rrrrrr.nnnnnn..","..rrrr...nnnn...","...rr..yy.nn....","....k.yyyy.k....","....k.ywyyyk....",".....kyyyyk.....","......kyyk......",".......kk.......",".......k........","........k.......",".......k........","................"],
+pumpkin:["................","................",".......dd.......","........dg......","........ggg.....","...oOoooooOoo...","..ooOooOOooOoo..",".oooOooOOooOooo.",".oooOooOOooOooo.",".oooOooOOooOooo.",".oooOooOOooOooo.",".oooOooOOooOooo.","..ooOooOOooOoo..","...oOoooooOoo...","................","................"],
+pie:["................","................","................","................","....w.w.w.w.w...","...wwwwwwwwwww..","..BBBBBBBBBBBBB.",".BeBeBeBeBeBeBeB",".BoooooooooooooB",".BoooooooooooooB",".BOOOOOOOOOOOOOB","..BBBBBBBBBBBBB.","..kkkkkkkkkkkk..","...kkkkkkkkkk...","................","................"],
+leaf:[".......o........","......ooo.......","..o..ooooo..o...","..oo.ooOoo.oo...","..oooooOooooo...","...ooooOoooo....",".ooooooOooooooo.","..oooooOoooooo..","...ooOoOoOooo...","....oOooOooOo...","....ooooOoooo...",".....oooOooo....","........d.......","........d.......","........d.......","................"],
+gift:["................","...rrr....rrr...","..r...r..r...r..","..r....rr....r..","...rrrrrrrrrr...",".nnnnnnrrnnnnnn.",".nnnnnnrrnnnnnn.",".rrrrrrrrrrrrrr.","..NnnnnrrnnnnN..","..NnnnnrrnnnnN..","..NnnnnrrnnnnN..","..NnnnnrrnnnnN..","..NnnnnrrnnnnN..","..NnnnnrrnnnnN..","..NNNNNrrNNNNN..","................"],
+snowflake:[".......W........",".....W.W.W......","......WWW.......",".W.....W.....W..","W.W....W....W.W.","...W...W...W....","....W..W..W.....",".....W.W.W......","WWWWWWWlWWWWWWW.",".....W.W.W......","....W..W..W.....","...W...W...W....","W.W....W....W.W.",".W.....W.....W..","......WWW.......",".....W.W.W......"],
+bell:["......RRRR......",".....RR..RR.....","......RRRR......",".......yy.......","......yccy......",".....yccchy.....","....ycccchyy....","....ycccchyy....","....yccccchy....","...ycccccchyy...","...ycccccccyy...","..ycccccccccyy..",".yyyyyyyyyyyyyy.",".......BB.......","......BBBB......","................"],
+champagne:[".....y...y......","...y...y....y...",".....y..y.......","......KK........","......GG........","......GG.....W..",".....GGGG..lYYl.","....GGGGGG.lYYl.","....GwwwwG.lYYl.","....GwRRwG..ll..","....GwwwwG...l..","....GGGGGG...l..","....GGGGGG..lll.","....GGGGGG......",".....GGGG.......","................"],
+fireworks:[".......y........","...y...y...y....","....y..y..y.....",".....y.W.y......","......yWy.......",".yyyyWWWWWyyyy..","......yWy.......",".....y.W.y......","....y..y..y.....","...y...y...y....",".......y........",".p..........m...","ppp........mmm..",".p..........m...","................","................"],
+clock:[".....xxxxx......","...xxWWWWWxx....","..xWWWWxWWWWx...",".xWWWWWxWWWWWx..",".xWWWWWxWWWWWx..","xWWWWWWxWWWWWWx.","xWxWWWWxWWWWxWx.","xWWWWWWxWWWWWWx.","xWWWWWWWWWWWWWx.",".xWWWWWWWWWWWx..",".xWWWWWWWWWWWx..","..xWWWWxWWWWx...","...xxWWWWWxx....",".....xxxxx......","................","................"],
+partyhat:[".......W........","......WyW.......",".......W........","......ppp.......","......pnp.......",".....ppppp......",".....yyyyy......","....ppppppp.....","....pnpppnp.....","...ppppppppp....","...yyyyyyyyy....","..ppppppppppp...","..pnpppnpppnp...",".ppppppppppppp..",".WWWWWWWWWWWWW..","................"],
+star:[".......y........",".......y........","......yyy.......","......yyy.......",".yyyyyyhyyyyyy..","..yyyyyhyyyyy...","...yyyyyyyyy....","....yyyyyyy.....","....yyyyyyy.....","...yyyyyyyyy....","...yyyy.yyyy....","..yyy.....yyy...","..yy.......yy...","..y.........y...","................","................"],
+heart:["................","..RRR.....RRR...",".RrrrR...RrrrR..","RrWrrrR.RrrrrrR.","RrWrrrrRrrrrrrR.","RrrrrrrrrrrrrrR.","RrrrrrrrrrrrrrR.",".RrrrrrrrrrrrR..","..RrrrrrrrrrR...","...RrrrrrrrR....","....RrrrrrR.....",".....RrrrR......","......RrR.......",".......R........","................","................"],
+smiley:[".....xxxxx......","...xxyyyyyxx....","..xyyyyyyyyyx...",".xyyyxyyyxyyyx..",".xyyyxyyyxyyyx..","xyyyyxyyyxyyyyx.","xyyyyyyyyyyyyyx.","xyyyyyyyyyyyyyx.","xyxyyyyyyyyyxyx.",".xyxyyyyyyyxyx..",".xyyxxxxxxxyyx..","..xyyyyyyyyyx...","...xxyyyyyxx....",".....xxxxx......","................","................"],
+pizza:[".BBBBBBBBBBBBBB.",".BeeeeeeeeeeeeB.","..cccccccccccc..","..crrcccccrrcc..","...crrcccrrcc...","...cccgccccc....","....ccrrcccc....","....crrcgcc.....",".....cccccc.....",".....crrcc......","......ccc.......","......cc........",".......c........","................","................","................"],
+sun:[".......y........","..y....y....y...","...y.......y....",".....yyyyy......","....yyhhyyy.....","...yyhhyyyyy....","yy.yyhyyyyyy.yy.","...yyyyyyyyy....","...yyyyyyyyy....","....yyyyyyy.....",".....yyyyy......","...y.......y....","..y....y....y...",".......y........","................","................"],
+};
+// Each icon carries the card's colour, so the host only makes one pick.
+const ICONS={
+ turkey:{name:"Turkey",hero:"#e2582a",acc:"#f2b631"},
+ pie:{name:"Pie",hero:"#2a6f6a",acc:"#f2b631"},
+ pumpkin:{name:"Pumpkin",hero:"#2f4a3a",acc:"#f2a03a"},
+ leaf:{name:"Leaf",hero:"#1f4e5f",acc:"#f2c230"},
+ tree:{name:"Tree",hero:"#1f5c3a",acc:"#e63946"},
+ gift:{name:"Gift",hero:"#b3202b",acc:"#ffd23f"},
+ snowflake:{name:"Snow",hero:"#2b59c3",acc:"#a9e0ff"},
+ bell:{name:"Bell",hero:"#1f4d36",acc:"#f2c230"},
+ champagne:{name:"Bubbly",hero:"#17172a",acc:"#f2c230"},
+ fireworks:{name:"Fireworks",hero:"#12133a",acc:"#ff5c93"},
+ clock:{name:"Midnight",hero:"#2b2d6e",acc:"#ffd23f"},
+ partyhat:{name:"Party hat",hero:"#3b4cca",acc:"#ffd23f"},
+ cake:{name:"Cake",hero:"#ff5c93",acc:"#ffd23f"},
+ balloons:{name:"Balloons",hero:"#00897b",acc:"#ffd23f"},
+ star:{name:"Star",hero:"#1d2a6b",acc:"#f2c230"},
+ heart:{name:"Heart",hero:"#2b1d3a",acc:"#ffd1dc"},
+ smiley:{name:"Smiley",hero:"#7b2cbf",acc:"#ffd23f"},
+ pizza:{name:"Pizza",hero:"#2e7d32",acc:"#ffd23f"},
+ grill:{name:"Grill",hero:"#c0392b",acc:"#ffd166"},
+ sun:{name:"Sun",hero:"#0a7fc2",acc:"#ffd23f"},
+};
+const EMOJI_HERO={hero:"#3b4cca",acc:"#ffd23f"};
+const isEmoji=s=>!!s&&!ICONS[s];
+
+const TEMPLATES={
+ thanksgiving:{name:"Thanksgiving",title:"Thanksgiving",icon:"turkey",dishes:["Turkey","Stuffing","Mashed potatoes","Gravy","Mac and cheese","Green bean casserole","Cranberry sauce","Dinner rolls","Salad","Pumpkin pie","Wine"]},
+ christmas:{name:"Christmas",title:"Christmas dinner",icon:"tree",dishes:["Prime rib","Ham","Mashed potatoes","Roasted vegetables","Dinner rolls","Salad","Eggnog","Wine","Christmas cookies","Pie"]},
+ nye:{name:"New Year's Eve",title:"New Year's Eve",icon:"champagne",dishes:["Champagne","Cheese board","Shrimp cocktail","Sliders","Chips and dip","Dessert","Ice","Cups"]},
+ birthday:{name:"Birthday",title:"Birthday party",icon:"cake",dishes:["Cake","Pizza","Chips and dip","Salad","Drinks","Ice cream","Plates and napkins"]},
+ custom:{name:"Custom",title:"",icon:"smiley",dishes:[]},
+};
+
+function grid(rows){
+  return rows.map((r,y)=>[...r.padEnd(16,".")].map((ch,x)=>PC[ch]?`<rect x="${x}" y="${y}" width="1" height="1" fill="${PC[ch]}"/>`:"").join("")).join("");
+}
 function turkey(){
   const C={r:"#c62828",o:"#ef6c00",y:"#f9c22e",d:"#5a2d12",b:"#8a4b20",w:"#6b3816",h:"#a8622b",k:"#111",e:"#fff",a:"#f2b631",R:"#d81b1b",L:"#f08a24"};
   const px=(x,y,c)=>`<rect x="${x}" y="${y}" width="1" height="1" fill="${C[c]}"/>`;
@@ -21,17 +79,17 @@ function turkey(){
   head+=px(10,5,"e")+px(11,5,"k")+px(13,5,"k")+px(14,5,"e")+px(11,7,"a")+px(12,7,"a")+px(12,8,"R")+px(12,9,"R")+px(13,9,"R");
   return `<svg viewBox="0 0 24 23" shape-rendering="crispEdges" aria-hidden="true"><g class="anim-a">${tail}</g><g>${body}</g><g class="anim-b">${head}</g></svg>`;
 }
-function grid(rows,cls){
-  return rows.map((r,y)=>[...r].map((ch,x)=>ch==="."?"":`<rect x="${x}" y="${y}" width="1" height="1" fill="${PC[ch]}"/>`).join("")).join("");
-}
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+// Big card picture: a pixel icon id, or any emoji the host typed.
 function sprite(id){
   if(id==="turkey")return turkey();
-  const rows=HERO[id]||HERO.balloons;
-  const top=rows.slice(0,6),bot=rows.slice(6);
-  // top rows (flames, star, balloon tops) get the motion
-  return `<svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><g class="anim-b">${grid(top)}</g><g transform="translate(0 6)">${grid(bot)}</g></svg>`;
+  if(isEmoji(id))return `<svg viewBox="0 0 16 16" aria-hidden="true"><text x="8" y="13.2" font-size="13" text-anchor="middle" class="anim-b">${esc(id)}</text></svg>`;
+  const rows=ART[id]||ART.smiley;
+  return `<svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><g class="anim-b">${grid(rows.slice(0,5))}</g><g transform="translate(0 5)">${grid(rows.slice(5))}</g></svg>`;
 }
-const ICONS={
+
+// Little dish icons, picked from the dish name.
+const DISH={
 ribs:["w.w.w.w.","ssssssss","sdsdsdsd","ssssssss","sdsdsdsd","ssssssss",".w.w.w.w","........"],
 stuffing:["........","..bgby..",".bybgbb.","bgbbybgb","kkkkkkkk",".kkkkkk.","..kkkk..","........"],
 mac:["........","..c..c..",".cyccyc.","cycyccyc","kkkkkkkk",".kkkkkk.","..kkkk..","........"],
@@ -57,51 +115,51 @@ chicken:["..BBB...",".BBBBB..",".BBeBB..",".BBBBB..","..BBBw..",".....w..","....
 dumplings:["........","........","..wwww..",".wkwkww.","wwwwwwww","wwwwwwww",".kkkkkk.","........"],
 rice:["........","..wwww..",".wwwwww.","wwwwwwww","rrrrrrrr",".rrrrrr.","..rrrr..","........"],
 burger:["........","..BBBB..",".BBeBBB.",".gggggg.",".dddddd.",".yyyyyy.",".BBBBBB.","........"],
+pizza:["BBBBBBBB",".cccccc.",".crcccr.","..cccc..","..crcc..","...cc...","...c....","........"],
+cheese:["........","......yy","....yycy","..yycyyy","yyyyyyyy","yycyyycy","yyyyyyyy","........"],
+icecream:["..pppp..",".pppppp.",".pwpppp.","..BBBB..","..BeBB..","...BB...","...BB...","........"],
+gravy:["........","....kk..","kkkkkkk.","kbbbbbkk","kbbbbbk.",".kkkkk..","........","........"],
 dish:["...kk...","..kkkk..",".kwkkkk.",".kkkkkk.","kkkkkkkk","dddddddd","........","........"]
 };
 const MATCH=[
  [/red wine|cabernet|pinot noir|merlot|malbec|zinfandel/,"redwine"],
- [/white wine|chardonnay|sauvignon|pinot gri|riesling|ros[eé]|champagne|prosecco|sparkling/,"whitewine"],
+ [/white wine|chardonnay|sauvignon|pinot gri|riesling|ros[eé]|champagne|prosecco|sparkling wine|bubbly|cava/,"whitewine"],
  [/wine/,"redwine"],[/beer|ipa|lager|seltzer|soju|sake/,"beer"],
- [/gin|vodka|whisk|tequila|rum|vermouth|bourbon|liquor|spirit|mezcal|bitters/,"spirits"],
- [/booze|drinks|cocktail|alcohol/,"booze"],
- [/soda|coke|sprite|juice|lemonade|water|sparkling water|la croix|tea|coffee/,"soda"],
+ [/gin|vodka|whisk|tequila|rum|vermouth|bourbon|liquor|spirit|mezcal|bitters|eggnog|cider/,"spirits"],
+ [/booze|cocktail|alcohol/,"booze"],
+ [/soda|coke|sprite|juice|lemonade|water|la croix|tea|coffee|drinks?/,"soda"],
  [/chip|crisp|pretzel|popcorn|snack|cracker|dip|salsa|guac/,"chips"],
+ [/ice cream|gelato/,"icecream"],
  [/cake|cupcake|brownie|dessert|tart|cheesecake/,"cake"],[/pie/,"pie"],[/cookie/,"cookies"],
- [/rib|brisket|pork|steak|beef|bbq|sausage/,"ribs"],[/chicken|wing|turkey|drumstick/,"chicken"],
+ [/pizza/,"pizza"],[/cheese board|charcuterie|cheese plate/,"cheese"],[/gravy|sauce/,"gravy"],
+ [/rib|brisket|pork|steak|beef|bbq|sausage|ham\b|roast beef|pot roast/,"ribs"],[/chicken|wing|turkey|drumstick/,"chicken"],
  [/burger|hot ?dog|slider|sandwich/,"burger"],[/dumpling|mandu|gyoza|wonton|bao|pot ?sticker/,"dumplings"],
  [/rice|noodle|japchae|pasta/,"rice"],[/mac|cheese/,"mac"],[/mash|potato/,"mash"],[/stuffing|dressing/,"stuffing"],
- [/salad|greens|slaw|veggie|vegetable/,"salad"],[/corn/,"corn"],[/bread|roll|bun|baguette|biscuit/,"bread"],
- [/fruit|apple|berr|grape|melon|orange/,"fruit"],
+ [/salad|greens|slaw|veggie|vegetable|green bean|brussels/,"salad"],[/corn/,"corn"],[/bread|roll|bun|baguette|biscuit/,"bread"],
+ [/fruit|apple|berr|grape|melon|orange|cranberr/,"fruit"],
  [/plate|fork|knife|spoon|utensil|napkin|foil|container/,"plates"],[/\bcups?\b/,"cups"],[/\bice\b/,"ice"]
 ];
 const iconFor=name=>{const n=String(name||"").toLowerCase();for(const [re,k] of MATCH)if(re.test(n))return k;return "dish"};
-const icon=k=>`<svg viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true">${grid(ICONS[k]||ICONS.dish)}</svg>`;
+const dishIcon=name=>{const rows=DISH[iconFor(name)];return `<svg viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true">${rows.map((r,y)=>[...r].map((ch,x)=>PC[ch]?`<rect x="${x}" y="${y}" width="1" height="1" fill="${PC[ch]}"/>`:"").join("")).join("")}</svg>`};
 
-const THEMES={
- thanksgiving:{name:"Thanksgiving",sprite:"turkey",hero:"#e2582a",heroInk:"#fff",pattern:"repeating-linear-gradient(90deg,transparent 0 22px,rgba(0,0,0,.05) 22px 24px)",accent:"#f2b631",light:"#fff8ef",dark:"#1d120b",panelL:"#ffffff",panelD:"#2a1a10",line:["#ecdccb","#43291a"],slot:"#c4441a"},
- bbq:{name:"Cookout",sprite:"grill",hero:"#c0392b",heroInk:"#fff",pattern:"linear-gradient(90deg,rgba(255,255,255,.18) 50%,transparent 50%),linear-gradient(rgba(255,255,255,.18) 50%,transparent 50%)",patternSize:"40px 40px",accent:"#ffd166",light:"#fffaf2",dark:"#1a1412",panelL:"#ffffff",panelD:"#2a1f1b",line:["#efdcd4","#46302a"],slot:"#b03224"},
- birthday:{name:"Birthday",sprite:"cake",hero:"#ff5c93",heroInk:"#fff",pattern:"radial-gradient(circle at 20% 30%,#ffd23f 0 3px,transparent 4px),radial-gradient(circle at 70% 60%,#4cc9f0 0 3px,transparent 4px),radial-gradient(circle at 45% 85%,#fff 0 2px,transparent 3px)",patternSize:"60px 60px",accent:"#ffd23f",light:"#fff7fa",dark:"#1c1118",panelL:"#ffffff",panelD:"#2b1a25",line:["#f6d9e4","#47293b"],slot:"#d81b60"},
- holiday:{name:"Holiday",sprite:"tree",hero:"#1f5c3a",heroInk:"#fff",pattern:"radial-gradient(circle at 25% 25%,rgba(255,255,255,.55) 0 2px,transparent 3px),radial-gradient(circle at 75% 65%,rgba(255,255,255,.35) 0 1.5px,transparent 2.5px)",patternSize:"46px 46px",accent:"#e63946",light:"#f7fbf8",dark:"#0f1a14",panelL:"#ffffff",panelD:"#18291f",line:["#d7e6dc","#2a4234"],slot:"#1f5c3a"},
- party:{name:"Party",sprite:"balloons",hero:"#3b4cca",heroInk:"#fff",pattern:"radial-gradient(circle at 30% 40%,#ffd23f 0 3px,transparent 4px),radial-gradient(circle at 80% 20%,#ff5c93 0 3px,transparent 4px),radial-gradient(circle at 60% 80%,#4cc9f0 0 3px,transparent 4px)",patternSize:"70px 70px",accent:"#ffd23f",light:"#f8f8ff",dark:"#12131f",panelL:"#ffffff",panelD:"#1d1f33",line:["#dfe1f5","#30344f"],slot:"#3b4cca"}
-};
-function applyTheme(id){
-  const t=THEMES[id]||THEMES.party,s=document.documentElement.style;
-  s.setProperty("--hero",t.hero);s.setProperty("--heroInk",t.heroInk);
-  s.setProperty("--heroPat",t.pattern);s.setProperty("--heroPatSize",t.patternSize||"auto");
-  s.setProperty("--acc",t.accent);s.setProperty("--slot",t.slot);
-  s.setProperty("--bg",`light-dark(${t.light},${t.dark})`);s.setProperty("--panel",`light-dark(${t.panelL},${t.panelD})`);
-  s.setProperty("--line",`light-dark(${t.line[0]},${t.line[1]})`);
+function applyLook(id){
+  const t=ICONS[id]||EMOJI_HERO,s=document.documentElement.style;
+  s.setProperty("--hero",t.hero);s.setProperty("--acc",t.acc);
   return t;
 }
-const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function fmtWhen(date,time){
   if(!date)return "";
   const d=new Date(date+"T12:00:00");
-  let out=d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",year:"numeric"});
+  let out=d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
   if(time){const [h,m]=time.split(":").map(Number);out+=` · ${((h+11)%12)+1}${m?":"+String(m).padStart(2,"0"):""} ${h<12?"AM":"PM"}`}
   return out;
 }
 const mapsUrl=a=>"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(a||"");
-window.G={THEMES,applyTheme,sprite,icon,iconFor,esc,fmtWhen,mapsUrl};
+// Links made before the redesign: items/menu/place/address/theme.
+function normalize(d){
+  if(Array.isArray(d.dishes))return d;
+  const icon={thanksgiving:"turkey",bbq:"grill",birthday:"cake",holiday:"tree",party:"balloons"}[d.theme]||"smiley";
+  return {...d,icon,where:[d.place,d.address].filter(Boolean).join(", "),note:d.notes||"",dishes:(d.items||[]).map(i=>({k:i.k,n:i.n}))};
+}
+window.G={ICONS,TEMPLATES,sprite,dishIcon,applyLook,isEmoji,esc,fmtWhen,mapsUrl,normalize};
 })();

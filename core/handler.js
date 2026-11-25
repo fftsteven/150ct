@@ -80,7 +80,7 @@ async function responses(request, q, hostKey) {
     const id = String(b.id || "");
     if (!RESPONDER_RE.test(id)) return json(400, { error: "Bad id" });
     const all = await loadResponses(slug);
-    const out = app.respond(link.data, id, b, all);
+    const out = app.respond(link.data, id, b, all, { host });
     if (out.error) return json(400, { error: out.error });
     await saveResponse(link, id, out.row);
     if (out.row) all[id] = out.row; else delete all[id];

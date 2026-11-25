@@ -1,60 +1,61 @@
-// Potluck: menu, items with quantities guests claim, extras.
+// Potluck: one list of dishes. Each dish is brought by one person. Guests can add their own.
 import { str, rand } from "../../core/util.js";
 
-const THEMES = ["thanksgiving", "bbq", "birthday", "holiday", "party"];
+const ICONS = ["turkey", "pie", "pumpkin", "leaf", "tree", "gift", "snowflake", "bell", "champagne", "fireworks",
+  "clock", "partyhat", "cake", "balloons", "star", "heart", "smiley", "pizza", "grill", "sun"];
+const MAX_DISHES = 40;
+
+// A pixel icon id, or one short emoji the host typed.
+function cleanIcon(v) {
+  const s = String(v || "").trim();
+  if (ICONS.includes(s)) return s;
+  if (s && s.length <= 16 && /\p{Extended_Pictographic}/u.test(s) && !/[<>&"'\w\s]/.test(s)) return s;
+  return "smiley";
+}
+
+// Links made before the redesign used items with quantities.
+const dishesOf = (data) => data.dishes || (data.items || []).map((i) => ({ k: i.k, n: i.n }));
 
 export default {
   type: "potluck",
 
-  // Returns [data, error]. prev is the existing data on edit, so item keys survive and claims stay attached.
+  // Returns [data, error]. prev is the existing data on edit, so dish keys survive and claims stay attached.
   clean(input, prev) {
     const e = {};
     e.title = str(input.title, 80);
-    if (!e.title) return [null, "Give it a title."];
+    if (!e.title) return [null, "Give it a name."];
     e.date = str(input.date, 10);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(e.date) || isNaN(Date.parse(e.date))) return [null, "Pick a date."];
     e.time = /^\d{2}:\d{2}$/.test(input.time || "") ? input.time : "";
-    e.place = str(input.place, 80);
-    e.address = str(input.address, 160);
-    e.notes = str(input.notes, 600);
-    e.contact = str(input.contact, 40);
-    e.theme = THEMES.includes(input.theme) ? input.theme : "party";
-    e.menu = (Array.isArray(input.menu) ? input.menu : []).map((m) => str(m, 40)).filter(Boolean).slice(0, 30);
-    const prevKeys = new Set((prev?.items || []).map((i) => i.k));
+    e.where = str(input.where, 160);
+    e.note = str(input.note, 600);
+    e.icon = cleanIcon(input.icon);
+    const prevKeys = new Set((prev ? dishesOf(prev) : []).map((d) => d.k));
     const seen = new Set();
-    e.items = (Array.isArray(input.items) ? input.items : []).map((it) => {
-      const n = str(it?.n, 60);
-      const q = Math.max(1, Math.min(50, Math.floor(+it?.q || 1)));
-      const k = typeof it?.k === "string" && prevKeys.has(it.k) && !seen.has(it.k) ? it.k : "i" + rand(6);
+    e.dishes = (Array.isArray(input.dishes) ? input.dishes : []).map((d) => {
+      const n = str(d?.n, 60);
+      const k = typeof d?.k === "string" && prevKeys.has(d.k) && !seen.has(d.k) ? d.k : "d" + rand(6);
       seen.add(k);
-      return n ? { k, n, q } : null;
-    }).filter(Boolean).slice(0, 30);
-    if (!e.items.length && !e.menu.length) return [null, "Add at least one thing people can bring."];
+      return n ? { k, n } : null;
+    }).filter(Boolean).slice(0, MAX_DISHES);
     return [e, null];
   },
 
   eventDate: (data) => data.date,
 
-  // A guest saves their picks. Server enforces quantities.
-  // Returns { row } (null row deletes) and optionally { conflict: message } when picks were trimmed.
-  respond(data, id, input, all) {
-    const name = str(input.name, 60);
+  // One person's picks: dishes from the list they'll bring, plus dishes they added.
+  // A dish goes to whoever claimed it first. Returns { row } (null deletes) and maybe { conflict }.
+  respond(data, id, input, all, ctx = {}) {
+    const name = ctx.host ? "Host" : str(input.name, 40);
     if (!name) return { error: "Add your name first." };
-    const extras = (Array.isArray(input.extras) ? input.extras : []).map((x) => str(x, 140)).filter(Boolean).slice(0, 20);
-    const items = {};
-    let trimmed = false;
-    for (const { k, q } of data.items) {
-      const want = Math.max(0, Math.floor(+((input.items || {})[k]) || 0));
-      if (!want) continue;
-      const taken = Object.entries(all).filter(([cid]) => cid !== id).reduce((t, [, r]) => t + (+(r.items || {})[k] || 0), 0);
-      const n = Math.min(want, Math.max(0, q - taken));
-      if (n < want) trimmed = true;
-      if (n) items[k] = n;
-    }
-    const row = Object.keys(items).length || extras.length ? { name, items, extras, at: Date.now() } : null;
-    return { row, conflict: trimmed ? "Someone just grabbed one of those. Updated the list." : null };
+    const keys = new Set(dishesOf(data).map((d) => d.k));
+    const takenByOthers = new Set(Object.entries(all).filter(([cid]) => cid !== id).flatMap(([, r]) => r.take || []));
+    const want = [...new Set(Array.isArray(input.take) ? input.take.map(String) : [])].filter((k) => keys.has(k));
+    const take = want.filter((k) => !takenByOthers.has(k));
+    const add = (Array.isArray(input.add) ? input.add : []).map((x) => str(x, 60)).filter(Boolean).slice(0, 10);
+    const row = take.length || add.length ? { name, take, add, at: Date.now() } : null;
+    return { row, conflict: take.length < want.length ? "Someone just took that one." : null };
   },
 
-  // Strip anything guests shouldn't see about each other.
-  view: (r) => ({ name: r.name, items: r.items || {}, extras: r.extras || [] }),
+  view: (r) => ({ name: r.name, take: r.take || [], add: r.add || [] }),
 };

@@ -5,8 +5,10 @@ PICTURE: themed pixel hero (turkey, grill, cake, tree, balloons), animated; the 
 COLOUR and TYPE: theme hero colour, deep ground at night, one accent; Silkscreen titles, Work Sans body
 LAYOUT: hero band (details left, sprite right), one calm column below
 */
-:root{color-scheme:light dark;--hero:#3b4cca;--heroInk:#fff;--heroPat:none;--heroPatSize:auto;--acc:#ffd23f;--slot:#3b4cca;
---bg:light-dark(#f8f8ff,#12131f);--panel:light-dark(#fff,#1d1f33);--line:light-dark(#dfe1f5,#30344f);
+:root{color-scheme:light dark;--hero:#3b4cca;--heroInk:#fff;--acc:#ffd23f;--slot:var(--hero);
+--bg:light-dark(color-mix(in srgb,var(--hero) 5%,#fff),color-mix(in srgb,var(--hero) 14%,#0e0e12));
+--panel:light-dark(#fff,color-mix(in srgb,var(--hero) 22%,#16161c));
+--line:light-dark(color-mix(in srgb,var(--hero) 18%,#fff),color-mix(in srgb,var(--hero) 35%,#2a2a33));
 --ink:light-dark(#21160f,#f5ece4);--mute:light-dark(#6e5c50,#b9aa9e);--done:light-dark(#eef4e8,#1f2a1b)}
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
@@ -18,7 +20,7 @@ h1,h2,h3{font-family:Silkscreen,monospace;font-weight:700;line-height:1.05;margi
 h1{font-size:clamp(32px,5.5vw,52px)}
 h2{font-size:26px;margin-bottom:6px}
 h3{font-size:18px}
-.hero{background:var(--hero);color:var(--heroInk);background-image:var(--heroPat);background-size:var(--heroPatSize)}
+.hero{background:var(--hero);color:var(--heroInk);background-image:radial-gradient(circle at 25% 30%,rgba(255,255,255,.14) 0 2px,transparent 3px),radial-gradient(circle at 75% 70%,rgba(255,255,255,.09) 0 1.5px,transparent 2.5px);background-size:44px 44px}
 .hero .wrap{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:24px;align-items:center}
 .det{margin:18px 0 0;display:grid;gap:10px;font-size:17px}
 .det div{display:flex;gap:12px;align-items:baseline}
