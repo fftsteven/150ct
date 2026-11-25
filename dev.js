@@ -17,7 +17,7 @@ const rules = cfg.rewrites.map((r) => ({
   re: new RegExp("^" + r.source.replace(/:[a-z]+/gi, "[^/]+") + "/?$"),
   to: r.destination,
 }));
-const types = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".json": "application/json", ".png": "image/png", ".ico": "image/x-icon" };
+const types = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".json": "application/json", ".png": "image/png", ".ico": "image/x-icon", ".webmanifest": "application/manifest+json" };
 const ROOT = join(process.cwd(), cfg.outputDirectory || "public");
 
 async function serveFile(path) {
