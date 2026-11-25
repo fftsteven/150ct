@@ -21,8 +21,9 @@ const hourLabel=h=>{h=h%24;return `${(h+11)%12+1} ${h<12?"AM":"PM"}`};
 const shortHour=h=>{h=h%24;return `${(h+11)%12+1}${h<12?"a":"p"}`};
 const hh=h=>String(h).padStart(2,"0");
 function slotsOf(ev){
-  if(ev.from==null)return ev.days.slice();
-  const out=[];for(const d of ev.days)for(let h=ev.from;h<ev.to;h++)out.push(`${d}T${hh(h)}`);return out;
+  if(!ev.hours)return ev.days.slice();
+  const out=[];for(const d of ev.days){const [f,t]=ev.hours[d];for(let h=f;h<t;h++)out.push(`${d}T${hh(h)}`)}return out;
 }
-window.M={cal,esc,copyText,toDate,ymd,fmtDay,hourLabel,shortHour,hh,slotsOf};
+const span=(f,t)=>`${hourLabel(f)} to ${t===24?"midnight":hourLabel(t)}`;
+window.M={span,cal,esc,copyText,toDate,ymd,fmtDay,hourLabel,shortHour,hh,slotsOf};
 })();

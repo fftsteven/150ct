@@ -39,6 +39,7 @@
 .hg .dh small{display:block;font-weight:400;color:var(--mute)}
 .hg .hl{font:700 11px Silkscreen,monospace;color:var(--mute);text-align:right;padding-right:6px;position:sticky;left:0;background:var(--bg);display:flex;align-items:start;justify-content:flex-end;transform:translateY(-7px)}
 .hg .c{height:34px;border:0;border-radius:4px;background:color-mix(in srgb,var(--heat) calc(var(--h,0) * 85%),var(--panel));outline:1px solid var(--line);outline-offset:-1px;touch-action:none;padding:0;position:relative}
+.hg .off{height:34px;border-radius:4px;background:repeating-linear-gradient(135deg,transparent 0 5px,var(--line) 5px 6px)}
 .hg .c.me{outline:3px solid var(--hero);outline-offset:-3px}
 .hg .c.me::after{content:"";position:absolute;top:5px;right:5px;width:7px;height:7px;background:var(--acc);border:1px solid var(--hero)}
 .hg .c.top{box-shadow:0 0 0 2px var(--acc)}
@@ -84,7 +85,7 @@
 
 <script>
 {
-const {cal,esc,copyText,fmtDay,hourLabel,shortHour,hh,slotsOf}=window.M;
+const {cal,esc,copyText,fmtDay,hourLabel,shortHour,hh,slotsOf,span}=window.M;
 const $=id=>document.getElementById(id);
 const slug=location.pathname.split("/").filter(Boolean).pop();
 const guestUrl=location.origin+"/meet/"+slug;
@@ -107,7 +108,7 @@ remember();$("name").value=myName;
 let ev=null,docs={},isHost=false,mine=new Set(),dirty=false,saving=false,pending=false,saveT=null;
 const hdr=()=>hostKey?{"x-host-key":hostKey}:{};
 const status=t=>$("status").textContent=t;
-const hours=()=>ev.from!=null;
+const hours=()=>!!ev.hours;
 
 // Everyone's rows, with mine as it is on screen right now.
 function people(){
@@ -133,7 +134,7 @@ function bestPicks(t){
     if(last&&last.d===d&&last.to===+h&&last.who===who(s)){last.to=+h+1;last.slots.push(s)}
     else out.push({d,from:+h,to:+h+1,who:who(s),slots:[s]});
   }
-  return out.map(r=>({label:`${fmtDay(r.d)}, ${hourLabel(r.from)} to ${r.to===24?"midnight":hourLabel(r.to)}`,slots:r.slots}));
+  return out.map(r=>({label:`${fmtDay(r.d)}, ${span(r.from,r.to)}`,slots:r.slots}));
 }
 function renderBest(t){
   const picks=bestPicks(t),n=t.ps.length;
@@ -158,10 +159,13 @@ function render(){
     $("pickHint").textContent="Tap or drag the hours you're free. Tap a day to fill it.";
     const cols=ev.days.length,rows=[];
     rows.push(`<div></div>`+ev.days.map(d=>`<button type="button" class="dh" data-day="${d}">${esc(fmtDay(d,{weekday:"short"}))}<small>${esc(fmtDay(d,{month:"short",day:"numeric"}))}</small></button>`).join(""));
-    for(let h=ev.from;h<ev.to;h++){
+    // Rows cover every day's window; hours outside a day's own window are blank.
+    const lo=Math.min(...ev.days.map(d=>ev.hours[d][0])),hi=Math.max(...ev.days.map(d=>ev.hours[d][1]));
+    for(let h=lo;h<hi;h++){
       rows.push(`<div class="hl">${shortHour(h)}</div>`+ev.days.map((d,x)=>{
         const s=`${d}T${hh(h)}`,c=t.count[s],names=t.ps.filter(p=>p.yes.has(s)).map(p=>p.name);
-        return `<button type="button" class="c${mine.has(s)?" me":""}${top.has(s)&&n>1?" top":""}" data-s="${s}" data-x="${x}" data-y="${h-ev.from}" style="--h:${n?c/n:0}" aria-pressed="${mine.has(s)}" aria-label="${esc(fmtDay(d)+", "+hourLabel(h))}: ${c} free" title="${esc(names.join(", ")||"No one")}"></button>`;
+        if(h<ev.hours[d][0]||h>=ev.hours[d][1])return `<div class="off" aria-hidden="true"></div>`;
+        return `<button type="button" class="c${mine.has(s)?" me":""}${top.has(s)&&n>1?" top":""}" data-s="${s}" data-x="${x}" data-y="${h-lo}" style="--h:${n?c/n:0}" aria-pressed="${mine.has(s)}" aria-label="${esc(fmtDay(d)+", "+hourLabel(h))}: ${c} free" title="${esc(names.join(", ")||"No one")}"></button>`;
       }).join(""));
     }
     $("picker").innerHTML=`<div class="gridwrap"><div class="hg" id="hg" style="grid-template-columns:44px repeat(${cols},minmax(52px,1fr))">${rows.join("")}</div></div>
@@ -188,7 +192,7 @@ function renderEvent(){
   document.title=title;$("title").textContent=title;
   const first=ev.days[0],last=ev.days.at(-1);
   const range=first===last?fmtDay(first):`${fmtDay(first,{month:"short",day:"numeric"})} to ${fmtDay(last,{month:"short",day:"numeric"})}`;
-  $("det").innerHTML=`<div><b>Days</b><span>${esc(range)} · ${ev.days.length} day${ev.days.length>1?"s":""}</span></div>`+(hours()?`<div><b>Hours</b><span>${esc(hourLabel(ev.from))} to ${esc(ev.to===24?"midnight":hourLabel(ev.to))}</span></div>`:"");
+  $("det").innerHTML=`<div><b>Days</b><span>${esc(range)} · ${ev.days.length} day${ev.days.length>1?"s":""}</span></div>`+(hours()?`<div><b>Hours</b><span>${esc(new Set(ev.days.map(d=>ev.hours[d].join())).size===1?span(...ev.hours[ev.days[0]]):"Set for each day")}</span></div>`:"");
   $("main").hidden=false;
 }
 

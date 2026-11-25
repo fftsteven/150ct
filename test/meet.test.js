@@ -21,7 +21,7 @@ test("whole days: create, mark, invalid days dropped", async () => {
   const q = "?slug=" + made.slug;
   const { j: got } = await call("GET", "/api/links" + q);
   assert.deepEqual(got.link.data.days, ["2026-12-05", "2026-12-06"]);
-  assert.equal(got.link.data.from, null);
+  assert.equal(got.link.data.hours, null);
 
   assert.equal((await call("POST", "/api/responses" + q, { id: G1, yes: ["2026-12-05"] })).status, 400, "name required");
   const r = await call("POST", "/api/responses" + q, { id: G1, name: "Ana", yes: ["2026-12-05", "2026-12-07"] });
@@ -31,11 +31,11 @@ test("whole days: create, mark, invalid days dropped", async () => {
 });
 
 test("hour window: slots and validation", async () => {
-  assert.equal((await call("POST", "/api/links", { type: "meet", data: { days: ["2026-12-05"], from: 20, to: 18 } })).status, 400);
-  const { j: made } = await call("POST", "/api/links", { type: "meet", data: { days: ["2026-12-05"], from: 18, to: 21 } });
+  assert.equal((await call("POST", "/api/links", { type: "meet", data: { days: ["2026-12-05"], hours: { "2026-12-05": [20, 18] } } })).status, 400);
+  const { j: made } = await call("POST", "/api/links", { type: "meet", data: { days: ["2026-12-05", "2026-12-06"], hours: { "2026-12-05": [18, 21], "2026-12-06": [10, 12] } } });
   const q = "?slug=" + made.slug;
-  const r = await call("POST", "/api/responses" + q, { id: G2, name: "Bo", yes: ["2026-12-05T18", "2026-12-05T20", "2026-12-05T21", "2026-12-05"] });
-  assert.deepEqual(r.j.responses[G2].yes, ["2026-12-05T18", "2026-12-05T20"]);
+  const r = await call("POST", "/api/responses" + q, { id: G2, name: "Bo", yes: ["2026-12-05T18", "2026-12-05T20", "2026-12-05T21", "2026-12-05", "2026-12-06T10", "2026-12-06T18"] });
+  assert.deepEqual(r.j.responses[G2].yes, ["2026-12-05T18", "2026-12-05T20", "2026-12-06T10"]);
   const host = await call("POST", "/api/responses" + q, { id: G1, yes: ["2026-12-05T19"] }, { "x-host-key": made.hostKey });
   assert.equal(host.j.responses[G1].name, "Host");
 });

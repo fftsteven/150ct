@@ -1,7 +1,7 @@
 // When works: the host picks days (and optionally an hour window). Guests mark when they're free.
 //
-// data  { title, days: ["YYYY-MM-DD", ...], from: 0-23 | null, to: 1-24 | null }
-//       from/to null means whole days. Otherwise every picked day gets hour slots from..to-1.
+// data  { title, days: ["YYYY-MM-DD", ...], hours: null | { "YYYY-MM-DD": [from, to] } }
+//       hours null means whole days. Otherwise each day has its own window, slots from..to-1.
 // row   { name, yes: [slot, ...], at }   slot is "YYYY-MM-DD" or "YYYY-MM-DDTHH"
 // Times are wall-clock for the plan. No time zone conversion.
 import { str } from "../../core/util.js";
@@ -11,9 +11,9 @@ const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 const hh = (h) => String(h).padStart(2, "0");
 
 export function slotsOf(data) {
-  if (data.from == null) return data.days.slice();
+  if (!data.hours) return data.days.slice();
   const out = [];
-  for (const d of data.days) for (let h = data.from; h < data.to; h++) out.push(`${d}T${hh(h)}`);
+  for (const d of data.days) { const [f, t] = data.hours[d]; for (let h = f; h < t; h++) out.push(`${d}T${hh(h)}`); }
   return out;
 }
 
@@ -29,12 +29,16 @@ export default {
     if (!days.length) return [null, "Pick at least one day."];
     if (days.length > MAX_DAYS) return [null, `Pick ${MAX_DAYS} days or fewer.`];
     e.days = days;
-    const from = Number.isInteger(input.from) ? input.from : null;
-    const to = Number.isInteger(input.to) ? input.to : null;
-    if (from != null || to != null) {
-      if (from == null || to == null || from < 0 || to > 24 || from >= to) return [null, "The end time has to be after the start."];
-      e.from = from; e.to = to;
-    } else { e.from = null; e.to = null; }
+    e.hours = null;
+    if (input.hours && typeof input.hours === "object") {
+      e.hours = {};
+      for (const d of days) {
+        const w = input.hours[d];
+        const [f, t] = Array.isArray(w) ? w : [];
+        if (!Number.isInteger(f) || !Number.isInteger(t) || f < 0 || t > 24 || f >= t) return [null, "Each day's end time has to be after its start."];
+        e.hours[d] = [f, t];
+      }
+    }
     return [e, null];
   },
 
