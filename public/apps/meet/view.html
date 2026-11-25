@@ -49,6 +49,10 @@
 .submitbar .status{margin:0}
 .submitbar .btn{min-width:140px}
 .submitbar .btn.done{background:var(--hero);border-color:var(--hero);color:#fff;opacity:1}
+/* Host sees results only */
+.ro .day .box,.ro .legend span:first-child{display:none}
+.ro .day,.ro .c,.ro .dh{cursor:default}
+.ro .day{grid-template-columns:minmax(0,1fr) auto}
 .admin{display:grid;gap:12px}
 .admin h2{font-size:20px;margin:0}
 .admin .people{display:grid;gap:2px}
@@ -81,7 +85,7 @@
     <div class="best" id="best"></div>
     <div class="head"><h2 id="pickH">When are you free?</h2><span class="hint" id="pickHint"></span></div>
     <div id="picker"></div>
-    <div class="submitbar"><button class="btn" id="submit" type="button" disabled>Submit</button><span class="status" id="status" aria-live="polite"></span></div>
+    <div class="submitbar" id="submitbar"><button class="btn" id="submit" type="button" disabled>Submit</button><span class="status" id="status" aria-live="polite"></span></div>
   </div>
   <div class="wrap" id="missing" hidden><p class="hint" id="missingText"></p><p><a href="/meet">Make your own</a></p></div>
 </main>
@@ -142,7 +146,7 @@ function bestPicks(t){
 }
 function renderBest(t){
   const picks=bestPicks(t),n=t.ps.length;
-  if(!picks.length){$("best").innerHTML=`<h3>Best so far</h3><div class="pick"><b>No one yet</b><span>Be the first. The best ${hours()?"time":"day"} shows up here.</span></div>`;return new Set()}
+  if(!picks.length){$("best").innerHTML=`<h3>Best so far</h3><div class="pick"><b>No one yet</b><span>${isHost?"Send the link. The":"Be the first. The"} best ${hours()?"time":"day"} shows up here.</span></div>`;return new Set()}
   const shown=picks.slice(0,3).map(p=>{
     const s=p.slots[0],free=t.ps.filter(x=>x.yes.has(s)).map(x=>x.name),out=t.ps.filter(x=>!x.yes.has(s)).map(x=>x.name);
     return `<div class="pick"><b>${esc(p.label)}</b><span>${t.max} of ${n}${n>1?`: ${esc(free.join(", "))}`:""}${out.length?`. Can't: ${esc(out.join(", "))}`:""}</span></div>`;
@@ -154,13 +158,13 @@ function renderBest(t){
 function render(){
   const t=tally(),top=renderBest(t),n=t.ps.length;
   if(!hours()){
-    $("pickHint").textContent="Tap every day that works";
+    $("pickHint").textContent=isHost?"":"Tap every day that works";
     $("picker").innerHTML=`<ul class="days">${ev.days.map(d=>{
       const on=mine.has(d),names=t.ps.filter(p=>p.yes.has(d)).map(p=>p.name);
       return `<li><button type="button" class="day${top.has(d)&&n>1?" top":""}" data-s="${d}" aria-pressed="${on}"><span class="bar" style="width:${n?t.count[d]/n*100:0}%"></span><span class="box">${on?"✓":""}</span><span><span class="nm">${esc(fmtDay(d,{weekday:"long",month:"short",day:"numeric"}))}</span><span class="who" style="display:block">${names.length?esc(names.join(", ")):"No one yet"}</span></span><span class="n">${t.count[d]}/${n}</span></button></li>`;
     }).join("")}</ul>`;
   }else{
-    $("pickHint").textContent="Tap or drag the hours you're free. Tap a day to fill it.";
+    $("pickHint").textContent=isHost?"Darker means more people are free.":"Tap or drag the hours you're free. Tap a day to fill it.";
     const cols=ev.days.length,rows=[];
     rows.push(`<div></div>`+ev.days.map(d=>`<button type="button" class="dh" data-day="${d}">${esc(fmtDay(d,{weekday:"short"}))}<small>${esc(fmtDay(d,{month:"short",day:"numeric"}))}</small></button>`).join(""));
     // Rows cover every day's window; hours outside a day's own window are blank.
@@ -186,7 +190,7 @@ function renderAdmin(t){
     <div><b>Send this link</b></div>
     <div class="linkrow"><code>${esc(guestUrl)}</code><button class="btn" data-copy="${esc(guestUrl)}" type="button">Copy</button>${navigator.share?`<button class="btn ghost" id="share" type="button">Share</button>`:""}</div>
     <div class="linkrow"><a href="/meet?edit=${esc(slug)}">Change days</a> · <button class="btn ghost" id="delEv" type="button">Delete</button></div>
-    ${others.length?`<div class="people">${others.map(([id,r])=>`<div><span><b>${esc(r.name||"Someone")}</b> · ${(r.yes||[]).length} ${hours()?"hours":"days"}</span><button class="rm" data-rm="${esc(id)}" type="button">Remove</button></div>`).join("")}</div>`:""}
+    ${others.length?`<div class="people">${others.map(([id,r])=>`<div><span><b>${esc(r.name||"Someone")}</b> · ${(r.yes||[]).length} ${hours()?"hour":"day"}${(r.yes||[]).length===1?"":"s"}</span><button class="rm" data-rm="${esc(id)}" type="button">Remove</button></div>`).join("")}</div>`:""}
     <div class="small">This browser remembers you as host. To manage from another device, open your host link there. <button class="btn ghost" data-copy="${esc(host)}" data-label="Copy host link" type="button" style="min-height:32px;font-size:12px;padding:0 10px">Copy host link</button></div>
   </div></div>`;
 }
@@ -197,6 +201,10 @@ function renderEvent(){
   const first=ev.days[0],last=ev.days.at(-1);
   const range=first===last?fmtDay(first):`${fmtDay(first,{month:"short",day:"numeric"})} to ${fmtDay(last,{month:"short",day:"numeric"})}`;
   $("det").innerHTML=`<div><b>Days</b><span>${esc(range)} · ${ev.days.length} day${ev.days.length>1?"s":""}</span></div>`+(hours()?`<div><b>Hours</b><span>${esc(new Set(ev.days.map(d=>ev.hours[d].join())).size===1?span(...ev.hours[ev.days[0]]):"Set for each day")}</span></div>`:"");
+  if(isHost){
+    $("nameRow").hidden=$("submitbar").hidden=true;$("picker").classList.add("ro");
+    $("pickH").textContent="Who's free";
+  }
   $("main").hidden=false;
 }
 
@@ -249,6 +257,7 @@ const toggle=s=>{mine.has(s)?mine.delete(s):mine.add(s)};
 
 // Whole days: tap a row.
 $("picker").addEventListener("click",e=>{
+  if(isHost)return;
   const d=e.target.closest(".day");if(d){toggle(d.dataset.s);render();queue();return}
   // Day header in the hour grid: fill the column, or clear it if it's already full.
   const h=e.target.closest(".dh");
@@ -270,7 +279,7 @@ function paintTo(el){
   });
 }
 $("picker").addEventListener("pointerdown",e=>{
-  const c=e.target.closest(".c");if(!c)return;
+  const c=e.target.closest(".c");if(!c||isHost)return;
   e.preventDefault();drag={add:!mine.has(c.dataset.s),x:+c.dataset.x,y:+c.dataset.y,before:new Set(mine)};paintTo(c);
 });
 addEventListener("pointermove",e=>{if(drag){const el=document.elementFromPoint(e.clientX,e.clientY);paintTo(el&&el.closest&&el.closest(".c"))}});
