@@ -25,6 +25,11 @@
 .x:hover{background:var(--line);color:var(--ink)}
 .addrow{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto;gap:8px}
 .out{white-space:pre-wrap;margin:0;font:15px/1.5 "Work Sans",sans-serif;background:var(--panel);border:2px dashed var(--line);border-radius:10px;padding:14px 16px;overflow-wrap:anywhere}
+.find{position:relative}
+.sug{list-style:none;margin:6px 0 0;padding:4px;display:grid;gap:2px;background:var(--panel);border:2px solid var(--hero);border-radius:10px}
+.sug button{width:100%;text-align:left;border:0;background:transparent;color:var(--ink);padding:10px 12px;border-radius:6px;font:inherit;display:grid;gap:2px}
+.sug button:hover,.sug button[aria-selected=true]{background:color-mix(in srgb,var(--acc) 30%,transparent)}
+.sug small{color:var(--mute);font-size:13px}
 .send{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 @media(max-width:600px){.addrow{grid-template-columns:1fr}}
 </style>
@@ -48,10 +53,10 @@
 
       <div class="f">
         <label for="placeIn">Places</label>
-        <p class="hint">Type a name or paste a Google Maps link. Tick the ones to send. Your places stay in this browser for next time.</p>
+        <p class="hint">Search for a place or paste a Google Maps link. Tick the ones to send. Your places stay in this browser for next time.</p>
         <ul class="pl" id="places"></ul>
         <div class="addrow">
-          <input id="placeIn" maxlength="300" placeholder="Name or Google Maps link" autocomplete="off">
+          <div class="find"><input id="placeIn" maxlength="300" placeholder="Search a place or paste a link" autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="sug" aria-expanded="false"><ul class="sug" id="sug" role="listbox" hidden></ul></div>
           <input id="noteIn" maxlength="100" placeholder="Note, e.g. book ahead" autocomplete="off" aria-label="Note for this place">
           <button class="btn ghost" type="button" id="placeAdd">Add</button>
         </div>
@@ -85,15 +90,15 @@ function text(){
   return [state.opener.trim(),...on.map(p=>`${p.n}${p.note?", "+p.note:""}\n${link(p)}`)].filter(Boolean).join("\n\n");
 }
 function render(){
-  $("places").innerHTML=state.places.length?state.places.map((p,i)=>`<li class="${p.on?"on":""}"><button type="button" class="ck" data-on="${i}" aria-pressed="${!!p.on}" aria-label="Send ${esc(p.n)}">${p.on?"✓":""}</button><span><b>${esc(p.n)}</b><small>${p.note?esc(p.note)+" · ":""}<a href="${esc(link(p))}" target="_blank" rel="noopener">Map</a></small></span><button type="button" class="x" data-del="${i}" aria-label="Remove ${esc(p.n)}">×</button></li>`).join(""):`<li class="hint" style="background:none;border:0;padding:0">No places yet. Add two or three.</li>`;
+  $("places").innerHTML=state.places.length?state.places.map((p,i)=>`<li class="${p.on?"on":""}"><button type="button" class="ck" data-on="${i}" aria-pressed="${!!p.on}" aria-label="Send ${esc(p.n)}">${p.on?"✓":""}</button><span><b>${esc(p.n)}</b><small>${p.area?esc(p.area)+" · ":""}${p.note?esc(p.note)+" · ":""}<a href="${esc(link(p))}" target="_blank" rel="noopener">Map</a></small></span><button type="button" class="x" data-del="${i}" aria-label="Remove ${esc(p.n)}">×</button></li>`).join(""):`<li class="hint" style="background:none;border:0;padding:0">No places yet. Add two or three.</li>`;
   const n=state.places.filter(p=>p.on).length,t=text();
   $("out").textContent=n?t:"Tick a place to build the text.";
   $("share").textContent=n?`Send ${n} place${n>1?"s":""}`:"Send";
   $("share").disabled=$("copy").disabled=!n;
 }
-function push(n,url){
-  state.places.push({n,note:$("noteIn").value.trim(),...(url?{url}:{}),on:true});
-  pendingUrl="";$("placeIn").value="";$("noteIn").value="";$("placeIn").placeholder="Name or Google Maps link";$("status").textContent="";
+function push(n,url,area){
+  state.places.push({n,note:$("noteIn").value.trim(),...(url?{url}:{}),...(area?{area}:{}),on:true});
+  pendingUrl="";$("placeIn").value="";$("noteIn").value="";$("placeIn").placeholder="Search a place or paste a link";$("status").textContent="";closeSug();
   save();render();$("placeIn").focus();
 }
 // A pasted link fills in the name. If Google doesn't give one, ask for it.
@@ -109,6 +114,46 @@ async function addPlace(){
   if(!n){pendingUrl=v;$("placeIn").value="";$("placeIn").placeholder="Name for that link";$("status").textContent="Got the link. What's the place called?";$("placeIn").focus();return}
   push(n,v);
 }
+// Google search as you type. Off when the server has no key (501): then it's name or link only.
+let searchOn=true,session=newSession(),sug=[],sel=-1,seq=0,timer=null;
+function newSession(){return Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>b.toString(16).padStart(2,"0")).join("")}
+function closeSug(){sug=[];sel=-1;$("sug").hidden=true;$("placeIn").setAttribute("aria-expanded","false")}
+function drawSug(){
+  if(!sug.length)return closeSug();
+  $("sug").innerHTML=sug.map((s,i)=>`<li><button type="button" role="option" data-sug="${i}" aria-selected="${i===sel}"><span>${esc(s.name)}</span>${s.area?`<small>${esc(s.area)}</small>`:""}</button></li>`).join("")+`<li class="hint" style="padding:4px 12px;font-size:12px">Results from Google</li>`;
+  $("sug").hidden=false;$("placeIn").setAttribute("aria-expanded","true");
+}
+async function search(q){
+  const my=++seq;
+  try{
+    const r=await fetch(`/api/places?q=${encodeURIComponent(q)}&s=${session}`);
+    if(r.status===501){searchOn=false;return closeSug()}
+    const j=await r.json();
+    if(my!==seq||$("placeIn").value.trim()!==q)return;
+    sug=r.ok?j.results||[]:[];sel=-1;drawSug();
+  }catch(e){closeSug()}
+}
+async function choose(s){
+  closeSug();$("status").textContent="Adding…";
+  let place=null;
+  try{const r=await fetch(`/api/places?id=${encodeURIComponent(s.id)}&s=${session}`);if(r.ok)place=(await r.json()).place}catch(e){}
+  session=newSession();
+  push(place?.name||s.name,place?.url||("https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(s.name)+"&query_place_id="+encodeURIComponent(s.id)),place?.area||s.area);
+}
+$("placeIn").addEventListener("input",e=>{
+  clearTimeout(timer);const q=e.target.value.trim();
+  if(!searchOn||pendingUrl||q.length<2||/^https?:/i.test(q))return closeSug();
+  timer=setTimeout(()=>search(q),250);
+});
+$("placeIn").addEventListener("keydown",e=>{
+  if(!sug.length)return;
+  if(e.key==="ArrowDown"||e.key==="ArrowUp"){e.preventDefault();sel=e.key==="ArrowDown"?(sel+1>=sug.length?-1:sel+1):(sel-1<-1?sug.length-1:sel-1);drawSug();return}
+  if(e.key==="Escape"){closeSug();return}
+  if(e.key==="Enter"&&sel>=0){e.preventDefault();e.stopImmediatePropagation();choose(sug[sel])}
+});
+$("sug").addEventListener("mousedown",e=>e.preventDefault());
+$("sug").addEventListener("click",e=>{const b=e.target.closest("[data-sug]");if(b)choose(sug[+b.dataset.sug])});
+$("placeIn").addEventListener("blur",()=>setTimeout(closeSug,150));
 $("placeAdd").addEventListener("click",addPlace);
 ["placeIn","noteIn"].forEach(id=>$(id).addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();addPlace()}}));
 $("opener").addEventListener("input",e=>{state.opener=e.target.value;save();render()});

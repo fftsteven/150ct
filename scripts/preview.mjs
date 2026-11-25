@@ -94,8 +94,17 @@ function route(u){
   document.getElementById("f").srcdoc=PAGES[key];
 }
 window.__NAV=function(u){stack.push(__ORIGIN+__ROUTE.path+__ROUTE.search);route(u)};
+// No Google key in the preview: /api/places answers from a few sample places so search can be tried.
+var SAMPLE=[["Sonoratown","208 E 8th St, Los Angeles"],["Loqui","8830 Washington Blvd, Culver City"],["Holbox","3655 S Grand Ave, Los Angeles"],["Park's BBQ","955 S Vermont Ave, Los Angeles"],["Kato","777 S Alameda St, Los Angeles"],["Bavel","500 Mateo St, Los Angeles"],["Guelaguetza","3014 W Olympic Blvd, Los Angeles"],["Langer's Deli","704 S Alvarado St, Los Angeles"]].map(function(p,i){return {id:"sample_place_"+i,name:p[0],area:p[1]}});
+function samplePlaces(x){
+  var id=x.searchParams.get("id"),q=(x.searchParams.get("q")||"").toLowerCase(),body;
+  if(id){var p=SAMPLE.find(function(s){return s.id===id});body={place:p?{id:p.id,name:p.name,area:p.area,url:"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(p.name+" "+p.area)}:null}}
+  else body={results:SAMPLE.filter(function(s){return s.name.toLowerCase().indexOf(q)>=0||s.area.toLowerCase().indexOf(q)>=0}).slice(0,5)};
+  return new Response(JSON.stringify(body),{headers:{"content-type":"application/json"}});
+}
 window.__FETCH=async function(u,o){
   o=o||{};
+  var x=new URL(u,__ORIGIN);if(x.pathname==="/api/places")return samplePlaces(x);
   var r=await API.handle(new Request(new URL(u,__ORIGIN),{method:o.method||"GET",headers:o.headers,body:o.body}));
   API.save();return r;
 };

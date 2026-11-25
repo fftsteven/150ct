@@ -17,6 +17,7 @@ apps/                       server side of each app (validation, responses)
   index.js                  registry
   potluck/server.js
 core/unfurl.js              Google Maps share link -> place name (no API key), GET /api/unfurl
+core/places.js              Google Places search for Where to eat, GET /api/places (needs GOOGLE_MAPS_API_KEY)
 dev.js                      local server, in-memory Redis
 scripts/preview.mjs         one-file clickable preview (dist/preview.html)
 test/                       node --test
@@ -70,4 +71,5 @@ Handlers are web-standard `(Request) => Response`, crypto is Web Crypto, Redis i
 
 1. Import the GitHub repo in Vercel. Framework preset: Other. No build command. `vercel.json` sets the output directory.
 2. Storage: connect the Upstash database (`upstash-kv-cyan-notebook`). It provides `KV_REST_API_URL` / `KV_REST_API_TOKEN` (`UPSTASH_REDIS_REST_*` also accepted). Redeploy after connecting. Keys are prefixed `150ct:` so the database can be shared with the old potluck.
+2b. Google search for Where to eat (optional): set `GOOGLE_MAPS_API_KEY` (Places API (New) enabled, key restricted to Places API). Without it the page still works with typed names and pasted links.
 3. Domains: add `150ct.com` (primary) and `150ct.app` set to redirect to it. In Namecheap Advanced DNS, remove the parking records and add the A / CNAME records Vercel shows.
