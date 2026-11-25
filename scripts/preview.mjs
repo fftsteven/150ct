@@ -60,6 +60,8 @@ const pages = {
   landing: await page("index.html"),
   create: await page("apps/potluck/new.html"),
   view: await page("apps/potluck/view.html"),
+  eatCreate: await page("apps/eat/new.html"),
+  eatView: await page("apps/eat/view.html"),
 };
 
 // Written as a page fragment: the artifact host adds the document skeleton.
@@ -88,7 +90,7 @@ function route(u){
   var x=new URL(u, __ORIGIN);
   window.__ROUTE={path:x.pathname,search:x.search,hash:x.hash};
   var p=x.pathname.replace(/\\/$/,"")||"/";
-  var key=p==="/"?"landing":p==="/potluck"?"create":/^\\/potluck\\/[a-z0-9]+$/.test(p)?"view":"landing";
+  var key=p==="/potluck"?"create":/^\\/potluck\\/[a-z0-9]+$/.test(p)?"view":p==="/eat"?"eatCreate":/^\\/eat\\/[a-z0-9]+$/.test(p)?"eatView":"landing";
   document.getElementById("url").textContent="150ct.com"+(p==="/"?"/":p)+x.search;
   document.getElementById("f").srcdoc=PAGES[key];
 }

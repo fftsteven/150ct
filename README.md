@@ -8,12 +8,15 @@ Small free web apps for getting together. No accounts, no ads, every link delete
 public/                     static site (Vercel outputDirectory)
   index.html                toy box landing
   shared/shelf.js           shelf tiles, sprites, donate/Discord links  <- edit to launch an app
-  apps/potluck/             new.html (create/edit), view.html (guest/host), lib.js, style.css
+  shared/app.css            look shared by every app page (each app sets --hero/--acc)
+  apps/potluck/             new.html (create/edit), view.html (guest/host), lib.js
+  apps/eat/                 Where to eat: same shape, plus style.css for its colours
 api/links.js, responses.js  Vercel entries; both just call core/handler.js
 core/                       platform: link model, expiry, host keys, rate limits, storage
 apps/                       server side of each app (validation, responses)
   index.js                  registry
   potluck/server.js
+  eat/server.js
 dev.js                      local server, in-memory Redis
 scripts/preview.mjs         one-file clickable preview (dist/preview.html)
 test/                       node --test

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Where to eat · 150ct</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared/app.css">
+<link rel="stylesheet" href="/apps/eat/style.css">
+<link rel="icon" href="/shared/icon.svg" type="image/svg+xml">
+<script src="/apps/eat/lib.js"></script>
+<style>
+.lead{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:center;background:var(--panel);border:2px solid var(--hero);box-shadow:inset 0 0 0 2px var(--acc);border-radius:10px;padding:12px 16px;margin-bottom:18px}
+.lead svg{width:44px;height:32px;display:block}
+.lead small{display:block;font:400 13px Silkscreen,monospace;color:var(--mute)}
+.lead b{font-size:20px;font-weight:600;overflow-wrap:anywhere}
+.pl{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.p{background:var(--panel);border:2px solid var(--line);border-radius:10px;padding:10px 10px 10px 14px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center}
+.p.on{border-color:var(--hero);box-shadow:inset 0 0 0 2px var(--acc)}
+.p.picked{border-color:var(--hero);background:color-mix(in srgb,var(--acc) 22%,var(--panel))}
+.p .nm{font-weight:600;font-size:17px;overflow-wrap:anywhere}
+.p .sub{font-size:14px;color:var(--mute)}
+.p .sub a{color:var(--mute)}
+.p .who{grid-column:1/-1;font-size:14px;color:var(--mute);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.bar{display:flex;gap:3px}
+.bar i{width:12px;height:12px;background:var(--slot);display:block}
+.p .act{display:flex;gap:6px;align-items:center}
+.yes{min-height:44px;min-width:76px;padding:0 14px;border:2px solid var(--hero);background:transparent;color:var(--ink);font:700 14px Silkscreen,monospace;border-radius:8px}
+.yes[aria-pressed=true]{background:var(--hero);color:#fff}
+.yes:disabled{opacity:.35;cursor:default}
+.go,.undo{min-height:40px;padding:0 12px;border:2px solid var(--line);background:transparent;color:var(--ink);font:600 14px "Work Sans",sans-serif;border-radius:8px}
+.head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.addrow{display:flex;gap:8px;margin-top:14px}
+.addrow input{flex:1}
+.admin{display:grid;gap:12px}
+.admin h2{font-size:20px;margin:0}
+.admin .people{display:grid;gap:2px}
+.admin .people div{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px dashed rgba(0,0,0,.2)}
+.admin .rm{color:#21160f}
+.admin .small{font-size:14px}
+.admin .btn{background:#21160f;color:#fff;border-color:#21160f}
+.admin .btn.ghost{background:transparent;color:#21160f}
+</style>
+</head>
+<body>
+<nav class="top"><div class="wrap"><a href="/">150ct</a></div></nav>
+<div id="admin"></div>
+<header class="band hero">
+  <div class="wrap">
+    <div>
+      <h1 id="title">Loading…</h1>
+      <div class="det" id="det"></div>
+    </div>
+    <div class="sprite" id="sprite" role="img" aria-label="Fox"></div>
+  </div>
+</header>
+
+<main class="band">
+  <div class="wrap" id="main" hidden>
+    <div id="lead"></div>
+    <div class="head"><h2 id="listHead">Tap yes on any that work</h2></div>
+    <div class="f" id="nameRow" style="display:grid;gap:6px;margin:14px 0 16px">
+      <label for="name">Your name</label>
+      <input id="name" autocomplete="given-name" maxlength="40" placeholder="So people know who said yes">
+    </div>
+    <ul class="pl" id="list"></ul>
+    <div class="addrow" id="addRow"><input id="addIn" maxlength="60" placeholder="Somewhere else?" autocomplete="off" aria-label="Add a place"><button class="btn ghost" id="addBtn" type="button">Add</button></div>
+    <p class="status" id="status" aria-live="polite"></p>
+  </div>
+  <div class="wrap" id="missing" hidden><p class="hint" id="missingText"></p><p><a href="/eat">Start one</a></p></div>
+</main>
+<footer class="band foot"><div class="wrap"><a class="pack" href="/"><span>150</span><span>ct</span></a><span>Free, no accounts, deletes itself 30 days after the date.</span><a href="/eat">Make your own</a></div></footer>
+
+<script>
+{
+const {fox,mini,esc,fmtWhen,mapsUrl,copyText,key}=window.E;
+const $=id=>document.getElementById(id);
+const slug=location.pathname.split("/").filter(Boolean).pop();
+const guestUrl=location.origin+"/eat/"+slug;
+
+// Host key: from #host=… (then remembered in this browser), or from storage.
+let hostKey="";
+try{
+  const m=location.hash.match(/host=([a-z0-9]+)/);
+  if(m){hostKey=m[1];localStorage.setItem("150ct-host-"+slug,hostKey);history.replaceState(null,"",location.pathname)}
+  else hostKey=localStorage.getItem("150ct-host-"+slug)||"";
+}catch(e){}
+
+// Guest identity: one per browser, shared across 150ct apps.
+let myId="",myName="";
+try{const s=JSON.parse(localStorage.getItem("150ct-me")||"null");if(s){myId=s.id||"";myName=s.name||""}}catch(e){}
+if(!/^[a-z0-9]{20,40}$/.test(myId))myId=Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>b.toString(36).padStart(2,"0")).join("").slice(0,28);
+const remember=()=>{try{localStorage.setItem("150ct-me",JSON.stringify({id:myId,name:mine.name}))}catch(e){}};
+
+let ev=null,docs={},isHost=false,live=false,dirty=false,saving=false,pending=false,saveT=null;
+let mine={name:myName,yes:[],add:[]};
+remember();$("name").value=mine.name;
+$("sprite").innerHTML=fox();
+
+const hdr=()=>hostKey?{"x-host-key":hostKey}:{};
+const status=t=>$("status").textContent=t;
+const rows=()=>{const all={...docs};all[myId]={...(docs[myId]||{}),name:isHost?"Host":mine.name,yes:mine.yes,add:mine.add};return all};
+const label=(id,r)=>id===myId?"You":(r.name||"Someone");
+
+// Host places first, then guest-added ones, each with who said yes.
+function tally(){
+  const all=rows(),list=ev.places.map(p=>({...p,by:null}));
+  for(const [id,r] of Object.entries(all))(r.add||[]).forEach(a=>list.push({...a,by:id}));
+  list.forEach(p=>p.yes=Object.entries(all).filter(([,r])=>(r.yes||[]).includes(p.k)).map(([id,r])=>label(id,r)));
+  return list;
+}
+function leader(list){
+  let best=null;for(const p of list)if(p.yes.length&&(!best||p.yes.length>best.yes.length))best=p;
+  if(!best)return null;
+  const tied=list.filter(p=>p.yes.length===best.yes.length);
+  return {p:best,tied:tied.length>1?tied:null};
+}
+
+function renderEvent(){
+  document.title=ev.title;
+  $("title").textContent=ev.title;
+  const out=[];
+  const when=fmtWhen(ev.date,ev.time);
+  if(when)out.push(`<div><b>When</b><span>${esc(when)}</span></div>`);
+  if(ev.pick)out.push(`<div><b>Going</b><span><a href="${esc(mapsUrl(ev.pick.n,ev.near))}" target="_blank" rel="noopener">${esc(ev.pick.n)}</a></span></div>`);
+  else if(ev.near)out.push(`<div><b>Area</b><span>${esc(ev.near)}</span></div>`);
+  $("det").innerHTML=out.join("");
+  $("nameRow").hidden=isHost||!!ev.pick;
+  $("addRow").hidden=!!ev.pick;
+  $("listHead").textContent=ev.pick?"Votes":"Tap yes on any that work";
+  $("main").hidden=false;
+}
+
+function render(){
+  const list=tally(),L=leader(list),closed=!!ev.pick;
+  $("lead").innerHTML=closed
+    ?`<div class="lead">${mini()}<div><small>Going with</small><b>${esc(ev.pick.n)}</b></div></div>`
+    :L?`<div class="lead">${mini()}<div><small>${L.tied?"Tied":"Leading"} · ${L.p.yes.length} yes</small><b>${esc((L.tied||[L.p]).map(p=>p.n).join(" or "))}</b></div></div>`:"";
+  $("list").innerHTML=list.map(p=>{
+    const on=mine.yes.includes(p.k),picked=closed&&ev.pick.k===p.k;
+    const sub=[p.note?esc(p.note):"",`<a href="${esc(mapsUrl(p.n,ev.near))}" target="_blank" rel="noopener">Map</a>`,p.by?`added by ${esc(label(p.by,rows()[p.by]||{}))}`:""].filter(Boolean).join(" · ");
+    const acts=[];
+    if(isHost&&!closed)acts.push(`<button class="go" data-pick="${esc(p.k)}" type="button">Go here</button>`);
+    if(p.by===myId&&!closed)acts.push(`<button class="undo" data-unadd="${esc(p.k)}" type="button">Remove</button>`);
+    acts.push(`<button class="yes" data-yes="${esc(p.k)}" aria-pressed="${on}" type="button" ${live&&!closed?"":"disabled"}>${on?"Yes ✓":"Yes"}</button>`);
+    const who=p.yes.length?`<span class="bar">${"<i></i>".repeat(Math.min(p.yes.length,12))}</span><span>${esc(p.yes.join(", "))}</span>`:"";
+    return `<li class="p${on?" on":""}${picked?" picked":""}"><div><div class="nm">${esc(p.n)}</div><div class="sub">${sub}</div></div><div class="act">${acts.join("")}</div>${who?`<div class="who">${who}</div>`:""}</li>`;
+  }).join("")||`<li class="hint">No places yet. Add one.</li>`;
+  if(isHost)renderAdmin(list);
+}
+
+function resultText(list){
+  const head=[ev.title,fmtWhen(ev.date,ev.time)].filter(Boolean).join(", ");
+  if(ev.pick)return `${head}\nGoing with ${ev.pick.n}\n${mapsUrl(ev.pick.n,ev.near)}`;
+  const sorted=[...list].sort((a,b)=>b.yes.length-a.yes.length);
+  return head+"\n\n"+sorted.map(p=>`${p.n} (${p.yes.length} yes)${p.note?", "+p.note:""}\n${mapsUrl(p.n,ev.near)}`).join("\n\n");
+}
+
+function renderAdmin(list){
+  const people=Object.entries(docs).filter(([id,r])=>id!==myId&&((r.yes||[]).length||(r.add||[]).length));
+  const host=guestUrl+"#host="+hostKey;
+  const name=k=>(list.find(p=>p.k===k)||{}).n;
+  $("admin").innerHTML=`<div class="band" style="padding-block:16px"><div class="wrap notice admin">
+    <h2>Host</h2>
+    <div><b>Send this link to the group</b></div>
+    <div class="linkrow"><code>${esc(guestUrl)}</code><button class="btn" data-copy="${esc(guestUrl)}" type="button">Copy</button>${navigator.share?`<button class="btn ghost" id="share" type="button">Share</button>`:""}</div>
+    <div class="linkrow"><a href="/eat?edit=${esc(slug)}">Edit</a> · <button class="btn ghost" id="copyRes" type="button">Copy results</button>${ev.pick?` · <button class="btn ghost" id="reopen" type="button">Reopen</button>`:""} · <button class="btn ghost" id="delEv" type="button">Delete</button></div>
+    ${people.length?`<div class="people">${people.map(([id,r])=>`<div><span><b>${esc(r.name||"Someone")}</b> · ${esc([...(r.yes||[]).map(name).filter(Boolean)].join(", ")||"added a place")}</span><button class="rm" data-rm="${esc(id)}" type="button">Remove</button></div>`).join("")}</div>`:""}
+    <div class="small">This browser remembers you as host. To manage from another device, open your host link there. <button class="btn ghost" data-copy="${esc(host)}" data-label="Copy host link" type="button" style="min-height:32px;font-size:12px;padding:0 10px">Copy host link</button></div>
+  </div></div>`;
+}
+
+async function load(){
+  try{
+    const r=await fetch(`/api/links?slug=${encodeURIComponent(slug)}&me=${myId}`,{headers:hdr(),cache:"no-store"});
+    const j=await r.json();
+    if(!r.ok){$("title").textContent="Not found";$("missingText").textContent=j.error||"This link doesn't exist.";$("missing").hidden=false;return}
+    const first=!ev;
+    ev=j.link.data;docs=j.responses||{};
+    if(first){
+      isHost=j.isHost;
+      if(!isHost&&hostKey){hostKey="";try{localStorage.removeItem("150ct-host-"+slug)}catch(e){}}
+      const d=docs[myId];
+      if(d&&d.name&&!mine.name&&!isHost){mine.name=d.name;$("name").value=d.name;remember()}
+    }
+    if(!dirty&&!saving){const d=docs[myId]||{};mine.yes=[...(d.yes||[])];mine.add=[...(d.add||[])]}
+    renderEvent();live=true;render();
+  }catch(e){if(!ev)$("title").textContent="Couldn't load this"}
+}
+
+async function save(){
+  if(saving){pending=true;return}
+  saving=true;dirty=false;status("Saving…");
+  try{
+    const r=await fetch(`/api/responses?slug=${encodeURIComponent(slug)}`,{method:"POST",headers:{"content-type":"application/json",...hdr()},body:JSON.stringify({id:myId,name:mine.name.trim(),yes:mine.yes,add:mine.add})});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(j.error);
+    status("Saved.");
+    if(j.responses){docs=j.responses;if(!dirty){const d=docs[myId]||{};mine.yes=[...(d.yes||[])];mine.add=[...(d.add||[])]}render()}
+  }catch(e){status(e.message||"Couldn't save that. Try again in a sec.");load()}
+  saving=false;
+  if(pending){pending=false;save()}
+}
+const queue=()=>{dirty=true;clearTimeout(saveT);saveT=setTimeout(save,400)};
+const needName=()=>{if(isHost||mine.name.trim())return false;status("Add your name first.");$("name").focus();return true};
+
+async function setPick(p){
+  const r=await fetch(`/api/links?slug=${encodeURIComponent(slug)}`,{method:"PUT",headers:{"content-type":"application/json",...hdr()},body:JSON.stringify({data:{...ev,pick:p}})});
+  if(!r.ok){status("Couldn't save that.");return}
+  status(p?"Locked in.":"Voting is open again.");load();
+}
+
+$("list").addEventListener("click",e=>{
+  const y=e.target.closest("[data-yes]");
+  if(y){if(needName())return;const k=y.dataset.yes;mine.yes=mine.yes.includes(k)?mine.yes.filter(x=>x!==k):[...mine.yes,k];render();queue();return}
+  const a=e.target.closest("[data-unadd]");
+  if(a){const k=a.dataset.unadd;mine.add=mine.add.filter(x=>x.k!==k);mine.yes=mine.yes.filter(x=>x!==k);render();queue();return}
+  const g=e.target.closest("[data-pick]");
+  if(g){const p=tally().find(x=>x.k===g.dataset.pick);if(p)setPick({k:p.k,n:p.n,note:p.note||""})}
+});
+function addMine(){
+  const n=$("addIn").value.trim();if(!n||!live||needName())return;
+  const k=key();
+  mine.add=[...mine.add,{k,n,note:""}];mine.yes=[...mine.yes,k];$("addIn").value="";render();queue();
+}
+$("addBtn").addEventListener("click",addMine);
+$("addIn").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();addMine()}});
+$("name").addEventListener("input",e=>{mine.name=e.target.value;remember();render();if(mine.yes.length||mine.add.length)queue()});
+
+async function removePerson(id,b){
+  if(b.dataset.armed!=="1"){b.dataset.armed="1";b.textContent="Tap again";return}
+  try{const r=await fetch(`/api/responses?slug=${encodeURIComponent(slug)}&id=${encodeURIComponent(id)}`,{method:"DELETE",headers:hdr()});if(!r.ok)throw 0;status("Removed.");load()}
+  catch(err){status("Couldn't remove that.")}
+}
+$("admin").addEventListener("click",async e=>{
+  const c=e.target.closest("[data-copy]");
+  if(c){const ok=await copyText(c.dataset.copy);c.textContent=ok?"Copied":"Couldn't copy";if(!ok){const code=c.parentElement.querySelector("code");if(code)getSelection().selectAllChildren(code)}setTimeout(()=>c.textContent=c.dataset.label||"Copy",1800);return}
+  const rm=e.target.closest("[data-rm]");
+  if(rm)return removePerson(rm.dataset.rm,rm);
+  if(e.target.id==="share"){try{await navigator.share({title:ev.title,url:guestUrl})}catch(err){}return}
+  if(e.target.id==="reopen")return setPick(null);
+  if(e.target.id==="copyRes"){const ok=await copyText(resultText(tally()));e.target.textContent=ok?"Copied":"Couldn't copy";setTimeout(()=>e.target.textContent="Copy results",1800);return}
+  if(e.target.id==="delEv"){
+    const b=e.target;
+    if(b.dataset.armed!=="1"){b.dataset.armed="1";b.textContent="Tap again to delete for everyone";return}
+    const r=await fetch(`/api/links?slug=${encodeURIComponent(slug)}`,{method:"DELETE",headers:hdr()});
+    if(r.ok){try{localStorage.removeItem("150ct-host-"+slug)}catch(err){}location.href="/eat"}else b.textContent="Couldn't delete";
+  }
+});
+
+load();
+setInterval(()=>{if(!document.hidden&&ev)load()},8000);
+}
+</script>
+</body>
+</html>
