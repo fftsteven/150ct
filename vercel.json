@@ -13,10 +13,6 @@
     {
       "source": "/eat",
       "destination": "/apps/eat/new.html"
-    },
-    {
-      "source": "/eat/:slug",
-      "destination": "/apps/eat/view.html"
     }
   ]
 }

@@ -8,7 +8,7 @@ const SITE={
 const SHELF=[
  {id:"potluck",sp:"turkey",name:"Potluck",line:"List what you need, guests claim it. No duplicate salads.",bg:"#ffd9c2",flakes:["#e8862e","#c62828","#f2c230"],status:"live",href:"/potluck"},
  {id:"when",sp:"cal",name:"When works",line:"Everyone paints when they're free. The best time lights up.",bg:"#d7e6ff",flakes:["#fff","#a9c7d8"],status:"soon"},
- {id:"eat",sp:"fox",name:"Where to eat",line:"Throw in a few places, everyone taps yes. Winner shows up top.",bg:"#ffe8b8",flakes:["#e8862e","#fff"],status:"live",href:"/eat"},
+ {id:"eat",sp:"fox",name:"Where to eat",line:"Pick a few places, send one text with the map links.",bg:"#ffe8b8",flakes:["#e8862e","#fff"],status:"live",href:"/eat"},
  {id:"santa",sp:"gift",name:"Gift exchange",line:"Draw names without anyone seeing.",bg:"#f7d6e6",flakes:["#fff","#f48fb1"],status:"soon"},
  {id:"raffle",sp:"raffle",name:"Raffle",line:"Everyone gets a ticket, one tap draws a winner.",bg:"#ffe0d6",flakes:["#f2c230","#c62828"],status:"soon"},
  {id:"waitlist",sp:"waitlist",name:"Waitlist",line:"People add their name, you call them in order.",bg:"#e6e0f7",flakes:["#fff"],status:"soon"},
