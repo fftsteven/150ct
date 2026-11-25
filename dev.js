@@ -11,10 +11,11 @@ if (!process.env.KV_REST_API_URL && !process.env.UPSTASH_REDIS_REST_URL) {
   console.log("Using in-memory Redis");
 }
 const { handle } = await import("./core/handler.js");
+const { page } = await import("./core/page.js");
 
 const cfg = JSON.parse(await readFile("vercel.json", "utf8"));
 const rules = cfg.rewrites.map((r) => ({
-  re: new RegExp("^" + r.source.replace(/:[a-z]+/gi, "[^/]+") + "/?$"),
+  re: new RegExp("^" + r.source.replace(/:([a-z]+)/gi, "(?<$1>[^/]+)") + "/?$"),
   to: r.destination,
 }));
 const types = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".json": "application/json", ".png": "image/png", ".ico": "image/x-icon", ".webmanifest": "application/manifest+json" };
@@ -44,7 +45,16 @@ http.createServer(async (req, res) => {
     return res.end(Buffer.from(await r.arrayBuffer()));
   }
   let f = await serveFile(url.pathname);
-  if (!f) { const rule = rules.find((r) => r.re.test(url.pathname)); if (rule) f = await serveFile(rule.to); }
+  const rule = !f && rules.find((r) => r.re.test(url.pathname));
+  if (rule) {
+    const to = rule.to.replace(/:([a-z]+)/gi, (_, k) => url.pathname.match(rule.re).groups[k]);
+    if (to.startsWith("/api/")) {
+      const r = await (to.startsWith("/api/page") ? page : handle)(new Request(new URL(to, url), { headers: req.headers }));
+      res.writeHead(r.status, Object.fromEntries(r.headers));
+      return res.end(Buffer.from(await r.arrayBuffer()));
+    }
+    f = await serveFile(to);
+  }
   if (!f) { res.writeHead(404, { "content-type": "text/plain" }); return res.end("Not found"); }
   res.writeHead(200, { "content-type": f.type });
   res.end(f.data);

@@ -8,7 +8,7 @@
     },
     {
       "source": "/potluck/:slug",
-      "destination": "/apps/potluck/view"
+      "destination": "/api/page?app=potluck&slug=:slug"
     },
     {
       "source": "/eat",
@@ -20,7 +20,12 @@
     },
     {
       "source": "/meet/:slug",
-      "destination": "/apps/meet/view"
+      "destination": "/api/page?app=meet&slug=:slug"
     }
-  ]
+  ],
+  "functions": {
+    "api/page.js": {
+      "includeFiles": "public/apps/*/view.html"
+    }
+  }
 }
