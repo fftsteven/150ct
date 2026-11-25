@@ -1,5 +1,7 @@
 /* When works: deep teal ground, warm yellow accent. Layout comes from /shared/app.css. */
-:root{--hero:#1f4e5f;--acc:#ffd23f;--slot:#1f4e5f;--heat:light-dark(#1f9d6b,#3ccf8e)}
+:root{--hero:#1f4e5f;--acc:#ffd23f;--slot:#1f4e5f;
+/* Availability: everyone free, some can't, no one */
+--all:light-dark(#1f9d6b,#25a873);--some:light-dark(#3a3633,#5b5650);--none:light-dark(#e4e2df,#26262c)}
 .hero .sprite svg{filter:drop-shadow(0 6px 0 rgba(0,0,0,.25))}
 /* Phones: keep the picture small so the days are on screen sooner. */
 @media(max-width:600px){.hero .sprite{max-width:110px}}
