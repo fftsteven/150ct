@@ -109,18 +109,13 @@ document.getElementById("shelf").innerHTML=SHELF.map(a=>a.status==="live"
 const link=(url,label)=>url?`<a href="${esc(url)}" target="_blank" rel="noopener">${label}</a>`:`<span>${label} · soon</span>`;
 if(SITE.donate){const t=document.getElementById("tip");t.href=SITE.donate;t.hidden=false}
 document.getElementById("links").innerHTML=`<a href="/about">About</a>`+link(SITE.donate,"Chip in")+link(SITE.discord,"Discord");
-// Add to home screen, phones only. Android uses the browser's prompt when it has one.
+// Add to home screen, phones only.
 const ua=navigator.userAgent;
-const ios=/iPhone|iPad|iPod/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1);
-const android=/Android/.test(ua);
+const phone=/iPhone|iPad|iPod|Android/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1);
 const standalone=matchMedia("(display-mode: standalone)").matches||navigator.standalone;
-let deferred=null;
-if(!standalone&&(ios||android))document.body.classList.add("can-install");
-addEventListener("beforeinstallprompt",e=>{e.preventDefault();if(android)deferred=e});
-addEventListener("appinstalled",()=>document.body.classList.remove("can-install"));
-document.getElementById("install").onclick=async()=>{
-  if(deferred){deferred.prompt();await deferred.userChoice.catch(()=>{});deferred=null;return}
-  document.getElementById("howText").textContent=ios?"Tap Share, then Add to Home Screen.":"Tap the browser menu, then Add to Home screen.";
+if(phone&&!standalone)document.body.classList.add("can-install");
+document.getElementById("install").onclick=()=>{
+  document.getElementById("howText").textContent="Tap the browser menu, then Add to Home Screen.";
   document.getElementById("how").showModal();
 };
 }
