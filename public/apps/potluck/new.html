@@ -165,7 +165,15 @@ async function init(){
       dishes=ev.dishes.map(d=>({...d}));tpl="";
       renderDishes();preview();
     }catch(e){$("status").textContent="Only the host can edit this.";$("submit").disabled=true}
-  }else useTemplate("thanksgiving");
+  }else{
+    useTemplate("thanksgiving");
+    // Pre-filled from another tool, e.g. When works: /potluck?title=&date=YYYY-MM-DD&time=HH:MM
+    const q=new URLSearchParams(location.search);
+    if(q.get("title")){$("title").value=q.get("title").slice(0,80);titleTouched=true}
+    if(/^\d{4}-\d{2}-\d{2}$/.test(q.get("date")||""))$("date").value=q.get("date");
+    if(/^\d{2}:\d{2}$/.test(q.get("time")||""))$("time").value=q.get("time");
+    preview();
+  }
 }
 init();
 }

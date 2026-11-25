@@ -28,6 +28,9 @@
 .best .pick{display:grid;gap:2px}
 .best .pick b{font-size:19px;font-weight:600}
 .best .pick span{color:var(--mute);font-size:14px}
+.best .next{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;border-top:1px dashed var(--line);padding-top:10px;margin-top:2px;font-size:14px;color:var(--mute)}
+.best .next span{flex-basis:100%}
+.best .next a{color:var(--ink);font-weight:600;text-underline-offset:3px}
 .head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px}
 /* Whole days: one row per day */
 .days{list-style:none;margin:0;padding:0;display:grid;gap:8px}
@@ -166,6 +169,13 @@ function bestPicks(t){
   }
   return out.map(r=>({label:`${fmtDay(r.d)}, ${span(r.from,r.to)}`,slots:r.slots}));
 }
+// Host only: carry the best day into the next tool.
+function nextSteps(p){
+  const [d,h]=p.slots[0].split("T"),title=ev.title||"";
+  const pot=new URLSearchParams({title,date:d,...(h?{time:String(h).padStart(2,"0")+":00"}:{})});
+  const eat=new URLSearchParams({opener:`${title?title+", ":""}${p.label}. Any of these work?`});
+  return `<div class="next"><span>Got your ${hours()?"time":"day"}?</span><a href="/potluck?${pot}">Make it a potluck</a><a href="/eat?${eat}">Pick where to eat</a></div>`;
+}
 function renderBest(t){
   const picks=bestPicks(t),n=t.ps.length;
   if(!picks.length){$("best").innerHTML=`<h3>Best so far</h3><div class="pick"><b>No one yet</b><span>${isHost?"Send the link. The":"Be the first. The"} best ${hours()?"time":"day"} shows up here.</span></div>`;return new Set()}
@@ -173,7 +183,7 @@ function renderBest(t){
     const s=p.slots[0],free=t.ps.filter(x=>x.yes.has(s)).map(x=>x.name),out=t.ps.filter(x=>!x.yes.has(s)).map(x=>x.name);
     return `<div class="pick"><b>${esc(p.label)}</b><span>${t.max} of ${n}${n>1?`: ${esc(free.join(", "))}`:""}${out.length?`. Can't: ${esc(out.join(", "))}`:""}</span></div>`;
   });
-  $("best").innerHTML=`<h3>${picks.length>1?"Best so far, tied":"Best so far"}</h3>${shown.join("")}${picks.length>3?`<span class="hint">and ${picks.length-3} more</span>`:""}`;
+  $("best").innerHTML=`<h3>${picks.length>1?"Best so far, tied":"Best so far"}</h3>${shown.join("")}${picks.length>3?`<span class="hint">and ${picks.length-3} more</span>`:""}${isHost?nextSteps(picks[0]):""}`;
   return new Set(t.max>0?t.slots.filter(s=>t.count[s]===t.max):[]);
 }
 

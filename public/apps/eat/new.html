@@ -92,6 +92,8 @@ try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&Array.isArray(s.
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}};
 const link=p=>p.url||mapsUrl(p.n);
 $("sprite").innerHTML=shop();
+// Pre-filled from another tool, e.g. When works: /eat?opener=
+{const o=new URLSearchParams(location.search).get("opener");if(o){state.opener=o.slice(0,200);save();history.replaceState(null,"",location.pathname)}}
 $("opener").value=state.opener||"";
 
 function text(){
