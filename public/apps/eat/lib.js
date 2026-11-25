@@ -1,10 +1,9 @@
-/* Where to eat: fox art and helpers. Plain script, sets window.E. */
+/* Where to eat: storefront art and helpers. Plain script, sets window.E. */
 (function(){
-const PC={o:"#e8862e",O:"#b85a14",w:"#f4ead8",k:"#3a3633",d:"#4a2210",y:"#f2c230",r:"#c62828"};
-const FOX=["..o.......o.....","..oo.....oo.....","..ooo...ooo.....","..ooooooooo.....",".oowkoooowko....",".ooooooooooo....","..oowwwwwoo.....","...owwkwwo......","....owwwo....oo.","....ooooo...ooo.","...ooooooo.oooo.","...oowwwooooow..","...oowwwoooow...","...ooooooooo....","...dd.d.d.dd....","................"];
+const PC={w:"#f4ead8",k:"#3a3633",y:"#f2c230",r:"#c62828",l:"#a9c7d8",b:"#8a5a2b",W:"#fffdf8",e:"#d9cbb3"};
+const SHOP=["................","................",".kkkkkkkkkkkkkk.",".kwwwwyyyywwwwk.","rrWWrrWWrrWWrrWW","rrWWrrWWrrWWrrWW","rr..rr..rr..rr..",".kwwwwwwwwwwwwk.",".kwllllwwbbbbwk.",".kwlWllwwbbbbwk.",".kwllllwwbbbywk.",".kwllllwwbbbbwk.",".kweeeewwbbbbwk.",".kwwwwwwwbbbbwk.","eeeeeeeeeeeeeeee","................"];
 const grid=rows=>rows.map((r,y)=>[...r].map((c,x)=>PC[c]?`<rect x="${x}" y="${y}" width="1" height="1" fill="${PC[c]}"/>`:"").join("")).join("");
-// Head bobs, tail wags.
-const fox=()=>`<svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><g class="anim-b">${grid(FOX.slice(0,8))}</g><g transform="translate(0 8)">${grid(FOX.slice(8))}</g></svg>`;
+const shop=()=>`<svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">${grid(SHOP)}</svg>`;
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const mapsUrl=name=>"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(name);
 async function copyText(t){
@@ -19,5 +18,5 @@ const looksLikeUrl=s=>/^https?:\/\//i.test(s.trim());
 async function nameFromLink(u){
   try{const r=await fetch("/api/unfurl?u="+encodeURIComponent(u.trim()));const j=await r.json();return r.ok?(j.name||""):null}catch(e){return ""}
 }
-window.E={fox,esc,mapsUrl,copyText,looksLikeUrl,nameFromLink};
+window.E={shop,esc,mapsUrl,copyText,looksLikeUrl,nameFromLink};
 })();

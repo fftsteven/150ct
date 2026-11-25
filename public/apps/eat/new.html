@@ -42,7 +42,7 @@
       <h1>Where to eat</h1>
       <div class="det"><div><span>Pick a few places and send them in one text with the map links.</span></div></div>
     </div>
-    <div class="sprite" id="sprite" role="img" aria-label="Fox"></div>
+    <div class="sprite" id="sprite" role="img" aria-label="Restaurant"></div>
   </div>
 </header>
 
@@ -75,14 +75,14 @@
 
 <script>
 {
-const {fox,esc,mapsUrl,copyText,looksLikeUrl,nameFromLink}=window.E;
+const {shop,esc,mapsUrl,copyText,looksLikeUrl,nameFromLink}=window.E;
 const $=id=>document.getElementById(id);
 const KEY="150ct-eat";
 let state={opener:"",places:[]},pendingUrl="";
 try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&Array.isArray(s.places))state=s}catch(e){}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}};
 const link=p=>p.url||mapsUrl(p.n);
-$("sprite").innerHTML=fox();
+$("sprite").innerHTML=shop();
 $("opener").value=state.opener||"";
 
 function text(){
