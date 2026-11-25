@@ -4,6 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>When works · 150ct</title>
+<meta name="description" content="Tap the days you're free. Free, no sign-up.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="150ct">
+<meta property="og:title" content="When works">
+<meta property="og:description" content="Tap the days you're free. Free, no sign-up.">
+<meta property="og:image" content="https://150ct.com/shared/og-meet.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/shared/app.css">
@@ -91,6 +100,7 @@
     <div class="head"><h2 id="pickH">When are you free?</h2><span class="hint" id="pickHint"></span></div>
     <div id="picker"></div>
     <div class="submitbar" id="submitbar"><button class="btn" id="submit" type="button" disabled>Submit</button><span class="status" id="status" aria-live="polite"></span></div>
+    <div class="nudge" id="nudge" hidden><p><b>You're in.</b>Planning something yourself? Make your own in a minute.</p><a class="btn" href="/meet">Make your own</a></div>
   </div>
   <div class="wrap" id="missing" hidden><p class="hint" id="missingText"></p><p><a href="/meet">Make your own</a></p></div>
   <div class="wrap col" id="hostFoot" hidden></div>
@@ -255,6 +265,7 @@ async function load(){
 function syncSubmit(){
   const b=$("submit"),sent=!!docs[myId];
   b.classList.toggle("change",!picking());
+  $("nudge").hidden=isHost||!sent;
   if(!picking()){b.classList.remove("done");b.textContent="Change my days";b.disabled=false;status("Submitted ✓");return}
   b.classList.toggle("done",sent&&!dirty&&!saving);
   if(saving){b.textContent="Saving…";b.disabled=true;return}

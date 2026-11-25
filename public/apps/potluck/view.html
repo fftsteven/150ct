@@ -4,6 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Potluck · 150ct</title>
+<meta name="description" content="Tap to claim what you're bringing. Free, no sign-up.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="150ct">
+<meta property="og:title" content="Potluck">
+<meta property="og:description" content="Tap to claim what you're bringing. Free, no sign-up.">
+<meta property="og:image" content="https://150ct.com/shared/og-potluck.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/shared/app.css">
@@ -57,6 +66,7 @@
     <ul class="dl" id="list"></ul>
     <div class="addrow"><input id="addIn" maxlength="60" placeholder="Bringing something else?" autocomplete="off" aria-label="Add a dish you're bringing"><button class="btn ghost" id="addBtn" type="button">Add</button></div>
     <p class="status" id="status" aria-live="polite"></p>
+    <div class="nudge" id="nudge" hidden><p><b>You're in.</b>Hosting something yourself? Make your own in a minute.</p><a class="btn" href="/potluck">Make your own</a></div>
   </div>
   <div class="wrap" id="missing" hidden><p class="hint" id="missingText"></p><p><a href="/potluck">Make a potluck</a></p></div>
 </main>
@@ -155,7 +165,7 @@ async function load(){
       if(!isHost&&hostKey){hostKey="";try{localStorage.removeItem("150ct-host-"+slug)}catch(e){}}
       renderEvent();
       const d=docs[myId];
-      if(d){mine.take=[...(d.take||[])];mine.add=[...(d.add||[])];if(d.name&&!mine.name&&!isHost){mine.name=d.name;$("name").value=d.name;remember()}}
+      if(d){mine.take=[...(d.take||[])];mine.add=[...(d.add||[])];if(!isHost&&(mine.take.length||mine.add.length))$("nudge").hidden=false;if(d.name&&!mine.name&&!isHost){mine.name=d.name;$("name").value=d.name;remember()}}
     }else if(!dirty&&!saving&&docs[myId]){mine.take=[...(docs[myId].take||[])];mine.add=[...(docs[myId].add||[])]}
     else if(!dirty&&!saving){mine.take=[];mine.add=[]}
     live=true;render();
@@ -168,7 +178,7 @@ async function save(){
   try{
     const r=await fetch(`/api/responses?slug=${encodeURIComponent(slug)}`,{method:"POST",headers:{"content-type":"application/json",...hdr()},body:JSON.stringify({id:myId,name:mine.name.trim(),take:mine.take,add:mine.add})});
     const j=await r.json().catch(()=>({}));
-    if(r.status===409)status(j.error);else if(!r.ok)throw new Error(j.error);else status("Saved.");
+    if(r.status===409)status(j.error);else if(!r.ok)throw new Error(j.error);else{status("Saved.");if(!isHost&&(mine.take.length||mine.add.length))$("nudge").hidden=false}
     if(j.responses){docs=j.responses;if(!dirty){const d=docs[myId]||{};mine.take=[...(d.take||[])];mine.add=[...(d.add||[])]}render()}
   }catch(e){status(e.message||"Couldn't save that. Try again in a sec.")}
   saving=false;

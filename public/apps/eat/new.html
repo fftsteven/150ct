@@ -4,6 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Where to eat · 150ct</title>
+<meta name="description" content="Pick a few places, send one text with the map links. Free, no sign-up.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="150ct">
+<meta property="og:title" content="Where to eat">
+<meta property="og:description" content="Pick a few places, send one text with the map links. Free, no sign-up.">
+<meta property="og:image" content="https://150ct.com/shared/og-eat.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/shared/app.css">
@@ -87,7 +96,8 @@ $("opener").value=state.opener||"";
 
 function text(){
   const on=state.places.filter(p=>p.on);
-  return [state.opener.trim(),...on.map(p=>`${p.n}${p.note?", "+p.note:""}\n${link(p)}`)].filter(Boolean).join("\n\n");
+  if(!on.length)return "";
+  return [state.opener.trim(),...on.map(p=>`${p.n}${p.note?", "+p.note:""}\n${link(p)}`),"Sent with 150ct.com/eat"].filter(Boolean).join("\n\n");
 }
 function render(){
   $("places").innerHTML=state.places.length?state.places.map((p,i)=>`<li class="${p.on?"on":""}"><button type="button" class="ck" data-on="${i}" aria-pressed="${!!p.on}" aria-label="Send ${esc(p.n)}">${p.on?"✓":""}</button><span><b>${esc(p.n)}</b><small>${p.area?esc(p.area)+" · ":""}${p.note?esc(p.note)+" · ":""}<a href="${esc(link(p))}" target="_blank" rel="noopener">Map</a></small></span><button type="button" class="x" data-del="${i}" aria-label="Remove ${esc(p.n)}">×</button></li>`).join(""):`<li class="hint" style="background:none;border:0;padding:0">No places yet. Add two or three.</li>`;
