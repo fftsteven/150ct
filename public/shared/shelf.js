@@ -2,7 +2,7 @@
    To launch an app: set status "live" and href. Order here is order on the shelf. */
 (function(){
 const SITE={
-  donate:"",   // e.g. https://ko-fi.com/...  (empty shows "soon")
+  donate:"https://ko-fi.com/150ct",
   discord:""   // e.g. https://discord.gg/...
 };
 const SHELF=[
