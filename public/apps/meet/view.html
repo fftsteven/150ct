@@ -45,6 +45,10 @@
 .hg .c.top{box-shadow:0 0 0 2px var(--acc)}
 .legend{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--mute);margin-top:10px}
 .legend i{display:inline-block;width:16px;height:16px;border-radius:3px;vertical-align:-3px;margin-right:5px;outline:1px solid var(--line)}
+.submitbar{position:sticky;bottom:0;z-index:2;background:var(--bg);margin-top:16px;padding-block:12px calc(12px + env(safe-area-inset-bottom,0px));border-top:2px solid var(--line);display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.submitbar .status{margin:0}
+.submitbar .btn{min-width:140px}
+.submitbar .btn.done{background:var(--hero);border-color:var(--hero);color:#fff;opacity:1}
 .admin{display:grid;gap:12px}
 .admin h2{font-size:20px;margin:0}
 .admin .people{display:grid;gap:2px}
@@ -77,7 +81,7 @@
     <div class="best" id="best"></div>
     <div class="head"><h2 id="pickH">When are you free?</h2><span class="hint" id="pickHint"></span></div>
     <div id="picker"></div>
-    <p class="status" id="status" aria-live="polite"></p>
+    <div class="submitbar"><button class="btn" id="submit" type="button" disabled>Submit</button><span class="status" id="status" aria-live="polite"></span></div>
   </div>
   <div class="wrap" id="missing" hidden><p class="hint" id="missingText"></p><p><a href="/meet">Make your own</a></p></div>
 </main>
@@ -212,24 +216,35 @@ async function load(){
     if(!dirty&&!saving)mine=new Set((docs[myId]?.yes||[]).filter(s=>valid.has(s)));
     if(first&&docs[myId]?.name&&!myName){myName=docs[myId].name;$("name").value=myName;remember()}
     if(!drag)render();
+    syncSubmit();
   }catch(e){if(!ev)$("title").textContent="Couldn't load this"}
 }
 
+// Nothing saves until Submit. After that the button reads Submitted until something changes, then Update.
+function syncSubmit(){
+  const b=$("submit"),sent=!!docs[myId];
+  b.classList.toggle("done",sent&&!dirty&&!saving);
+  if(saving){b.textContent="Saving…";b.disabled=true;return}
+  if(dirty){b.textContent=sent?"Update":"Submit";b.disabled=false;status(sent?"You have changes.":"");return}
+  b.textContent=sent?"Submitted ✓":"Submit";b.disabled=true;
+  status(sent?"Change anything to update.":"Pick when you're free, then submit.");
+}
 async function save(){
-  if(!myName.trim()&&!isHost){$("nameRow").classList.add("need");status("Add your name to save.");return}
-  if(saving){pending=true;return}
-  saving=true;dirty=false;status("Saving…");
+  if(!myName.trim()&&!isHost){$("nameRow").classList.add("need");$("name").focus();status("Add your name first.");return}
+  if(saving)return;
+  saving=true;syncSubmit();
   try{
     const r=await fetch(`/api/responses?slug=${encodeURIComponent(slug)}`,{method:"POST",headers:{"content-type":"application/json",...hdr()},body:JSON.stringify({id:myId,name:myName.trim(),yes:[...mine]})});
     const j=await r.json().catch(()=>({}));
     if(!r.ok)throw new Error(j.error);
-    status("Saved.");
+    dirty=false;
     if(j.responses){docs=j.responses;if(!drag)render()}
-  }catch(e){status(e.message||"Couldn't save that. Try again in a sec.")}
-  saving=false;
-  if(pending){pending=false;save()}
+    saving=false;syncSubmit();
+    if(!mine.size)status("Cleared.");
+  }catch(e){saving=false;syncSubmit();status(e.message||"Couldn't save that. Try again in a sec.")}
 }
-const queue=()=>{dirty=true;clearTimeout(saveT);saveT=setTimeout(save,500)};
+$("submit").addEventListener("click",save);
+const queue=()=>{dirty=!!(mine.size||docs[myId]);syncSubmit()};
 const toggle=s=>{mine.has(s)?mine.delete(s):mine.add(s)};
 
 // Whole days: tap a row.
@@ -264,7 +279,8 @@ addEventListener("pointerup",endDrag);addEventListener("pointercancel",endDrag);
 
 $("name").addEventListener("input",e=>{
   myName=e.target.value;remember();
-  if(myName.trim()){$("nameRow").classList.remove("need");if(mine.size||docs[myId])queue()}
+  if(myName.trim())$("nameRow").classList.remove("need");
+  if(docs[myId]&&myName.trim()!==docs[myId].name)queue();
   render();
 });
 
@@ -288,7 +304,7 @@ $("admin").addEventListener("click",async e=>{
 });
 
 load();
-setInterval(()=>{if(!document.hidden&&ev&&!drag&&!dirty&&!saving)load()},8000);
+setInterval(()=>{if(!document.hidden&&ev&&!drag&&!saving)load()},8000);
 }
 </script>
 </body>
