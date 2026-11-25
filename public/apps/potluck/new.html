@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Make a potluck · 150ct</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/apps/potluck/style.css">
+<link rel="icon" href="/shared/icon.svg" type="image/svg+xml">
+<script src="/apps/potluck/lib.js"></script>
+<style>
+.form{display:grid;gap:18px}
+.f{display:grid;gap:6px}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.themes{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.th{border:2px solid var(--line);background:var(--panel);color:var(--ink);border-radius:10px;padding:8px 4px;display:grid;justify-items:center;gap:4px;font-size:13px;font-weight:600}
+.th svg{width:48px;height:48px}
+.th[aria-pressed=true]{border-color:var(--ink);box-shadow:inset 0 0 0 2px var(--acc)}
+.th .sw{width:100%;height:6px;border-radius:3px}
+.r .ico svg{width:28px;height:28px}
+.done{display:grid;gap:14px}
+@media(max-width:600px){.two{grid-template-columns:1fr}.themes{grid-template-columns:repeat(3,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<nav class="top"><div class="wrap"><a href="/">150ct</a></div></nav>
+<header class="band hero">
+  <div class="wrap">
+    <div>
+      <h1 id="pTitle">Your event</h1>
+      <div class="det" id="pDet"></div>
+    </div>
+    <div class="sprite" id="pSprite" role="img" aria-label="Theme illustration"></div>
+  </div>
+</header>
+
+<main class="band">
+  <div class="wrap">
+    <form class="form" id="form" novalidate>
+      <div><h2 id="heading">Make an invite</h2><p class="hint">Fill it in, send the link. Guests pick what they'll bring, no accounts.</p></div>
+
+      <div class="f"><label>Theme</label><div class="themes" id="themes"></div></div>
+
+      <div class="f"><label for="title">Title</label><input id="title" maxlength="80" placeholder="e.g. Thanksgiving Potluck" required></div>
+      <div class="two">
+        <div class="f"><label for="date">Date</label><input id="date" type="date" required></div>
+        <div class="f"><label for="time">Starts</label><input id="time" type="time"></div>
+      </div>
+      <div class="two">
+        <div class="f"><label for="place">Place name</label><input id="place" maxlength="80" placeholder="e.g. Dain and Kristina's house"></div>
+        <div class="f"><label for="address">Address</label><input id="address" maxlength="160" placeholder="Street, city, zip"></div>
+      </div>
+      <div class="f"><label for="contact">Text me at (optional)</label><input id="contact" maxlength="40" inputmode="tel" placeholder="Shown so guests can reach you"></div>
+      <div class="f"><label for="notes">Note to guests (optional)</label><textarea id="notes" maxlength="600" placeholder="Parking, dress code, kids welcome…"></textarea></div>
+
+      <div class="f">
+        <h3 class="mt">What's on the menu</h3>
+        <p class="hint">What you've already got covered. Icons are picked from the name.</p>
+        <div class="rows" id="menuRows"></div>
+        <div><button class="add" type="button" data-addrow="menu">+ Add menu item</button></div>
+      </div>
+
+      <div class="f">
+        <h3 class="mt">What you need people to bring</h3>
+        <p class="hint">Name and how many. Guests claim them one at a time.</p>
+        <div class="rows" id="itemRows"></div>
+        <div><button class="add" type="button" data-addrow="items">+ Add item</button></div>
+      </div>
+
+      <div class="linkrow"><button class="btn" id="submit" type="submit">Create invite</button><span class="status" id="status" aria-live="polite" style="margin:0"></span></div>
+    </form>
+
+    <section class="done" id="done" hidden>
+      <h2>Your invite is ready</h2>
+      <div class="notice">
+        <div><b>Send this to guests:</b></div>
+        <div class="linkrow"><code id="guestUrl"></code><button class="btn" type="button" data-copy="guestUrl">Copy</button></div>
+        <div><b>Keep this one private.</b> It's your host link for editing and removing sign-ups. Bookmark it or text it to yourself; it can't be recovered.</div>
+        <div class="linkrow"><code id="hostUrl"></code><button class="btn" type="button" data-copy="hostUrl">Copy</button></div>
+      </div>
+      <p><a id="openHost" href="#">Open your invite</a> · <a href="/potluck">Make another</a></p>
+    </section>
+  </div>
+</main>
+<footer class="band foot"><div class="wrap"><a class="pack" href="/"><span>150</span><span>ct</span></a><span>Free, no accounts, deletes itself 30 days after the event.</span><a href="/potluck">Make your own</a></div></footer>
+
+<script>
+{
+const {THEMES,applyTheme,sprite,icon,iconFor,esc,fmtWhen}=window.G;
+const $=id=>document.getElementById(id);
+const qs=new URLSearchParams(location.search);
+const editSlug=qs.get("edit")||"";
+let hostKey="";
+const hm=location.hash.match(/host=([a-z0-9]+)/);
+if(hm)hostKey=hm[1];
+else if(editSlug){try{hostKey=localStorage.getItem("150ct-host-"+editSlug)||""}catch(e){}}
+
+let state={theme:"thanksgiving",menu:[],items:[]};
+
+// theme picker
+$("themes").innerHTML=Object.entries(THEMES).map(([id,t])=>`<button type="button" class="th" data-theme-id="${id}" aria-pressed="false">${sprite(t.sprite)}<span>${t.name}</span><span class="sw" style="background:${t.hero}"></span></button>`).join("");
+$("themes").addEventListener("click",e=>{const b=e.target.closest("[data-theme-id]");if(!b)return;state.theme=b.dataset.themeId;preview()});
+
+function rowsHTML(kind){
+  const list=state[kind];
+  return list.map((v,i)=>kind==="menu"
+    ?`<div class="r"><span class="ico">${icon(iconFor(v))}</span><input data-kind="menu" data-i="${i}" data-f="n" maxlength="40" aria-label="Menu item ${i+1}" placeholder="e.g. Ribs" value="${esc(v)}"><button class="x" type="button" data-del="menu" data-i="${i}" aria-label="Remove">×</button></div>`
+    :`<div class="r"><span class="ico">${icon(iconFor(v.n))}</span><input data-kind="items" data-i="${i}" data-f="n" maxlength="60" aria-label="Item ${i+1}" placeholder="e.g. Bottles of red wine" value="${esc(v.n)}"><input class="qty" type="number" min="1" max="50" data-kind="items" data-i="${i}" data-f="q" aria-label="How many" value="${v.q}"><button class="x" type="button" data-del="items" data-i="${i}" aria-label="Remove">×</button></div>`
+  ).join("");
+}
+function renderRows(){$("menuRows").innerHTML=rowsHTML("menu");$("itemRows").innerHTML=rowsHTML("items")}
+
+function preview(){
+  const t=applyTheme(state.theme);
+  document.querySelectorAll("[data-theme-id]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.themeId===state.theme));
+  $("pSprite").innerHTML=sprite(t.sprite);
+  $("pTitle").textContent=$("title").value.trim()||"Your event";
+  const when=fmtWhen($("date").value,$("time").value),place=$("place").value.trim(),addr=$("address").value.trim();
+  $("pDet").innerHTML=(when?`<div><b>When</b><span>${esc(when)}</span></div>`:"")+((place||addr)?`<div><b>Where</b><span>${esc(place)}${place&&addr?"<br>":""}${esc(addr)}</span></div>`:"");
+}
+
+document.addEventListener("click",e=>{
+  const a=e.target.closest("[data-addrow]");
+  if(a){const k=a.dataset.addrow;state[k].push(k==="menu"?"":{n:"",q:1});renderRows();const ins=$(k==="menu"?"menuRows":"itemRows").querySelectorAll("input[data-f=n]");ins[ins.length-1].focus();return}
+  const d=e.target.closest("[data-del]");
+  if(d){state[d.dataset.del].splice(+d.dataset.i,1);renderRows()}
+});
+document.addEventListener("input",e=>{
+  const el=e.target;
+  if(el.dataset.kind){
+    const i=+el.dataset.i,k=el.dataset.kind;
+    if(k==="menu")state.menu[i]=el.value;
+    else state.items[i][el.dataset.f]=el.dataset.f==="q"?Math.max(1,Math.min(50,+el.value||1)):el.value;
+    if(el.dataset.f==="n"){const ico=el.parentElement.querySelector(".ico");ico.innerHTML=icon(iconFor(el.value))}
+    return;
+  }
+  preview();
+});
+
+$("form").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const payload={theme:state.theme,title:$("title").value,date:$("date").value,time:$("time").value,place:$("place").value,address:$("address").value,contact:$("contact").value,notes:$("notes").value,
+    menu:state.menu.map(s=>s.trim()).filter(Boolean),items:state.items.filter(i=>i.n.trim()).map(i=>({...i,n:i.n.trim()}))};
+  if(!payload.title.trim()){$("status").textContent="Give it a title.";$("title").focus();return}
+  if(!payload.date){$("status").textContent="Pick a date.";$("date").focus();return}
+  $("submit").disabled=true;$("status").textContent=editSlug?"Saving…":"Creating…";
+  try{
+    const r=await fetch("/api/links"+(editSlug?"?slug="+encodeURIComponent(editSlug):""),{method:editSlug?"PUT":"POST",headers:{"content-type":"application/json",...(hostKey?{"x-host-key":hostKey}:{})},body:JSON.stringify(editSlug?{data:payload}:{type:"potluck",data:payload})});
+    const j=await r.json();
+    if(!r.ok)throw new Error(j.error||"Couldn't save.");
+    if(editSlug){location.href="/potluck/"+editSlug;return}
+    try{localStorage.setItem("150ct-host-"+j.slug,j.hostKey)}catch(err){}
+    const g=location.origin+"/potluck/"+j.slug,h=g+"#host="+j.hostKey;
+    $("guestUrl").textContent=g;$("hostUrl").textContent=h;$("openHost").href=h;
+    $("form").hidden=true;$("done").hidden=false;window.scrollTo(0,0);
+  }catch(err){$("status").textContent=err.message||"Couldn't save. Try again."}
+  $("submit").disabled=false;
+});
+$("done").addEventListener("click",async e=>{
+  const b=e.target.closest("[data-copy]");if(!b)return;
+  try{await navigator.clipboard.writeText($(b.dataset.copy).textContent);b.textContent="Copied"}catch(err){b.textContent="Select and copy"}
+});
+
+async function init(){
+  if(editSlug){
+    $("heading").textContent="Edit invite";$("submit").textContent="Save changes";
+    try{
+      const r=await fetch("/api/links?slug="+encodeURIComponent(editSlug),{headers:hostKey?{"x-host-key":hostKey}:{}});
+      const j=await r.json();
+      if(!r.ok||!j.isHost)throw 0;
+      const ev=j.link.data;
+      ["title","date","time","place","address","contact","notes"].forEach(k=>$(k).value=ev[k]||"");
+      state={theme:ev.theme,menu:[...ev.menu],items:ev.items.map(i=>({...i}))};
+    }catch(e){$("status").textContent="That edit link isn't valid.";$("submit").disabled=true}
+  }else{
+    state.items=[{n:"",q:1}];
+  }
+  renderRows();preview();
+}
+init();
+}
+</script>
+</body>
+</html>

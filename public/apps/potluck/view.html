@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>You're invited · 150ct</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/apps/potluck/style.css">
+<link rel="icon" href="/shared/icon.svg" type="image/svg+xml">
+<script src="/apps/potluck/lib.js"></script>
+</head>
+<body>
+<div id="hostbar"></div>
+<header class="band hero">
+  <div class="wrap">
+    <div>
+      <h1 id="title">Loading…</h1>
+      <div class="det" id="det"></div>
+    </div>
+    <div class="sprite" id="sprite" role="img" aria-label="Event illustration"></div>
+  </div>
+</header>
+
+<main class="band">
+  <div class="wrap" id="main" hidden>
+    <section id="menuSec" hidden>
+      <h2>What's on the menu</h2>
+      <ul class="menu" id="menu"></ul>
+    </section>
+
+    <section id="needSec">
+      <h2 class="mt">What we still need</h2>
+      <p class="hint">Put your name in, then tap + on what you'll bring. It saves on its own.</p>
+      <div class="panel" style="display:grid;gap:8px;margin:18px 0 22px">
+        <label for="name">Your name</label>
+        <input id="name" autocomplete="name" placeholder="e.g. Jamie">
+      </div>
+      <ul class="items" id="items"></ul>
+    </section>
+
+    <h2 class="mt">Bringing anything else?</h2>
+    <p class="hint">Add a row for each extra dish or drink.</p>
+    <div class="rows" id="extras"></div>
+    <button class="add" id="add" type="button">+ Add something</button>
+    <p class="status" id="status" aria-live="polite"></p>
+
+    <h2 class="mt">Who's bringing what</h2>
+    <div class="roster" id="roster"><p class="empty">Nobody yet. Be first.</p></div>
+  </div>
+  <div class="wrap" id="missing" hidden><p class="hint" id="missingText"></p><p><a href="/potluck">Make your own</a></p></div>
+</main>
+<footer class="band foot"><div class="wrap"><a class="pack" href="/"><span>150</span><span>ct</span></a><span>Free, no accounts, deletes itself 30 days after the event.</span><a href="/potluck">Make your own</a></div></footer>
+
+<script>
+{
+const {esc,icon,iconFor,applyTheme,sprite,fmtWhen,mapsUrl}=window.G;
+const $=id=>document.getElementById(id);
+const slug=location.pathname.split("/").filter(Boolean).pop();
+const API="/api";
+
+// host key: from #host=… (then remembered), or from storage
+let hostKey="";
+try{
+  const m=location.hash.match(/host=([a-z0-9]+)/);
+  if(m){hostKey=m[1];localStorage.setItem("150ct-host-"+slug,hostKey);history.replaceState(null,"",location.pathname)}
+  else hostKey=localStorage.getItem("150ct-host-"+slug)||"";
+}catch(e){}
+
+// guest identity: one per browser
+let myId="",myName="";
+try{const s=JSON.parse(localStorage.getItem("150ct-me")||"null");if(s){myId=s.id||"";myName=s.name||""}}catch(e){}
+if(!/^[a-z0-9]{20,40}$/.test(myId))myId=Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>b.toString(36).padStart(2,"0")).join("").slice(0,28);
+const remember=()=>{try{localStorage.setItem("150ct-me",JSON.stringify({id:myId,name:mine.name}))}catch(e){}};
+
+let ev=null,docs={},isHost=false,live=false,dirty=false,saving=false,pending=false,saveT=null;
+let mine={name:myName,items:{},extras:[]};
+remember();$("name").value=mine.name;
+
+const hdr=()=>hostKey?{"x-host-key":hostKey}:{};
+const status=t=>$("status").textContent=t;
+const others=k=>Object.entries(docs).filter(([id])=>id!==myId).reduce((t,[,v])=>t+(+(v.items||{})[k]||0),0);
+const extrasOf=v=>(Array.isArray(v.extras)?v.extras:[]).map(x=>String(x).trim()).filter(Boolean);
+const hasAny=v=>Object.values(v.items||{}).some(n=>n>0)||extrasOf(v).length;
+const shortName=n=>n.replace(/^(bags?|bottles?|cans?|boxes|box|packs?|trays?) of /i,"");
+
+function renderEvent(){
+  const t=applyTheme(ev.theme);
+  document.title=ev.title;
+  $("title").textContent=ev.title;
+  $("sprite").innerHTML=sprite(t.sprite);
+  const rows=[];
+  const when=fmtWhen(ev.date,ev.time);
+  if(when)rows.push(`<div><b>When</b><span>${esc(when)}</span></div>`);
+  if(ev.place||ev.address)rows.push(`<div><b>Where</b><span>${esc(ev.place)}${ev.place&&ev.address?"<br>":""}${ev.address?`<a href="${esc(mapsUrl(ev.address))}">${esc(ev.address)}</a>`:""}</span></div>`);
+  if(ev.notes)rows.push(`<div><b>Note</b><span style="white-space:pre-line">${esc(ev.notes)}</span></div>`);
+  if(ev.contact)rows.push(`<div><b>Ask</b><span>${/^[\d\s()+.-]{7,}$/.test(ev.contact)?`<a href="sms:${esc(ev.contact.replace(/[^\d+]/g,""))}">${esc(ev.contact)}</a>`:esc(ev.contact)}</span></div>`);
+  $("det").innerHTML=rows.join("");
+  $("menuSec").hidden=!ev.menu.length;
+  $("menu").innerHTML=ev.menu.map(m=>`<li>${icon(iconFor(m))}<span>${esc(m)}</span></li>`).join("");
+  $("needSec").hidden=!ev.items.length;
+  $("main").hidden=false;
+}
+
+function render(){
+  $("items").innerHTML=ev.items.map(it=>{
+    const o=others(it.k),m=+mine.items[it.k]||0,tot=o+m,full=tot>=it.q;
+    const names=Object.entries(docs).filter(([id,v])=>id!==myId&&+(v.items||{})[it.k]>0).map(([,v])=>esc(v.name||"Someone")+(v.items[it.k]>1?" ×"+v.items[it.k]:""));
+    if(m)names.push("You"+(m>1?" ×"+m:""));
+    const slots=Array.from({length:it.q},(_,i)=>`<span class="slot ${i<o?"on":i<tot?"mine":""}"></span>`).join("");
+    return `<li class="it${full?" full":""}">
+      <span class="ico">${icon(iconFor(it.n))}</span>
+      <div><div class="nm">${it.q} ${esc(it.n)}</div><div class="slots" aria-label="${tot} of ${it.q} claimed">${slots}</div></div>
+      <div class="step"><button data-k="${esc(it.k)}" data-d="-1" aria-label="One less ${esc(it.n)}" ${m<1||!live?"disabled":""}>−</button><span class="q">${m}</span><button data-k="${esc(it.k)}" data-d="1" aria-label="One more ${esc(it.n)}" ${tot>=it.q||!live?"disabled":""}>+</button></div>
+      <div class="who">${full?"Covered: ":tot?`${it.q-tot} still needed · `:"Still needed · "}${names.join(", ")||"nobody yet"}</div>
+    </li>`}).join("");
+  const all=Object.entries(docs).map(([id,v])=>[id,id===myId?mine:v]);
+  if(!docs[myId])all.push([myId,mine]);
+  const shown=all.filter(([,v])=>hasAny(v));
+  $("roster").innerHTML=shown.length?shown.map(([id,v])=>{
+    const list=ev.items.filter(it=>+(v.items||{})[it.k]>0).map(it=>`${v.items[it.k]} × ${esc(shortName(it.n))}`);
+    extrasOf(v).forEach(x=>list.push(esc(x)));
+    const rm=isHost&&docs[id]?`<button class="rm" data-rm="${esc(id)}" type="button">Remove</button>`:"";
+    return `<div class="row"><b>${esc(v.name||"Someone")}</b><span>${list.join(" · ")} ${rm}</span></div>`}).join(""):`<p class="empty">Nobody yet. Be first.</p>`;
+}
+
+function renderExtras(){
+  $("extras").innerHTML=mine.extras.map((x,i)=>`<div class="r"><input data-ex="${i}" aria-label="Extra item ${i+1}" placeholder="e.g. pumpkin pie" value="${esc(x)}"><button class="x" data-x="${i}" type="button" aria-label="Remove this row">×</button></div>`).join("");
+}
+
+function renderHost(){
+  if(!isHost){$("hostbar").innerHTML="";return}
+  const guest=location.origin+"/potluck/"+slug;
+  $("hostbar").innerHTML=`<div class="band" style="padding-block:14px"><div class="wrap notice">
+    <div><b>You're the host.</b> Only you see this box. Send guests this link:</div>
+    <div class="linkrow"><code>${esc(guest)}</code><button class="btn" data-copy="${esc(guest)}" type="button">Copy link</button></div>
+    <div class="linkrow"><a href="/potluck?edit=${esc(slug)}#host=${esc(hostKey)}">Edit invite</a> · <button class="btn ghost" id="copyList" type="button">Copy who's bringing what</button> · <button class="btn ghost" id="delEv" type="button">Delete invite</button></div>
+    <div class="hint" style="color:#21160f">Keep your host link private. It's the only way to edit this invite.</div>
+  </div></div>`;
+}
+
+async function load(){
+  try{
+    const r=await fetch(`${API}/links?slug=${encodeURIComponent(slug)}&me=${myId}`,{headers:hdr(),cache:"no-store"});
+    const j=await r.json();
+    if(!r.ok){$("title").textContent="Invite not found";$("missingText").textContent=j.error||"This invite doesn't exist.";$("missing").hidden=false;applyTheme("party");return}
+    const first=!ev;
+    ev=j.link.data;docs=j.responses||{};
+    if(first){isHost=j.isHost;renderEvent();renderHost();
+      if(docs[myId]){const v=docs[myId];mine.items={...(v.items||{})};mine.extras=extrasOf(v);if(v.name&&!mine.name){mine.name=v.name;$("name").value=v.name;remember()}renderExtras()}}
+    else if(!dirty&&!saving&&docs[myId])mine.items={...(docs[myId].items||{})};
+    live=true;render();
+  }catch(e){if(!ev)$("title").textContent="Couldn't load this invite"}
+}
+
+async function save(){
+  if(saving){pending=true;return}
+  saving=true;dirty=false;status("Saving…");
+  try{
+    const r=await fetch(`${API}/responses?slug=${encodeURIComponent(slug)}`,{method:"POST",headers:{"content-type":"application/json",...hdr()},body:JSON.stringify({id:myId,name:mine.name.trim(),items:mine.items,extras:mine.extras})});
+    const j=await r.json().catch(()=>({}));
+    if(r.status===409)status(j.error);else if(!r.ok)throw 0;else status("Saved. Thanks!");
+    if(j.responses){docs=j.responses;if(!dirty)mine.items={...((docs[myId]||{}).items||{})};render()}
+  }catch(e){status("Couldn't save that. Try again in a sec.")}
+  saving=false;
+  if(pending){pending=false;save()}
+}
+const queue=()=>{dirty=true;clearTimeout(saveT);saveT=setTimeout(save,500)};
+const needName=()=>{if(mine.name.trim())return false;status("Add your name first so people know who's bringing it.");$("name").focus();return true};
+
+$("items").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-k]");if(!b||needName())return;
+  const it=ev.items.find(i=>i.k===b.dataset.k);if(!it)return;
+  const n=Math.max(0,Math.min(it.q-others(it.k),(+mine.items[it.k]||0)+(+b.dataset.d)));
+  mine.items={...mine.items,[it.k]:n};render();queue();
+});
+$("name").addEventListener("input",e=>{mine.name=e.target.value;remember();render();if(hasAny(mine))queue()});
+$("add").addEventListener("click",()=>{if(!live||needName())return;mine.extras=[...mine.extras,""];renderExtras();$("extras").querySelector(`input[data-ex="${mine.extras.length-1}"]`).focus()});
+$("extras").addEventListener("input",e=>{const i=e.target.dataset.ex;if(i==null)return;mine.extras[+i]=e.target.value;render();queue()});
+$("extras").addEventListener("click",e=>{const b=e.target.closest("button[data-x]");if(!b)return;mine.extras.splice(+b.dataset.x,1);renderExtras();render();queue()});
+$("roster").addEventListener("click",async e=>{
+  const b=e.target.closest("button[data-rm]");if(!b)return;
+  if(b.dataset.armed!=="1"){b.dataset.armed="1";b.textContent="Tap again to remove";return}
+  try{const r=await fetch(`${API}/responses?slug=${encodeURIComponent(slug)}&id=${encodeURIComponent(b.dataset.rm)}`,{method:"DELETE",headers:hdr()});if(!r.ok)throw 0;
+    if(b.dataset.rm===myId){mine.items={};mine.extras=[];renderExtras()}status("Removed.");load()}catch(err){status("Couldn't remove that.")}
+});
+$("hostbar").addEventListener("click",async e=>{
+  const c=e.target.closest("[data-copy]");
+  if(c){try{await navigator.clipboard.writeText(c.dataset.copy);c.textContent="Copied"}catch(err){c.textContent="Select and copy"}return}
+  if(e.target.id==="copyList"){
+    const lines=Object.values(docs).filter(hasAny).map(v=>`${v.name}: `+[...ev.items.filter(it=>+(v.items||{})[it.k]>0).map(it=>`${v.items[it.k]} ${shortName(it.n)}`),...extrasOf(v)].join(", "));
+    const open=ev.items.map(it=>({it,left:it.q-Object.values(docs).reduce((t,v)=>t+(+(v.items||{})[it.k]||0),0)})).filter(x=>x.left>0).map(x=>`${x.left} ${shortName(x.it.n)}`);
+    const text=`${ev.title}\n\n${lines.join("\n")||"Nobody yet"}${open.length?`\n\nStill needed: ${open.join(", ")}`:""}`;
+    try{await navigator.clipboard.writeText(text);e.target.textContent="Copied"}catch(err){e.target.textContent="Couldn't copy"}
+    return;
+  }
+  if(e.target.id==="delEv"){
+    const b=e.target;
+    if(b.dataset.armed!=="1"){b.dataset.armed="1";b.textContent="Tap again to delete for everyone";return}
+    const r=await fetch(`${API}/links?slug=${encodeURIComponent(slug)}`,{method:"DELETE",headers:hdr()});
+    if(r.ok){try{localStorage.removeItem("150ct-host-"+slug)}catch(err){}location.href="/"}else b.textContent="Couldn't delete";
+  }
+});
+
+load();
+const poll=setInterval(()=>{if(!document.hidden&&ev)load()},8000);
+}
+</script>
+</body>
+</html>
