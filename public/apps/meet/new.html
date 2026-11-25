@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>When works · 150ct</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared/app.css">
+<link rel="stylesheet" href="/apps/meet/style.css">
+<link rel="icon" href="/shared/icon.svg" type="image/svg+xml">
+<script src="/apps/meet/lib.js"></script>
+<style>
+.form{display:grid;gap:22px;max-width:560px}
+.f{display:grid;gap:6px}
+.mhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:4px}
+.mhead b{font:700 17px Silkscreen,monospace}
+.nav{width:44px;height:44px;border:2px solid var(--line);background:var(--panel);color:var(--ink);font:700 18px Silkscreen,monospace;border-radius:8px}
+.nav:disabled{opacity:.3;cursor:default}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;touch-action:none;user-select:none;-webkit-user-select:none}
+.cal .wd{text-align:center;font-size:12px;color:var(--mute);font-weight:600;padding-bottom:2px}
+.cd{aspect-ratio:1;max-height:56px;border:2px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;font:600 16px "Work Sans",sans-serif;display:grid;place-items:center;padding:0}
+.cd[aria-pressed=true]{background:var(--hero);border-color:var(--hero);color:#fff;box-shadow:inset 0 0 0 2px var(--acc)}
+.cd:disabled{opacity:.3;cursor:default}
+.cd.today{border-color:var(--ink)}
+.picked{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:32px;font-size:15px}
+.linkb{border:0;background:none;color:var(--ink);text-decoration:underline;text-underline-offset:3px;padding:4px;font:inherit}
+.seg{display:grid;grid-template-columns:1fr 1fr;border:2px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{min-height:44px;border:0;background:var(--panel);color:var(--ink);font:600 15px "Work Sans",sans-serif}
+.seg button[aria-pressed=true]{background:var(--hero);color:#fff}
+.wins{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:8px}
+.wins li{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto minmax(0,1fr);gap:8px;align-items:center;background:var(--panel);border:2px solid var(--line);border-radius:10px;padding:8px 10px}
+.wins b{font-weight:600}
+.wins span{color:var(--mute);font-size:14px}
+.wins select{padding:8px 6px}
+@media(max-width:600px){.wins li{grid-template-columns:auto auto auto;}.wins b{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<nav class="top"><div class="wrap"><a href="/">150ct</a></div></nav>
+<header class="band hero">
+  <div class="wrap">
+    <div>
+      <h1>When works</h1>
+      <div class="det"><div><span>Pick the days that could work. Send the link. Everyone taps when they're free.</span></div></div>
+    </div>
+    <div class="sprite" id="sprite" role="img" aria-label="Calendar"></div>
+  </div>
+</header>
+
+<main class="band">
+  <div class="wrap">
+    <form class="form" id="form" novalidate>
+      <h2 id="heading" hidden></h2>
+      <div class="f"><label for="title">What's it for?</label><input id="title" maxlength="80" placeholder="e.g. Holiday dinner"></div>
+
+      <div class="f">
+        <label id="daysLabel">Days</label>
+        <p class="hint">Tap or drag across days.</p>
+        <div class="mhead"><button class="nav" type="button" id="prev" aria-label="Previous month">‹</button><b id="month"></b><button class="nav" type="button" id="next" aria-label="Next month">›</button></div>
+        <div class="cal" id="cal" aria-labelledby="daysLabel"></div>
+        <div class="picked"><span id="picked"></span><button class="linkb" type="button" id="clear" hidden>Clear</button></div>
+      </div>
+
+      <div class="f">
+        <label>Times</label>
+        <div class="seg" role="group" aria-label="Times"><button type="button" id="tDay" aria-pressed="true">Just days</button><button type="button" id="tHours" aria-pressed="false">Set hours</button></div>
+        <div id="hours" hidden><p class="hint" id="hoursHint"></p><ul class="wins" id="wins"></ul></div>
+      </div>
+
+      <div class="linkrow"><button class="btn" id="submit" type="submit">Get the link</button><span class="status" id="status" aria-live="polite" style="margin:0"></span></div>
+    </form>
+  </div>
+</main>
+<footer class="band foot"><div class="wrap"><a class="pack" href="/"><span>150</span><span>ct</span></a><span>Free, no accounts, deletes itself 30 days after the last day.</span></div></footer>
+
+<script>
+{
+const {cal,esc,ymd,fmtDay,hourLabel}=window.M;
+const $=id=>document.getElementById(id);
+const editSlug=new URLSearchParams(location.search).get("edit")||"";
+let hostKey="";
+try{hostKey=editSlug?localStorage.getItem("150ct-host-"+editSlug)||"":""}catch(e){}
+
+const today=ymd(new Date());
+const picked=new Set();
+let view=new Date();view.setDate(1);
+let hoursOn=false;
+$("sprite").innerHTML=cal();
+
+// Hours per day. A new day starts with the last window the host set. "To" can be midnight (24).
+const wins={};let lastWin=[17,22];
+const winOf=d=>wins[d]||(wins[d]=[...lastWin]);
+const fromOpts=f=>Array.from({length:24},(_,h)=>`<option value="${h}"${h===f?" selected":""}>${hourLabel(h)}</option>`).join("");
+const toOpts=t=>Array.from({length:24},(_,i)=>`<option value="${i+1}"${i+1===t?" selected":""}>${i+1===24?"Midnight":hourLabel(i+1)}</option>`).join("");
+function renderWins(){
+  const list=[...picked].sort();
+  $("hoursHint").textContent=list.length?"Set the hours for each day. New days copy the last hours you set.":"Pick days above, then set hours for each.";
+  $("wins").innerHTML=list.map(d=>{const [f,t]=winOf(d);return `<li><b>${esc(fmtDay(d))}</b><select data-f="${d}" aria-label="${esc(fmtDay(d))} from">${fromOpts(f)}</select><span>to</span><select data-t="${d}" aria-label="${esc(fmtDay(d))} to">${toOpts(t)}</select></li>`}).join("");
+}
+$("wins").addEventListener("change",e=>{
+  const d=e.target.dataset.f||e.target.dataset.t;if(!d)return;
+  const w=winOf(d);if(e.target.dataset.f)w[0]=+e.target.value;else w[1]=+e.target.value;
+  lastWin=[...w];
+});
+
+function render(){
+  const y=view.getFullYear(),m=view.getMonth();
+  $("month").textContent=view.toLocaleDateString("en-US",{month:"long",year:"numeric"});
+  const now=new Date();
+  $("prev").disabled=y<now.getFullYear()||(y===now.getFullYear()&&m<=now.getMonth());
+  const lead=new Date(y,m,1).getDay(),n=new Date(y,m+1,0).getDate();
+  const cells=["S","M","T","W","T","F","S"].map(d=>`<div class="wd" aria-hidden="true">${d}</div>`);
+  for(let i=0;i<lead;i++)cells.push("<div></div>");
+  for(let d=1;d<=n;d++){
+    const s=ymd(new Date(y,m,d));
+    cells.push(`<button type="button" class="cd${s===today?" today":""}" data-d="${s}" aria-pressed="${picked.has(s)}" aria-label="${esc(fmtDay(s,{weekday:"long",month:"long",day:"numeric"}))}" ${s<today?"disabled":""}>${d}</button>`);
+  }
+  $("cal").innerHTML=cells.join("");
+  const list=[...picked].sort();
+  $("picked").textContent=list.length?(list.length<=3?list.map(s=>fmtDay(s)).join(", "):`${list.length} days, ${fmtDay(list[0],{month:"short",day:"numeric"})} to ${fmtDay(list.at(-1),{month:"short",day:"numeric"})}`):"No days yet.";
+  $("clear").hidden=!list.length;
+  if(hoursOn)renderWins();
+}
+
+// Tap or drag: the first day touched decides whether the drag adds or removes.
+let drag=null;
+const dayAt=(x,y)=>{const el=document.elementFromPoint(x,y);return el&&el.closest?el.closest(".cd:not(:disabled)"):null};
+function paint(b){if(!b||drag.seen.has(b.dataset.d))return;drag.seen.add(b.dataset.d);drag.add?picked.add(b.dataset.d):picked.delete(b.dataset.d);b.setAttribute("aria-pressed",drag.add)}
+$("cal").addEventListener("pointerdown",e=>{
+  const b=e.target.closest(".cd:not(:disabled)");if(!b)return;
+  e.preventDefault();drag={add:!picked.has(b.dataset.d),seen:new Set()};paint(b);
+});
+addEventListener("pointermove",e=>{if(drag)paint(dayAt(e.clientX,e.clientY))});
+addEventListener("pointerup",()=>{if(drag){drag=null;render()}});
+addEventListener("pointercancel",()=>{if(drag){drag=null;render()}});
+// Keyboard: Enter/Space fires click with no pointer.
+$("cal").addEventListener("click",e=>{const b=e.target.closest(".cd");if(!b||e.detail!==0)return;picked.has(b.dataset.d)?picked.delete(b.dataset.d):picked.add(b.dataset.d);render();$("cal").querySelector(`[data-d="${b.dataset.d}"]`).focus()});
+$("prev").addEventListener("click",()=>{view.setMonth(view.getMonth()-1);render()});
+$("next").addEventListener("click",()=>{view.setMonth(view.getMonth()+1);render()});
+$("clear").addEventListener("click",()=>{picked.clear();render()});
+
+function setHours(on){hoursOn=on;$("tDay").setAttribute("aria-pressed",!on);$("tHours").setAttribute("aria-pressed",on);$("hours").hidden=!on;if(on)renderWins()}
+$("tDay").addEventListener("click",()=>setHours(false));
+$("tHours").addEventListener("click",()=>setHours(true));
+
+$("form").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const days=[...picked].sort();
+  if(!days.length){$("status").textContent="Pick at least one day.";return}
+  const payload={title:$("title").value,days,hours:hoursOn?Object.fromEntries(days.map(d=>[d,winOf(d)])):null};
+  const bad=hoursOn&&days.find(d=>payload.hours[d][0]>=payload.hours[d][1]);
+  if(bad){$("status").textContent=`${fmtDay(bad)}: the end time has to be after the start.`;$(`wins`).querySelector(`[data-t="${bad}"]`).focus();return}
+  $("submit").disabled=true;$("status").textContent=editSlug?"Saving…":"Making the link…";
+  try{
+    const r=await fetch("/api/links"+(editSlug?"?slug="+encodeURIComponent(editSlug):""),{method:editSlug?"PUT":"POST",headers:{"content-type":"application/json",...(hostKey?{"x-host-key":hostKey}:{})},body:JSON.stringify(editSlug?{data:payload}:{type:"meet",data:payload})});
+    const j=await r.json();
+    if(!r.ok)throw new Error(j.error||"Couldn't save.");
+    if(editSlug){location.href="/meet/"+editSlug;return}
+    try{localStorage.setItem("150ct-host-"+j.slug,j.hostKey)}catch(err){}
+    location.href="/meet/"+j.slug+"#host="+j.hostKey;
+  }catch(err){$("status").textContent=err.message||"Couldn't save. Try again.";$("submit").disabled=false}
+});
+
+async function init(){
+  if(editSlug){
+    $("heading").hidden=false;
+    $("heading").innerHTML=`Edit <a href="/meet/${encodeURIComponent(editSlug)}" style="font:600 15px 'Work Sans',sans-serif;margin-left:10px">Back</a>`;
+    $("submit").textContent="Save";
+    try{
+      const r=await fetch("/api/links?slug="+encodeURIComponent(editSlug),{headers:hostKey?{"x-host-key":hostKey}:{}});
+      const j=await r.json();
+      if(!r.ok||!j.isHost)throw 0;
+      const ev=j.link.data;
+      $("title").value=ev.title||"";
+      ev.days.forEach(d=>picked.add(d));
+      if(ev.days[0]){const d=new Date(ev.days[0]+"T12:00:00");view=new Date(d.getFullYear(),d.getMonth(),1)}
+      if(ev.hours){Object.entries(ev.hours).forEach(([d,w])=>wins[d]=[...w]);lastWin=[...ev.hours[ev.days.at(-1)]];setHours(true)}
+    }catch(e){$("status").textContent="Only the host can edit this.";$("submit").disabled=true}
+  }
+  render();
+}
+init();
+}
+</script>
+</body>
+</html>

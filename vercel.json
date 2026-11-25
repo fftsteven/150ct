@@ -13,6 +13,14 @@
     {
       "source": "/eat",
       "destination": "/apps/eat/new"
+    },
+    {
+      "source": "/meet",
+      "destination": "/apps/meet/new"
+    },
+    {
+      "source": "/meet/:slug",
+      "destination": "/apps/meet/view"
     }
   ]
 }
