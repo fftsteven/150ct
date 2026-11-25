@@ -93,3 +93,6 @@ a{color:inherit;text-underline-offset:3px}
 .nudge p{margin:0;font-size:15px}
 .nudge p b{display:block;font-family:Silkscreen,monospace;font-weight:700;font-size:15px;margin-bottom:2px}
 .nudge .btn{display:inline-flex;align-items:center;text-decoration:none}
+
+.foot .legal{font-size:13px}
+.foot .legal a{color:inherit}
