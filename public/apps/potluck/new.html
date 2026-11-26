@@ -25,6 +25,7 @@
 <link rel="stylesheet" href="/shared/app.css">
 <link rel="icon" href="/shared/icon.svg" type="image/svg+xml">
 <script src="/apps/potluck/lib.js"></script>
+<script src="/shared/places.js"></script>
 <style>
 .form{display:grid;gap:22px}
 .f{display:grid;gap:6px}
@@ -88,7 +89,7 @@
         <div class="f"><label for="date">Date</label><input id="date" type="date" required></div>
         <div class="f"><label for="time">Time</label><input id="time" type="time"></div>
       </div>
-      <div class="f"><label for="where">Where</label><input id="where" maxlength="160" placeholder="Address or place"></div>
+      <div class="f"><label for="where">Where</label><input id="where" maxlength="160" placeholder="Search a place or address"></div>
       <div class="f"><label for="note">Note (optional)</label><textarea id="note" maxlength="600" placeholder="Parking, kids, dogs, your number"></textarea></div>
 
       <div class="f">
@@ -158,6 +159,7 @@ $("dishAdd").addEventListener("click",addDish);
 $("dishIn").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();addDish()}});
 $("title").addEventListener("input",()=>{titleTouched=true});
 $("form").addEventListener("input",e=>{if(e.target.id!=="dishIn"&&e.target.id!=="emoji")preview()});
+placeSearch($("where"),{onPick:preview});
 
 $("form").addEventListener("submit",async e=>{
   e.preventDefault();

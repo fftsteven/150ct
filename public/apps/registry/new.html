@@ -26,6 +26,7 @@
 <link rel="stylesheet" href="/apps/registry/style.css">
 <link rel="icon" href="/shared/icon.svg" type="image/svg+xml">
 <script src="/apps/registry/lib.js"></script>
+<script src="/shared/places.js"></script>
 <style>
 .form{display:grid;gap:22px;max-width:620px}
 .f{display:grid;gap:6px}
@@ -37,10 +38,6 @@
 .check input{width:22px;height:22px;flex:none;margin:2px 0 0;accent-color:var(--hero)}
 .check span{display:grid;gap:2px}
 .check .hint{font-weight:400}
-.find{position:relative}
-.sug{list-style:none;margin:6px 0 0;padding:4px;display:grid;gap:2px;background:var(--panel);border:2px solid var(--hero);border-radius:10px}
-.sug button{width:100%;text-align:left;border:0;background:transparent;color:var(--ink);padding:10px 12px;border-radius:6px;font:inherit}
-.sug button:hover,.sug button[aria-selected=true]{background:color-mix(in srgb,var(--acc) 30%,transparent)}
 @media(max-width:600px){.g{grid-template-columns:minmax(0,1fr) 84px 44px}}
 </style>
 <script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments)};</script>
@@ -78,7 +75,7 @@
       <div class="f"><label for="title">What's it for?</label><input id="title" maxlength="80" placeholder="e.g. Maya's baby shower"></div>
       <div class="f">
         <label for="address">Where's it going? <span class="hint">(optional)</span></label>
-        <div class="find"><input id="address" maxlength="200" placeholder="Start typing the shipping address" autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="sug" aria-expanded="false"><ul class="sug" id="sug" role="listbox" hidden></ul></div>
+        <input id="address" maxlength="200" placeholder="Start typing the shipping address">
         <p class="hint">Guests see it so they can ship straight there.</p>
       </div>
 
@@ -158,45 +155,7 @@ $("form").addEventListener("submit",async e=>{
   }catch(err){st(err.message||"Couldn't save. Try again.");$("submit").disabled=false}
 });
 
-// Address search through Google as you type. Off when the server has no key (501): then it's typed by hand.
-let searchOn=true,session=newSession(),sug=[],sel=-1,seq=0,timer=null;
-function newSession(){return Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>b.toString(16).padStart(2,"0")).join("")}
-function closeSug(){sug=[];sel=-1;$("sug").hidden=true;$("address").setAttribute("aria-expanded","false")}
-function drawSug(){
-  if(!sug.length)return closeSug();
-  $("sug").innerHTML=sug.map((s,i)=>`<li><button type="button" role="option" data-sug="${i}" aria-selected="${i===sel}">${esc(s.name)}</button></li>`).join("")+`<li class="hint" style="padding:4px 12px;font-size:12px">Results from Google</li>`;
-  $("sug").hidden=false;$("address").setAttribute("aria-expanded","true");
-}
-async function search(q){
-  const my=++seq;
-  try{
-    const r=await fetch(`/api/places?t=addr&q=${encodeURIComponent(q)}&s=${session}`);
-    if(r.status===501){searchOn=false;return closeSug()}
-    const j=await r.json();
-    if(my!==seq||$("address").value.trim()!==q)return;
-    sug=r.ok?j.results||[]:[];sel=-1;drawSug();
-  }catch(e){closeSug()}
-}
-// Details ends the search session (cheaper) and gives the full address with the zip code.
-async function choose(s){
-  closeSug();$("address").value=s.name;
-  try{const r=await fetch(`/api/places?id=${encodeURIComponent(s.id)}&s=${session}`);const p=r.ok&&(await r.json()).place;if(p&&p.area)$("address").value=p.area}catch(e){}
-  session=newSession();
-}
-$("address").addEventListener("input",e=>{
-  clearTimeout(timer);const q=e.target.value.trim();
-  if(!searchOn||q.length<3)return closeSug();
-  timer=setTimeout(()=>search(q),250);
-});
-$("address").addEventListener("keydown",e=>{
-  if(!sug.length)return;
-  if(e.key==="ArrowDown"||e.key==="ArrowUp"){e.preventDefault();sel=e.key==="ArrowDown"?(sel+1>=sug.length?-1:sel+1):(sel-1<-1?sug.length-1:sel-1);drawSug();return}
-  if(e.key==="Escape"){closeSug();return}
-  if(e.key==="Enter"&&sel>=0){e.preventDefault();choose(sug[sel])}
-});
-$("sug").addEventListener("mousedown",e=>e.preventDefault());
-$("sug").addEventListener("click",e=>{const b=e.target.closest("[data-sug]");if(b)choose(sug[+b.dataset.sug])});
-$("address").addEventListener("blur",()=>setTimeout(closeSug,150));
+placeSearch($("address"),{addr:true});
 
 async function init(){
   if(editSlug){
