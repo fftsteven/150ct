@@ -135,7 +135,7 @@ function useTemplate(id){
   if(id==="custom"&&!titleTouched)$("title").focus();
 }
 function renderDishes(){
-  $("dishes").innerHTML=dishes.length?dishes.map((d,i)=>`<span class="chip">${dishIcon(d.n)}<span>${esc(d.n)}</span><button type="button" data-del="${i}" aria-label="Remove ${esc(d.n)}">×</button></span>`).join(""):`<span class="hint">No dishes yet. Guests can still add theirs.</span>`;
+  $("dishes").innerHTML=dishes.length?dishes.map((d,i)=>`<span class="chip">${dishIcon(d.n)}<span>${esc(d.n)}</span><button type="button" class="rmx" data-del="${i}" aria-label="Remove ${esc(d.n)}">×</button></span>`).join(""):`<span class="hint">No dishes yet. Guests can still add theirs.</span>`;
 }
 function preview(){
   applyLook(icon);

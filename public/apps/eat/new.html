@@ -124,7 +124,7 @@ function text(){
   return [state.opener.trim(),...on.map(p=>`${p.n}${p.note?", "+p.note:""}\n${link(p)}`),"Sent with 150ct.com/eat"].filter(Boolean).join("\n\n");
 }
 function render(){
-  $("places").innerHTML=state.places.length?state.places.map((p,i)=>`<li class="${p.on?"on":""}"><button type="button" class="ck" data-on="${i}" aria-pressed="${!!p.on}" aria-label="Send ${esc(p.n)}">${p.on?"✓":""}</button><span><b>${esc(p.n)}</b><small>${p.area?esc(p.area)+" · ":""}${p.note?esc(p.note)+" · ":""}<a href="${esc(link(p))}" target="_blank" rel="noopener">Map</a></small></span><button type="button" class="x" data-del="${i}" aria-label="Remove ${esc(p.n)}">×</button></li>`).join(""):`<li class="hint" style="background:none;border:0;padding:0">No places yet. Add two or three.</li>`;
+  $("places").innerHTML=state.places.length?state.places.map((p,i)=>`<li class="${p.on?"on":""}"><button type="button" class="ck" data-on="${i}" aria-pressed="${!!p.on}" aria-label="Send ${esc(p.n)}">${p.on?"✓":""}</button><span><b>${esc(p.n)}</b><small>${p.area?esc(p.area)+" · ":""}${p.note?esc(p.note)+" · ":""}<a href="${esc(link(p))}" target="_blank" rel="noopener">Map</a></small></span><button type="button" class="x rmx" data-del="${i}" aria-label="Remove ${esc(p.n)}">×</button></li>`).join(""):`<li class="hint" style="background:none;border:0;padding:0">No places yet. Add two or three.</li>`;
   const n=state.places.filter(p=>p.on).length,t=text();
   $("out").textContent=n?t:"Tick a place to build the text.";
   $("share").textContent=n?`Send ${n} place${n>1?"s":""}`:"Send";
