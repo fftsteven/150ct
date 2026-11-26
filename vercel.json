@@ -37,6 +37,10 @@
     {
       "source": "/registry/:slug",
       "destination": "/api/page?app=registry&slug=:slug"
+    },
+    {
+      "source": "/cups",
+      "destination": "/apps/cups/new"
     }
   ],
   "functions": {
