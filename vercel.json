@@ -39,8 +39,8 @@
       "destination": "/api/page?app=registry&slug=:slug"
     },
     {
-      "source": "/cups",
-      "destination": "/apps/cups/new"
+      "source": "/grams",
+      "destination": "/apps/grams/new"
     }
   ],
   "functions": {

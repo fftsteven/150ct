@@ -77,6 +77,7 @@ const pages = {
   giftView: await page("apps/gift/view.html"),
   registryCreate: await page("apps/registry/new.html"),
   registryView: await page("apps/registry/view.html"),
+  grams: await page("apps/grams/new.html"),
 };
 
 // Written as a page fragment: the artifact host adds the document skeleton.
@@ -105,7 +106,7 @@ function route(u){
   var x=new URL(u, __ORIGIN);
   window.__ROUTE={path:x.pathname,search:x.search,hash:x.hash};
   var p=x.pathname.replace(/\\/$/,"")||"/";
-  var key=p==="/guides"?"g_index":/^\\/guides\\/[a-z0-9-]+$/.test(p)&&PAGES["g_"+p.slice(8)]?"g_"+p.slice(8):p==="/about"?"about":p==="/terms"?"terms":p==="/privacy"?"privacy":p==="/potluck"?"create":/^\\/potluck\\/[a-z0-9]+$/.test(p)?"view":p==="/eat"?"eatCreate":p==="/meet"?"meetCreate":/^\\/meet\\/[a-z0-9]+$/.test(p)?"meetView":p==="/gift"?"giftCreate":/^\\/gift\\/[a-z0-9]+$/.test(p)?"giftView":p==="/registry"?"registryCreate":/^\\/registry\\/[a-z0-9]+$/.test(p)?"registryView":"landing";
+  var key=p==="/guides"?"g_index":/^\\/guides\\/[a-z0-9-]+$/.test(p)&&PAGES["g_"+p.slice(8)]?"g_"+p.slice(8):p==="/about"?"about":p==="/terms"?"terms":p==="/privacy"?"privacy":p==="/potluck"?"create":/^\\/potluck\\/[a-z0-9]+$/.test(p)?"view":p==="/eat"?"eatCreate":p==="/meet"?"meetCreate":/^\\/meet\\/[a-z0-9]+$/.test(p)?"meetView":p==="/gift"?"giftCreate":/^\\/gift\\/[a-z0-9]+$/.test(p)?"giftView":p==="/grams"?"grams":p==="/registry"?"registryCreate":/^\\/registry\\/[a-z0-9]+$/.test(p)?"registryView":"landing";
   document.getElementById("url").textContent="150ct.com"+(p==="/"?"/":p)+x.search;
   document.getElementById("f").srcdoc=PAGES[key];
 }
