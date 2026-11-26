@@ -111,7 +111,7 @@
 const {shop,esc,mapsUrl,copyText,looksLikeUrl,nameFromLink}=window.E;
 const $=id=>document.getElementById(id);
 const KEY="150ct-eat";
-let state={opener:"",places:[]},pendingUrl="";
+let state={opener:"",places:[]},pendingUrl="",picked=null;
 try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&Array.isArray(s.places))state=s}catch(e){}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}};
 const link=p=>p.url||mapsUrl(p.n);
@@ -132,12 +132,18 @@ function render(){
 }
 function push(n,url,area){
   state.places.push({n,note:$("noteIn").value.trim(),...(url?{url}:{}),...(area?{area}:{}),on:true});
-  pendingUrl="";$("placeIn").value="";$("noteIn").value="";$("placeIn").placeholder="Search a place or paste a link";$("status").textContent="";closeSug();
+  pendingUrl="";picked=null;$("placeIn").value="";$("noteIn").value="";$("placeIn").placeholder="Search a place or paste a link";$("status").textContent="";closeSug();
   save();render();$("placeIn").focus();
 }
 // A pasted link fills in the name. If Google doesn't give one, ask for it.
+// A place picked from Google (or found from a link) waits in the box so a note can go with it. Add saves it.
+function hold(p){
+  picked=p;closeSug();$("placeIn").value=p.n;
+  $("status").textContent="Add a note if you want, then tap Add.";$("noteIn").focus();
+}
 async function addPlace(){
   let v=$("placeIn").value.trim();if(!v)return;
+  if(picked)return push(v.slice(0,60),picked.url,picked.area);
   // Google's share button often pastes "Name\nhttps://maps.app.goo.gl/…". Take both.
   const m=v.match(/https?:\/\/\S+/);
   if(m&&v!==m[0]){const rest=v.replace(m[0],"").replace(/\s+/g," ").trim();if(rest)return push(rest.slice(0,60),m[0]);v=m[0]}
@@ -146,7 +152,7 @@ async function addPlace(){
   const n=await nameFromLink(v);
   if(n===null){$("status").textContent="That isn't a Google Maps link. Type the name instead.";return}
   if(!n){pendingUrl=v;$("placeIn").value="";$("placeIn").placeholder="Name for that link";$("status").textContent="Got the link. What's the place called?";$("placeIn").focus();return}
-  push(n,v);
+  hold({n,url:v});
 }
 // Google search as you type. Off when the server has no key (501): then it's name or link only.
 let searchOn=true,session=newSession(),sug=[],sel=-1,seq=0,timer=null;
@@ -168,14 +174,16 @@ async function search(q){
   }catch(e){closeSug()}
 }
 async function choose(s){
-  closeSug();$("status").textContent="Adding…";
+  closeSug();$("status").textContent="";
   let place=null;
   try{const r=await fetch(`/api/places?id=${encodeURIComponent(s.id)}&s=${session}`);if(r.ok)place=(await r.json()).place}catch(e){}
   session=newSession();
-  push(place?.name||s.name,place?.url||("https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(s.name)+"&query_place_id="+encodeURIComponent(s.id)),place?.area||s.area);
+  hold({n:place?.name||s.name,url:place?.url||("https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(s.name)+"&query_place_id="+encodeURIComponent(s.id)),area:place?.area||s.area});
 }
 $("placeIn").addEventListener("input",e=>{
   clearTimeout(timer);const q=e.target.value.trim();
+  if(picked&&!q){picked=null;$("status").textContent=""}
+  if(picked)return closeSug();
   if(!searchOn||pendingUrl||q.length<2||/^https?:/i.test(q))return closeSug();
   timer=setTimeout(()=>search(q),250);
 });
