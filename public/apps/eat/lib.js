@@ -3,7 +3,9 @@
 const PC={w:"#f4ead8",k:"#3a3633",y:"#f2c230",r:"#c62828",l:"#a9c7d8",b:"#8a5a2b",W:"#fffdf8",e:"#d9cbb3"};
 const SHOP=["................","................",".kkkkkkkkkkkkkk.",".kwwwwyyyywwwwk.","rrWWrrWWrrWWrrWW","rrWWrrWWrrWWrrWW","rr..rr..rr..rr..",".kwwwwwwwwwwwwk.",".kwllllwwbbbbwk.",".kwlWllwwbbbbwk.",".kwllllwwbbbywk.",".kwllllwwbbbbwk.",".kweeeewwbbbbwk.",".kwwwwwwwbbbbwk.","eeeeeeeeeeeeeeee","................"];
 const grid=rows=>rows.map((r,y)=>[...r].map((c,x)=>PC[c]?`<rect x="${x}" y="${y}" width="1" height="1" fill="${PC[c]}"/>`:"").join("")).join("");
-const shop=()=>`<svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">${grid(SHOP)}</svg>`;
+// The awning flaps and the sign light flickers.
+const rows=(f)=>SHOP.map((s,y)=>f(s,y));
+const shop=()=>`<svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">${grid(rows((s,y)=>y>=4&&y<=6?"................":y===3?s.replace(/y/g,"w"):s))}<g class="flap">${grid(rows((s,y)=>y>=4&&y<=6?s:"................"))}</g><g class="blink">${grid(rows((s,y)=>y===3?s.replace(/[^y]/g,"."):"................"))}</g></svg>`;
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const mapsUrl=name=>"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(name);
 async function copyText(t){

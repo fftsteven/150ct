@@ -81,6 +81,11 @@ dialog.how button{min-height:44px;width:100%;border:0;border-radius:12px;backgro
 .bob{animation:bob .9s steps(1) infinite}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-.7px)}}
 .rise{animation:rise 1.2s steps(3) infinite}
+.flap{animation:bob 1s steps(1) infinite}
+.blink{animation:blink 1.4s steps(1) infinite}
+@keyframes blink{0%,60%{opacity:1}61%,100%{opacity:.35}}
+.beat{transform-box:fill-box;transform-origin:50% 50%;animation:beat 1.2s steps(1) infinite}
+@keyframes beat{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
 @keyframes rise{from{transform:translateY(1px);opacity:.9}to{transform:translateY(-2px);opacity:0}}
 .hop{animation:hop2 .9s steps(2) infinite}
 @keyframes hop2{0%,100%{transform:translateY(0)}50%{transform:translateY(-1px)}}
