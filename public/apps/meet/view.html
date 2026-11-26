@@ -220,17 +220,11 @@ function render(){
 // Host: the link up top, responses and controls at the bottom.
 function renderAdmin(t){
   const others=Object.entries(docs).filter(([id])=>id!==myId);
-  const host=guestUrl+"#host="+hostKey;
-  $("admin").innerHTML=`<div class="band" style="padding-block:16px"><div class="wrap notice admin">
-    <button class="btn send" id="share" type="button">${canShare150?"Send to the group":"Copy the link"}</button>
-    <div class="linkrow copyrow"><span>Or copy it:</span><code>${esc(guestUrl)}</code><button class="btn ghost" data-copy="${esc(guestUrl)}" type="button">Copy</button></div>
-  </div></div>`;
+  $("admin").innerHTML=hostPanel({url:guestUrl,hostUrl:guestUrl+"#host="+hostKey,edit:{href:"/meet?edit="+slug}});
   $("hostFoot").hidden=false;
   $("hostFoot").innerHTML=`<div class="foothost">
     <h3>Responses</h3>
     ${others.length?`<div class="people">${others.map(([id,r])=>`<div><span><b>${esc(r.name||"Someone")}</b> · ${(r.yes||[]).length} ${hours()?"hour":"day"}${(r.yes||[]).length===1?"":"s"}</span><button class="rm" data-rm="${esc(id)}" type="button">Remove</button></div>`).join("")}</div>`:`<p class="hint">No one yet.</p>`}
-    <div class="linkrow"><a href="/meet?edit=${esc(slug)}">Change days</a> · <button class="btn ghost" id="delEv" type="button">Delete</button></div>
-    <p class="hint">This browser remembers you as host. To manage from another device, open your host link there. <button class="btn ghost" data-copy="${esc(host)}" data-label="Copy host link" type="button" style="min-height:32px;font-size:12px;padding:0 10px">Copy host link</button></p>
   </div>`;
 }
 

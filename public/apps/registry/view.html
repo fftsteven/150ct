@@ -76,6 +76,7 @@
     <div class="nudge" id="nudge" hidden><p><b>You're in.</b>Need a list of your own? Make one in a minute.</p><a class="btn" href="/registry">Make your own</a></div>
   </div>
   <div class="wrap" id="missing" hidden><p class="hint" id="missingText"></p><p><a href="/registry">Make a registry</a></p></div>
+  <div class="wrap col" id="hostFoot" hidden></div>
 </main>
 <footer class="band foot"><div class="wrap"><a class="pack" href="/"><span>150</span><span>ct</span></a><span>Free, no accounts, deletes itself 30 days after the event.</span><span class="legal">© 2026 150ct · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a></span><a href="/registry">Make your own</a></div></footer>
 
@@ -138,16 +139,10 @@ function render(){
 
 function renderAdmin(){
   const people=Object.entries(docs).filter(([,r])=>(r.take||[]).length);
-  const host=guestUrl+"#host="+hostKey;
-  $("admin").innerHTML=`<div class="band" style="padding-block:16px"><div class="wrap notice admin">
-    <h2>Host</h2>
-    <button class="btn send" id="share" type="button">${canShare150?"Send to the group":"Copy the link"}</button>
-    <div class="linkrow copyrow"><span>Or copy it:</span><code>${esc(guestUrl)}</code><button class="btn ghost" data-copy="${esc(guestUrl)}" type="button">Copy</button></div>
-    <div class="linkrow"><a href="/registry?edit=${esc(slug)}">Edit</a>${ev.surprise?"":` · <button class="btn ghost" id="copyList" type="button">Copy who got what</button>`} · <button class="btn ghost" id="delEv" type="button">Delete</button></div>
-    ${ev.surprise?`<div class="small">Surprise is on, so you can't see what's been claimed. Turn it off in Edit if you need to.</div>`
-      :people.length?`<div class="people">${people.map(([id,r])=>`<div><span><b>${esc(r.name||"Someone")}</b> · ${esc(r.take.map(k=>(ev.items.find(i=>i.k===k)||{}).n).filter(Boolean).join(", "))}</span><button class="rm" data-rm="${esc(id)}" type="button">Remove</button></div>`).join("")}</div>`:""}
-    <div class="small">This browser remembers you as host. To manage from another device, open your host link there. <button class="btn ghost" data-copy="${esc(host)}" data-label="Copy host link" type="button" style="min-height:32px;font-size:12px;padding:0 10px">Copy host link</button></div>
-  </div></div>`;
+  $("admin").innerHTML=hostPanel({url:guestUrl,hostUrl:guestUrl+"#host="+hostKey,edit:{href:"/registry?edit="+slug},extra:ev.surprise?[]:[{id:"copyList",label:"Copy who got what"}]});
+  $("hostFoot").hidden=false;
+  $("hostFoot").innerHTML=`<div class="foothost"><h3>Who's getting what</h3>${ev.surprise?`<p class="hint">Surprise is on, so you can't see what's been claimed. Turn it off in Edit if you need to.</p>`
+    :people.length?`<div class="people">${people.map(([id,r])=>`<div><span><b>${esc(r.name||"Someone")}</b> · ${esc(r.take.map(k=>(ev.items.find(i=>i.k===k)||{}).n).filter(Boolean).join(", "))}</span><button class="rm" data-rm="${esc(id)}" type="button">Remove</button></div>`).join("")}</div>`:`<p class="hint">No one yet.</p>`}</div>`;
 }
 
 async function load(){
@@ -198,7 +193,7 @@ $("list").addEventListener("click",e=>{
 });
 $("name").addEventListener("input",e=>{mine.name=e.target.value;remember();if(mine.take.length)queue()});
 
-$("admin").addEventListener("click",async e=>{
+const hostClick=async e=>{
   const c=e.target.closest("[data-copy]");
   if(c){const ok=await copyText(c.dataset.copy);c.textContent=ok?"Copied":"Couldn't copy";if(!ok){const code=c.parentElement.querySelector("code");if(code)getSelection().selectAllChildren(code)}setTimeout(()=>c.textContent=c.dataset.label||"Copy",1800);return}
   const rm=e.target.closest("[data-rm]");
@@ -220,7 +215,8 @@ $("admin").addEventListener("click",async e=>{
     const r=await fetch(`/api/links?slug=${encodeURIComponent(slug)}`,{method:"DELETE",headers:hdr()});
     if(r.ok){try{localStorage.removeItem("150ct-host-"+slug)}catch(err){}location.href="/registry"}else b.textContent="Couldn't delete";
   }
-});
+};
+$("admin").addEventListener("click",hostClick);$("hostFoot").addEventListener("click",hostClick);
 
 load();
 setInterval(()=>{if(!document.hidden&&ev&&!saving&&!dirty)load()},8000);

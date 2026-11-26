@@ -139,19 +139,13 @@ function render(){
 
 function renderHost(){
   const t=taken(),n=ev.people.length,done=ev.people.filter(p=>t.has(p.k)).length;
-  $("admin").innerHTML=`<div class="band" style="padding-block:16px"><div class="wrap notice admin">
-    <button class="btn send" id="share" type="button">${canShare150?"Send to the group":"Copy the link"}</button>
-    <div class="linkrow copyrow"><span>Or copy it:</span><code>${esc(guestUrl)}</code><button class="btn ghost" data-copy="${esc(guestUrl)}" type="button">Copy</button></div>
-  </div></div>`;
-  const host=guestUrl+"#host="+hostKey;
+  $("admin").innerHTML=hostPanel({url:guestUrl,hostUrl:guestUrl+"#host="+hostKey,edit:{href:"/gift?edit="+slug}});
   $("hostFoot").hidden=false;
   $("hostFoot").innerHTML=`<div class="foothost">
     <h3>Opened ${done} of ${n}</h3>
     <p class="hint">You can see who has looked, never who has who.</p>
     <div class="people">${ev.people.map(p=>`<div><span><b>${esc(p.n)}</b> · ${t.has(p.k)?`<span class="ok">Opened</span>`:`<span class="no">Not yet</span>`}</span>${t.has(p.k)?`<button class="rm" data-reset="${esc(p.k)}" type="button">Reset</button>`:""}</div>`).join("")}</div>
     <p class="hint">Reset frees a name if someone tapped the wrong one or lost their phone.</p>
-    <div class="linkrow"><a href="/gift?edit=${esc(slug)}">Change budget or date</a> · <button class="btn ghost" id="delEv" type="button">Delete</button></div>
-    <p class="hint">This browser remembers you as host. To manage from another device, open your host link there. <button class="btn ghost" data-copy="${esc(host)}" data-label="Copy host link" type="button" style="min-height:32px;font-size:12px;padding:0 10px">Copy host link</button></p>
   </div>`;
 }
 
