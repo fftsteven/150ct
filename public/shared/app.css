@@ -97,8 +97,21 @@ a{color:inherit;text-underline-offset:3px}
 .foot .legal{font-size:13px}
 .foot .legal a{color:inherit}
 
-/* Host send: the share sheet is the main way out, copy is the backup. */
-.btn.send{min-height:52px;padding:0 24px;font-size:16px;justify-self:start}
-.copyrow{font-size:14px}
-.copyrow code{font-size:13px}
-.copyrow .btn{min-height:36px;font-size:12px;padding:0 12px}
+/* Host panel (public/shared/send.js hostPanel), the same on every tool. */
+.hostband{padding-block:16px}
+.hp{background:var(--acc);color:#21160f;border-radius:12px;padding:16px;display:grid;gap:12px;max-width:560px}
+.hp-h{font:700 13px Silkscreen,monospace;opacity:.75}
+.hp .btn.send{width:100%;min-height:54px;font-size:16px;background:#21160f;color:#fff;border-color:#21160f}
+.hp-link{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.08);border-radius:8px;padding:4px 4px 4px 12px}
+.hp-link code{flex:1;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hp-link button,.hp-acts button,.hp-acts a{font:600 14px "Work Sans",sans-serif;color:#21160f;background:transparent;border:0;padding:0;min-height:36px;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px;cursor:pointer}
+.hp-link button{flex:none;min-height:36px;padding:0 12px;border-radius:6px;background:rgba(255,255,255,.55);text-decoration:none}
+.hp-acts{display:flex;flex-wrap:wrap;gap:4px 18px;align-items:center}
+.hp-acts>*{display:inline-flex;align-items:center}
+.hp-acts .del{color:#9b1c1c;margin-left:auto}
+.hp-note{margin:0;font-size:13px;opacity:.75}
+/* Host-only list under the page (responses, who's bringing what). */
+.foothost{margin-top:40px;padding-top:20px;border-top:2px dashed var(--line);display:grid;gap:12px}
+.foothost .people{display:grid}
+.foothost .people div{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)}
+.foothost .rm{color:var(--ink)}
