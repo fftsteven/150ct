@@ -9,6 +9,7 @@
 - [Where to eat](https://150ct.com/eat): Free tool to pick a few restaurants and send your group one text with the Google Maps links. No sign-up or app.
 - [Gift exchange](https://150ct.com/gift): Free Secret Santa name drawer. Type everyone's name, names are drawn right away, and each person taps their own name to see who they're buying for. Nobody else sees the pairs, not even the organizer.
 - [Registry](https://150ct.com/registry): Free gift registry from any store. Paste links from Amazon, Target, Etsy or anywhere, send one link, and guests tap the gift they'll get so nothing is bought twice. Optional surprise mode hides what's been claimed from the host.
+- [To Grams](https://150ct.com/grams): Free cups to grams converter for baking. Pick an ingredient once, see grams for every common cup and spoon amount, and tap to build a whole recipe list. No typing or sign-up. Dry goods use the King Arthur Baking weight chart, liquids use USDA cup weights.
 
 ## How it works
 

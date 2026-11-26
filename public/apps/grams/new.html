@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cups to grams converter for baking, free · 150ct</title>
+<meta name="description" content="Free cups to grams converter for baking. Tap flour, sugar, butter or 18 other ingredients and see grams for every cup and spoon amount at once, then build a whole recipe list. No typing, no sign-up.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="150ct">
+<meta property="og:title" content="To Grams">
+<meta property="og:description" content="Cups and spoons to grams for a whole recipe. No typing, no sign-up.">
+<meta property="og:image" content="https://150ct.com/shared/og-grams.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://150ct.com/grams">
+<meta property="og:locale" content="en_US">
+<meta property="og:image:alt" content="To Grams on 150ct">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="To Grams">
+<meta name="twitter:description" content="Cups and spoons to grams for a whole recipe. No typing, no sign-up.">
+<meta name="twitter:image" content="https://150ct.com/shared/og-grams.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared/app.css">
+<link rel="icon" href="/shared/icon.svg" type="image/svg+xml">
+<script src="/shared/shelf.js"></script>
+<style>
+:root{--hero:#4a6fa5}
+.hero .sprite svg{shape-rendering:crispEdges}
+.bob{animation:bob .9s steps(1) infinite}
+.hero .wrap{grid-template-columns:1fr auto}
+.hero .sprite{width:112px;max-width:112px}
+.col{max-width:640px;display:grid;gap:26px}
+.lbl{font:700 13px Silkscreen,monospace;color:var(--mute);margin:0 0 8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{min-height:44px;padding:0 14px;border:2px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;font:600 15px "Work Sans",sans-serif}
+.chips button:hover{border-color:var(--hero)}
+.chips button[aria-pressed=true]{background:var(--hero);border-color:var(--hero);color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.grid button{min-height:62px;border:2px solid var(--line);background:var(--panel);color:var(--ink);border-radius:10px;padding:8px 10px;text-align:left;display:grid;gap:2px}
+.grid button:hover{border-color:var(--hero)}
+.grid button:active{transform:translateY(1px)}
+.grid small{font:500 13px "Work Sans",sans-serif;color:var(--mute)}
+.grid b{font:700 18px Silkscreen,monospace}
+.grid + .lbl{margin-top:14px}
+.flash{animation:fl .5s steps(2)}
+@keyframes fl{0%{background:var(--acc)}100%{background:var(--panel)}}
+.list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.li{background:var(--panel);border:2px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 12px;align-items:center}
+.li .nm{font-weight:600;font-size:16px}
+.li .g{font:700 22px Silkscreen,monospace;text-align:right;white-space:nowrap}
+.li .ctl{grid-column:1/-1;display:flex;gap:6px;align-items:center}
+.ctl .q{min-width:40px;text-align:center;font:600 18px "Work Sans",sans-serif}
+.ctl .s{flex:none;width:38px;height:38px;border:2px solid var(--ink);background:var(--panel);color:var(--ink);font:700 18px Silkscreen,monospace;border-radius:8px}
+.ctl .u{display:flex;border:2px solid var(--line);border-radius:8px;overflow:hidden;margin-left:4px}
+.ctl .u button{min-height:36px;padding:0 9px;border:0;background:transparent;color:var(--mute);font:600 14px "Work Sans",sans-serif}
+.ctl .u button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+.ctl .x{flex:none;margin-left:auto;width:38px;height:38px;border:2px solid var(--line);background:transparent;color:var(--mute);font:600 22px "Work Sans",sans-serif;border-radius:8px}
+.listhead{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.listhead button{border:0;background:none;color:var(--mute);font:600 14px "Work Sans",sans-serif;text-decoration:underline;text-underline-offset:3px;min-height:36px;padding:0}
+.empty{margin:0;font-size:15px}
+.qs{padding-top:0}
+.qs details{max-width:640px}
+.qs summary{cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:10px;min-height:44px;font:700 14px Silkscreen,monospace;color:var(--mute)}
+.qs summary::-webkit-details-marker{display:none}
+.qs summary::after{content:"+";font:700 18px Silkscreen,monospace}
+.qs details[open] summary::after{content:"\2212"}
+.qs h3{font:600 16px/1.4 "Work Sans",sans-serif;margin:18px 0 4px}
+.qs p{margin:0;color:var(--mute);font-size:15px}
+</style>
+<script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments)};</script>
+<script defer src="/_vercel/insights/script.js"></script>
+<link rel="canonical" href="https://150ct.com/grams">
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "WebApplication", "name": "To Grams by 150ct", "url": "https://150ct.com/grams", "description": "Free cups to grams converter for baking. Pick an ingredient once and see grams for common cup and spoon amounts at once, then tap amounts to build a whole recipe list. No typing.", "applicationCategory": "UtilitiesApplication", "operatingSystem": "Any (web browser)", "browserRequirements": "Requires JavaScript", "isAccessibleForFree": true, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "featureList": ["21 common baking ingredients", "Grams for every common cup, tablespoon and teaspoon amount at once", "Tap amounts to build a whole recipe list", "Remembers your ingredient and list on your device", "No typing, no accounts"], "publisher": {"@id": "https://150ct.com/#org"}, "isPartOf": {"@id": "https://150ct.com/#site"}}, {"@type": "Organization", "@id": "https://150ct.com/#org", "name": "150ct", "url": "https://150ct.com/", "logo": "https://150ct.com/shared/icon-512.png", "email": "150countapp@gmail.com", "sameAs": ["https://ko-fi.com/150ct"]}, {"@type": "WebSite", "@id": "https://150ct.com/#site", "name": "150ct", "url": "https://150ct.com/"}, {"@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "How many grams is a cup of flour?", "acceptedAnswer": {"@type": "Answer", "text": "About 120 grams for all-purpose flour, spooned into the cup and leveled. Bread flour is also about 120 grams, and whole wheat flour about 113 grams."}}, {"@type": "Question", "name": "How many grams is a cup of sugar?", "acceptedAnswer": {"@type": "Answer", "text": "About 198 grams of granulated sugar. Brown sugar, packed, is about 213 grams, and powdered sugar about 113 grams."}}, {"@type": "Question", "name": "How many grams is a cup of butter?", "acceptedAnswer": {"@type": "Answer", "text": "227 grams, which is two US sticks. One tablespoon of butter is about 14 grams."}}, {"@type": "Question", "name": "Where do the numbers come from?", "acceptedAnswer": {"@type": "Answer", "text": "Flours, sugars, oats, cocoa, cornstarch and chocolate chips follow the King Arthur Baking ingredient weight chart, which is what most US recipes are written against. Liquids, fats, rice and salt use USDA standard cup weights."}}, {"@type": "Question", "name": "Does it save my list?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, on your device only. The ingredient you last picked and your recipe list stay in your browser until you tap Clear. Nothing is sent anywhere."}}]}]}</script>
+</head>
+<body>
+<nav class="top"><div class="wrap"><a href="/">150ct</a></div></nav>
+<header class="band hero">
+  <div class="wrap">
+    <div>
+      <h1>To Grams</h1>
+      <div class="det"><div><span>Pick an ingredient, tap an amount.</span></div></div>
+    </div>
+    <div class="sprite" id="sprite" role="img" aria-label="Plate of cookies and a glass of milk"></div>
+  </div>
+</header>
+
+<main class="band">
+  <div class="wrap col">
+    <section>
+      <p class="lbl">Ingredient</p>
+      <div class="chips" id="chips"></div>
+    </section>
+
+    <section>
+      <p class="lbl" id="gridLbl">Cups</p>
+      <div class="grid" id="cups"></div>
+      <p class="lbl">Spoons</p>
+      <div class="grid" id="spoons"></div>
+    </section>
+
+    <section>
+      <div class="listhead"><p class="lbl">Recipe</p><button type="button" id="clear" hidden>Clear</button></div>
+      <ul class="list" id="list"></ul>
+      <p class="hint empty" id="empty">Tap any amount above to add it here.</p>
+    </section>
+  </div>
+</main>
+<section class="band qs"><div class="wrap"><details><summary>Questions</summary><h3>How many grams is a cup of flour?</h3><p>About 120 grams for all-purpose flour, spooned into the cup and leveled. Bread flour is also about 120 grams, and whole wheat flour about 113 grams.</p><h3>How many grams is a cup of sugar?</h3><p>About 198 grams of granulated sugar. Brown sugar, packed, is about 213 grams, and powdered sugar about 113 grams.</p><h3>How many grams is a cup of butter?</h3><p>227 grams, which is two US sticks. One tablespoon of butter is about 14 grams.</p><h3>Where do the numbers come from?</h3><p>Flours, sugars, oats, cocoa, cornstarch and chocolate chips follow the King Arthur Baking ingredient weight chart, which is what most US recipes are written against. Liquids, fats, rice and salt use USDA standard cup weights.</p><h3>Does it save my list?</h3><p>Yes, on your device only. The ingredient you last picked and your recipe list stay in your browser until you tap Clear. Nothing is sent anywhere.</p></details></div></section>
+<footer class="band foot"><div class="wrap"><a class="pack" href="/"><span>150</span><span>ct</span></a><span>US cups, spooned and leveled. Dry goods from King Arthur, liquids from USDA.</span><span class="legal">© 2026 150ct · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a></span></div></footer>
+
+<script>
+{
+// Grams per US cup.
+// Flours, sugars, oats, cocoa, cornstarch, chips: King Arthur ingredient weight chart
+// (spooned and leveled, brown sugar packed), which is what US recipes are written against.
+// Liquids, fats, rice, salt: USDA FoodData Central household measures (true density).
+const ING=[
+  ["flour","Flour",120],["bread","Bread flour",120],["wheat","Whole wheat flour",113],
+  ["sugar","Sugar",198],["brown","Brown sugar",213],["powdered","Powdered sugar",113],
+  ["butter","Butter",227],["oil","Oil",218],["milk","Milk",244],["water","Water",237],
+  ["cream","Heavy cream",238],["yogurt","Yogurt",245],["honey","Honey",339],["maple","Maple syrup",315],
+  ["oats","Oats",89],["rice","Rice",185],["cocoa","Cocoa",84],["chips","Chocolate chips",170],
+  ["pb","Peanut butter",258],["cornstarch","Cornstarch",112],["salt","Salt",292]
+];
+const BY=Object.fromEntries(ING.map(([k,n,g])=>[k,{n,g}]));
+const UNIT={cup:1,tbsp:1/16,tsp:1/48};
+const UNAME={cup:"cup",tbsp:"tbsp",tsp:"tsp"};
+const STEPS={
+  cup:[1/8,1/4,1/3,1/2,2/3,3/4,1,1.25,4/3,1.5,5/3,1.75,2,2.25,2.5,2.75,3,3.5,4,4.5,5,6,7,8],
+  tbsp:[1/2,1,1.5,2,3,4,5,6,8,10,12],
+  tsp:[1/8,1/4,1/2,3/4,1,1.5,2,2.5,3,4,5,6]
+};
+const QUICK={cup:[1/4,1/3,1/2,2/3,3/4,1,1.5,2,3],spoon:[["tbsp",1],["tbsp",2],["tbsp",3],["tsp",1/4],["tsp",1/2],["tsp",1]]};
+const $=id=>document.getElementById(id);
+const FR={0.125:"⅛",0.25:"¼",0.333:"⅓",0.5:"½",0.667:"⅔",0.75:"¾"};
+function frac(x){
+  const w=Math.floor(x+1e-9),r=Math.round((x-w)*1000)/1000;
+  const f=FR[r]||"";
+  if(!f)return String(Math.round(x*100)/100);
+  return (w?w:"")+f;
+}
+function grams(k,u,q){
+  const g=BY[k].g*UNIT[u]*q;
+  return g<10?(Math.round(g*2)/2)+" g":Math.round(g)+" g";
+}
+
+let cur="flour",items=[];
+try{cur=localStorage.getItem("150ct-grams-ing")||cur;items=JSON.parse(localStorage.getItem("150ct-grams-list")||"[]")}catch(e){}
+if(!BY[cur])cur="flour";
+items=items.filter(i=>BY[i.k]&&UNIT[i.u]);
+const save=()=>{try{localStorage.setItem("150ct-grams-ing",cur);localStorage.setItem("150ct-grams-list",JSON.stringify(items))}catch(e){}};
+
+function renderChips(){
+  $("chips").innerHTML=ING.map(([k,n])=>`<button type="button" data-k="${k}" aria-pressed="${k===cur}">${n}</button>`).join("");
+}
+function renderGrid(){
+  $("gridLbl").textContent="Cups of "+BY[cur].n.toLowerCase();
+  $("cups").innerHTML=QUICK.cup.map(q=>`<button type="button" data-u="cup" data-q="${q}"><small>${frac(q)} cup</small><b>${grams(cur,"cup",q)}</b></button>`).join("");
+  $("spoons").innerHTML=QUICK.spoon.map(([u,q])=>`<button type="button" data-u="${u}" data-q="${q}"><small>${frac(q)} ${u}</small><b>${grams(cur,u,q)}</b></button>`).join("");
+}
+function renderList(){
+  $("list").innerHTML=items.map((it,i)=>`<li class="li">
+    <span class="nm">${BY[it.k].n}</span><span class="g">${grams(it.k,it.u,it.q)}</span>
+    <div class="ctl">
+      <button class="s" type="button" data-i="${i}" data-d="-1" aria-label="Less">−</button>
+      <span class="q">${frac(it.q)}</span>
+      <button class="s" type="button" data-i="${i}" data-d="1" aria-label="More">+</button>
+      <span class="u">${Object.keys(UNIT).map(u=>`<button type="button" data-i="${i}" data-unit="${u}" aria-pressed="${u===it.u}">${UNAME[u]}</button>`).join("")}</span>
+      <button class="x" type="button" data-rm="${i}" aria-label="Remove">×</button>
+    </div></li>`).join("");
+  $("empty").hidden=!!items.length;
+  $("clear").hidden=!items.length;
+}
+function nearest(u,q){
+  const s=STEPS[u];let b=0;
+  s.forEach((v,j)=>{if(Math.abs(v-q)<Math.abs(s[b]-q))b=j});
+  return b;
+}
+
+$("chips").addEventListener("click",e=>{
+  const b=e.target.closest("[data-k]");if(!b)return;
+  cur=b.dataset.k;save();renderChips();renderGrid();
+});
+function add(e){
+  const b=e.target.closest("[data-u]");if(!b)return;
+  items.push({k:cur,u:b.dataset.u,q:+b.dataset.q});save();renderList();
+  b.classList.remove("flash");void b.offsetWidth;b.classList.add("flash");
+}
+$("cups").addEventListener("click",add);
+$("spoons").addEventListener("click",add);
+$("list").addEventListener("click",e=>{
+  const t=e.target.closest("button");if(!t)return;
+  if(t.dataset.rm!=null){items.splice(+t.dataset.rm,1)}
+  else if(t.dataset.d){
+    const it=items[+t.dataset.i],s=STEPS[it.u];
+    const j=Math.max(0,Math.min(s.length-1,nearest(it.u,it.q)+(+t.dataset.d)));
+    it.q=s[j];
+  }else if(t.dataset.unit){
+    // Keep the number, change the unit (reading "2 tbsp" off a recipe).
+    const it=items[+t.dataset.i],nu=t.dataset.unit;
+    it.q=STEPS[nu][nearest(nu,it.q)];it.u=nu;
+  }else return;
+  save();renderList();
+});
+$("clear").addEventListener("click",()=>{items=[];save();renderList()});
+
+$("sprite").innerHTML=window.SHELF.sprite("cookies");
+renderChips();renderGrid();renderList();
+}
+</script>
+</body>
+</html>
