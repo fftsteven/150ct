@@ -80,18 +80,21 @@
     </section>
   </div>
 </main>
-<footer class="band foot"><div class="wrap"><a class="pack" href="/"><span>150</span><span>ct</span></a><span>US cups, spooned and leveled.</span></div></footer>
+<footer class="band foot"><div class="wrap"><a class="pack" href="/"><span>150</span><span>ct</span></a><span>US cups, spooned and leveled. Dry goods from King Arthur, liquids from USDA.</span></div></footer>
 
 <script>
 {
-// Grams per US cup (spooned and leveled; brown sugar packed).
+// Grams per US cup.
+// Flours, sugars, oats, cocoa, cornstarch, chips: King Arthur ingredient weight chart
+// (spooned and leveled, brown sugar packed), which is what US recipes are written against.
+// Liquids, fats, rice, salt: USDA FoodData Central household measures (true density).
 const ING=[
-  ["flour","Flour",120],["bread","Bread flour",127],["wheat","Whole wheat flour",113],
-  ["sugar","Sugar",200],["brown","Brown sugar",213],["powdered","Powdered sugar",120],
-  ["butter","Butter",227],["oil","Oil",218],["milk","Milk",242],["water","Water",237],
-  ["cream","Heavy cream",238],["yogurt","Yogurt",245],["honey","Honey",340],["maple","Maple syrup",315],
-  ["oats","Oats",90],["rice","Rice",185],["cocoa","Cocoa",85],["chips","Chocolate chips",170],
-  ["pb","Peanut butter",258],["cornstarch","Cornstarch",128],["salt","Salt",288]
+  ["flour","Flour",120],["bread","Bread flour",120],["wheat","Whole wheat flour",113],
+  ["sugar","Sugar",198],["brown","Brown sugar",213],["powdered","Powdered sugar",113],
+  ["butter","Butter",227],["oil","Oil",218],["milk","Milk",244],["water","Water",237],
+  ["cream","Heavy cream",238],["yogurt","Yogurt",245],["honey","Honey",339],["maple","Maple syrup",315],
+  ["oats","Oats",89],["rice","Rice",185],["cocoa","Cocoa",84],["chips","Chocolate chips",170],
+  ["pb","Peanut butter",258],["cornstarch","Cornstarch",112],["salt","Salt",292]
 ];
 const BY=Object.fromEntries(ING.map(([k,n,g])=>[k,{n,g}]));
 const UNIT={cup:1,tbsp:1/16,tsp:1/48};
