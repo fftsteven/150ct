@@ -114,7 +114,9 @@ window.__NAV=function(u){stack.push(__ORIGIN+__ROUTE.path+__ROUTE.search);route(
 var SAMPLE=[["Sonoratown","208 E 8th St, Los Angeles"],["Loqui","8830 Washington Blvd, Culver City"],["Holbox","3655 S Grand Ave, Los Angeles"],["Park's BBQ","955 S Vermont Ave, Los Angeles"],["Kato","777 S Alameda St, Los Angeles"],["Bavel","500 Mateo St, Los Angeles"],["Guelaguetza","3014 W Olympic Blvd, Los Angeles"],["Langer's Deli","704 S Alvarado St, Los Angeles"]].map(function(p,i){return {id:"sample_place_"+i,name:p[0],area:p[1]}});
 function samplePlaces(x){
   var id=x.searchParams.get("id"),q=(x.searchParams.get("q")||"").toLowerCase(),body;
-  if(id){var p=SAMPLE.find(function(s){return s.id===id});body={place:p?{id:p.id,name:p.name,area:p.area,url:"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(p.name+" "+p.area)}:null}}
+  if(id&&id.indexOf("sample_addr_")===0)body={place:{id:id,name:"",area:["12 Elm St, Pasadena, CA 91101, USA","1200 Elm Ave, Long Beach, CA 90813, USA","12 Elmwood Dr, Irvine, CA 92620, USA"][+id.slice(12)]}};
+  else if(id){var p=SAMPLE.find(function(s){return s.id===id});body={place:p?{id:p.id,name:p.name,area:p.area,url:"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(p.name+" "+p.area)}:null}}
+  else if(x.searchParams.get("t")==="addr")body={results:["12 Elm St, Pasadena, CA, USA","1200 Elm Ave, Long Beach, CA, USA","12 Elmwood Dr, Irvine, CA, USA"].map(function(a,i){return {id:"sample_addr_"+i,name:a,area:""}})};
   else body={results:SAMPLE.filter(function(s){return s.name.toLowerCase().indexOf(q)>=0||s.area.toLowerCase().indexOf(q)>=0}).slice(0,5)};
   return new Response(JSON.stringify(body),{headers:{"content-type":"application/json"}});
 }

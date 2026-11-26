@@ -2,7 +2,7 @@
 // they'll get it, so nothing is bought twice. Other guests only see "Taken", never who.
 // The host sees who's getting what, unless they turned on surprise, then they see nothing at all.
 //
-// data  { title, date, note, surprise, items: [{ k, n, url, price }] }
+// data  { title, address, date, note, surprise, items: [{ k, n, url, price }] }
 // row   { name, take: [k], at }
 import { str, rand } from "../../core/util.js";
 
@@ -32,6 +32,7 @@ export default {
     if (!e.title) return [null, "Give it a name."];
     const d = str(input.date, 10);
     e.date = DAY_RE.test(d) && !isNaN(Date.parse(d)) ? d : "";
+    e.address = str(input.address, 200);
     e.note = str(input.note, 300);
     e.surprise = input.surprise === true;
     const prevKeys = new Set((prev?.items || []).map((i) => i.k));

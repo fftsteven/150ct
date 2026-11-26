@@ -127,7 +127,7 @@ async function placesRoute(request, q) {
   if (await limited(request, "places", 600)) return json(429, { error: "Too many searches. Type the name instead." });
   try {
     if (q.get("id")) return json(200, { place: await details(q.get("id"), q.get("s"), key) });
-    return json(200, { results: await autocomplete(request, q.get("q"), q.get("s"), key) });
+    return json(200, { results: await autocomplete(request, q.get("q"), q.get("s"), key, fetch, q.get("t") || "") });
   } catch (e) {
     console.error(e);
     return json(502, { error: "Search isn't working right now. Type the name instead." });

@@ -111,6 +111,7 @@ const takerOf=k=>{for(const [id,r] of Object.entries(rows()))if((r.take||[]).inc
 function renderEvent(){
   document.title=ev.title;$("title").textContent=ev.title;
   $("det").innerHTML=[
+    ev.address&&`<div><b>Ship</b><span>${esc(ev.address)} <button class="btn ghost" id="copyAddr" type="button" style="min-height:30px;font-size:11px;padding:0 10px;color:inherit;border-color:currentColor;vertical-align:middle">Copy</button></span></div>`,
     ev.date&&`<div><b>When</b><span>${esc(fmtDay(ev.date))}</span></div>`,
     ev.note&&`<div><b>Note</b><span style="white-space:pre-line">${esc(ev.note)}</span></div>`,
   ].filter(Boolean).join("");
@@ -182,6 +183,10 @@ async function save(){
 const queue=()=>{dirty=true;clearTimeout(saveT);saveT=setTimeout(save,400)};
 const needName=()=>{if(mine.name.trim())return false;status("Add your name first.");$("name").focus();return true};
 
+$("det").addEventListener("click",async e=>{
+  if(e.target.id!=="copyAddr")return;
+  const ok=await copyText(ev.address);e.target.textContent=ok?"Copied":"Couldn't copy";setTimeout(()=>e.target.textContent="Copy",1800);
+});
 $("list").addEventListener("click",e=>{
   const t=e.target.closest("[data-take]");
   if(t){if(needName())return;if(takerOf(t.dataset.take))return;mine.take=[...mine.take,t.dataset.take];render();queue();return}

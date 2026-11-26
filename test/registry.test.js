@@ -26,13 +26,14 @@ test("cleanUrl keeps http(s) only", () => {
 test("claim once, others see taken but not who, host sees names", async () => {
   assert.equal((await call("POST", "/api/links", { type: "registry", data: { title: "Shower", items: [] } })).status, 400);
   const { status, j: made } = await call("POST", "/api/links", { type: "registry", data: {
-    title: "Maya's shower", items: [{ n: "Stacking rings", url: "https://www.amazon.com/x/dp/B1", price: "$12" }, { n: "Blanket", url: "javascript:alert(1)" }],
+    title: "Maya's shower", address: "12 Elm St, Pasadena, CA 91101", items: [{ n: "Stacking rings", url: "https://www.amazon.com/x/dp/B1", price: "$12" }, { n: "Blanket", url: "javascript:alert(1)" }],
   } });
   assert.equal(status, 201);
   const q = "?slug=" + made.slug, hk = { "x-host-key": made.hostKey };
   const host0 = await call("GET", "/api/links" + q, null, hk);
   const [rings, blanket] = host0.j.link.data.items;
   assert.equal(blanket.url, "", "unsafe link dropped");
+  assert.equal(host0.j.link.data.address, "12 Elm St, Pasadena, CA 91101");
 
   assert.equal((await call("POST", "/api/responses" + q, { id: A, take: [rings.k] })).status, 400, "name needed");
   assert.equal((await call("POST", "/api/responses" + q, { id: A, name: "Ana", take: [rings.k] })).status, 200);
