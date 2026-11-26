@@ -29,8 +29,10 @@ async function body(request) {
 }
 
 // Apps marked private (gift) never show responder ids, not even to the host.
-function viewResponses(app, all, me, host) {
-  const shaped = Object.fromEntries(Object.entries(all).map(([id, r]) => [id, app.view(r)]));
+// view also gets { host, data, mine } so an app can show the host more, or less (registry surprise).
+function viewResponses(app, all, me, host, data) {
+  const shaped = Object.fromEntries(Object.entries(all)
+    .map(([id, r]) => [id, app.view(r, { host, data, mine: id === me })]).filter(([, v]) => v));
   return maskResponses(shaped, me, host && !app.private);
 }
 
@@ -49,7 +51,7 @@ async function links(request, q, hostKey) {
     if (!app) return json(404, { error: GONE });
     const host = await isHostOf(link, hostKey);
     const all = await loadResponses(slug), me = q.get("me") || "";
-    const responses = viewResponses(app, all, me, host);
+    const responses = viewResponses(app, all, me, host, link.data);
     return json(200, { link: viewLink(app, link, all, me, host), responses, isHost: host });
   }
 
@@ -97,7 +99,7 @@ async function responses(request, q, hostKey) {
     await saveResponse(link, id, out.row);
     if (out.row) all[id] = out.row; else delete all[id];
     return json(out.conflict ? 409 : 200, {
-      responses: viewResponses(app, all, id, host),
+      responses: viewResponses(app, all, id, host, link.data),
       ...(out.conflict ? { error: out.conflict } : {}),
     });
   }
@@ -125,7 +127,7 @@ async function placesRoute(request, q) {
   if (await limited(request, "places", 600)) return json(429, { error: "Too many searches. Type the name instead." });
   try {
     if (q.get("id")) return json(200, { place: await details(q.get("id"), q.get("s"), key) });
-    return json(200, { results: await autocomplete(request, q.get("q"), q.get("s"), key) });
+    return json(200, { results: await autocomplete(request, q.get("q"), q.get("s"), key, fetch, q.get("t") || "") });
   } catch (e) {
     console.error(e);
     return json(502, { error: "Search isn't working right now. Type the name instead." });

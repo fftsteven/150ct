@@ -5,7 +5,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { loadLink, SLUG_RE } from "./links.js";
 
-const APPS = new Set(["potluck", "meet", "gift"]);
+const APPS = new Set(["potluck", "meet", "gift", "registry"]);
 const cache = {};
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 

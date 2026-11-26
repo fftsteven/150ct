@@ -27,3 +27,13 @@ test("details uses an Essentials field mask and builds a place-id map link", asy
   assert.equal(p.url, mapsLink("Sonoratown", "ChIJabc1234567"));
   assert.equal(await details("../evil", "s", "KEY", fake), null);
 });
+
+test("address mode asks for street addresses and returns the full line", async () => {
+  let body;
+  const fake = async (url, o) => { body = JSON.parse(o.body); return new Response(JSON.stringify({ suggestions: [
+    { placePrediction: { placeId: "ChIJaddr1234567", text: { text: "12 Elm St, Pasadena, CA, USA" }, structuredFormat: { mainText: { text: "12 Elm St" }, secondaryText: { text: "Pasadena, CA, USA" } } } },
+  ] })); };
+  const out = await autocomplete(req, "12 elm", "sess_12345678", "KEY", fake, "addr");
+  assert.deepEqual(body.includedPrimaryTypes, ["street_address", "premise", "subpremise"]);
+  assert.deepEqual(out, [{ id: "ChIJaddr1234567", name: "12 Elm St, Pasadena, CA, USA", area: "" }]);
+});

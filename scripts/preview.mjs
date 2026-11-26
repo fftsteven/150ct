@@ -75,6 +75,8 @@ const pages = {
   meetView: await page("apps/meet/view.html"),
   giftCreate: await page("apps/gift/new.html"),
   giftView: await page("apps/gift/view.html"),
+  registryCreate: await page("apps/registry/new.html"),
+  registryView: await page("apps/registry/view.html"),
 };
 
 // Written as a page fragment: the artifact host adds the document skeleton.
@@ -103,7 +105,7 @@ function route(u){
   var x=new URL(u, __ORIGIN);
   window.__ROUTE={path:x.pathname,search:x.search,hash:x.hash};
   var p=x.pathname.replace(/\\/$/,"")||"/";
-  var key=p==="/guides"?"g_index":/^\\/guides\\/[a-z0-9-]+$/.test(p)&&PAGES["g_"+p.slice(8)]?"g_"+p.slice(8):p==="/about"?"about":p==="/terms"?"terms":p==="/privacy"?"privacy":p==="/potluck"?"create":/^\\/potluck\\/[a-z0-9]+$/.test(p)?"view":p==="/eat"?"eatCreate":p==="/meet"?"meetCreate":/^\\/meet\\/[a-z0-9]+$/.test(p)?"meetView":p==="/gift"?"giftCreate":/^\\/gift\\/[a-z0-9]+$/.test(p)?"giftView":"landing";
+  var key=p==="/guides"?"g_index":/^\\/guides\\/[a-z0-9-]+$/.test(p)&&PAGES["g_"+p.slice(8)]?"g_"+p.slice(8):p==="/about"?"about":p==="/terms"?"terms":p==="/privacy"?"privacy":p==="/potluck"?"create":/^\\/potluck\\/[a-z0-9]+$/.test(p)?"view":p==="/eat"?"eatCreate":p==="/meet"?"meetCreate":/^\\/meet\\/[a-z0-9]+$/.test(p)?"meetView":p==="/gift"?"giftCreate":/^\\/gift\\/[a-z0-9]+$/.test(p)?"giftView":p==="/registry"?"registryCreate":/^\\/registry\\/[a-z0-9]+$/.test(p)?"registryView":"landing";
   document.getElementById("url").textContent="150ct.com"+(p==="/"?"/":p)+x.search;
   document.getElementById("f").srcdoc=PAGES[key];
 }
@@ -112,7 +114,10 @@ window.__NAV=function(u){stack.push(__ORIGIN+__ROUTE.path+__ROUTE.search);route(
 var SAMPLE=[["Sonoratown","208 E 8th St, Los Angeles"],["Loqui","8830 Washington Blvd, Culver City"],["Holbox","3655 S Grand Ave, Los Angeles"],["Park's BBQ","955 S Vermont Ave, Los Angeles"],["Kato","777 S Alameda St, Los Angeles"],["Bavel","500 Mateo St, Los Angeles"],["Guelaguetza","3014 W Olympic Blvd, Los Angeles"],["Langer's Deli","704 S Alvarado St, Los Angeles"]].map(function(p,i){return {id:"sample_place_"+i,name:p[0],area:p[1]}});
 function samplePlaces(x){
   var id=x.searchParams.get("id"),q=(x.searchParams.get("q")||"").toLowerCase(),body;
-  if(id){var p=SAMPLE.find(function(s){return s.id===id});body={place:p?{id:p.id,name:p.name,area:p.area,url:"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(p.name+" "+p.area)}:null}}
+  if(id&&id.indexOf("sample_addr_")===0)body={place:{id:id,name:"",area:decodeURIComponent(id.slice(12))+", CA 90000, USA"}};
+  else if(id){var p=SAMPLE.find(function(s){return s.id===id});body={place:p?{id:p.id,name:p.name,area:p.area,url:"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(p.name+" "+p.area)}:null}}
+  // No Google in the preview: echo what was typed as the one suggestion.
+  else if(x.searchParams.get("t")==="addr"){var t=x.searchParams.get("q")||"";body={results:[{id:"sample_addr_"+encodeURIComponent(t),name:t+" (sample, Google fills this in live)",area:""}]}}
   else body={results:SAMPLE.filter(function(s){return s.name.toLowerCase().indexOf(q)>=0||s.area.toLowerCase().indexOf(q)>=0}).slice(0,5)};
   return new Response(JSON.stringify(body),{headers:{"content-type":"application/json"}});
 }

@@ -51,6 +51,7 @@
 </style>
 <script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments)};</script>
 <script defer src="/_vercel/insights/script.js"></script>
+<script src="/shared/send.js"></script>
 </head>
 <body>
 <nav class="top"><div class="wrap"><a href="/">150ct</a></div></nav>
@@ -139,8 +140,8 @@ function render(){
 function renderHost(){
   const t=taken(),n=ev.people.length,done=ev.people.filter(p=>t.has(p.k)).length;
   $("admin").innerHTML=`<div class="band" style="padding-block:16px"><div class="wrap notice admin">
-    <div><b>Send this link to the group</b></div>
-    <div class="linkrow"><code>${esc(guestUrl)}</code><button class="btn" data-copy="${esc(guestUrl)}" type="button">Copy</button>${navigator.share?`<button class="btn ghost" id="share" type="button">Share</button>`:""}</div>
+    <button class="btn send" id="share" type="button">${canShare150?"Send to the group":"Copy the link"}</button>
+    <div class="linkrow copyrow"><span>Or copy it:</span><code>${esc(guestUrl)}</code><button class="btn ghost" data-copy="${esc(guestUrl)}" type="button">Copy</button></div>
   </div></div>`;
   const host=guestUrl+"#host="+hostKey;
   $("hostFoot").hidden=false;
@@ -218,7 +219,7 @@ const hostClick=async e=>{
     catch(err){rs.textContent="Couldn't reset"}
     return;
   }
-  if(e.target.id==="share"){try{await navigator.share({title:ev.title||"Gift exchange",text:(ev.title||"Gift exchange")+": tap your name to see who you're getting a gift for.",url:guestUrl})}catch(err){}return}
+  if(e.target.id==="share"){await send150({title:ev.title||"Gift exchange",text:(ev.title||"Gift exchange")+": tap your name to see who you're getting a gift for.",url:guestUrl},e.target);return}
   if(e.target.id==="delEv"){
     const b=e.target;
     if(b.dataset.armed!=="1"){b.dataset.armed="1";b.textContent="Tap again to delete for everyone";return}

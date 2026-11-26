@@ -1,6 +1,7 @@
 // Google Places (New) lookups for Where to eat. The key stays on the server (GOOGLE_MAPS_API_KEY).
 //
 // GET /api/places?q=<text>&s=<session>        -> { results: [{ id, name, area }] }   Autocomplete
+// GET /api/places?q=<text>&s=<session>&t=addr  -> street addresses only, name is the full address (Registry)
 // GET /api/places?id=<placeId>&s=<session>    -> { place: { id, name, area, url } }  Details, ends the session
 //
 // Cost: Autocomplete calls that share a session token and end in one Details call are billed as that
@@ -23,20 +24,24 @@ function bias(request) {
   return { locationBias: { circle: { center: { latitude: lat, longitude: lng }, radius: 50000 } } };
 }
 
-export async function autocomplete(request, q, session, key, fetcher = fetch) {
+export async function autocomplete(request, q, session, key, fetcher = fetch, kind = "") {
+  const addr = kind === "addr";
   const input = String(q || "").trim().slice(0, 100);
   if (input.length < 2) return [];
   const r = await fetcher(BASE + "/places:autocomplete", {
     method: "POST",
     headers: { "content-type": "application/json", "x-goog-api-key": key },
-    body: JSON.stringify({ input, ...(SESSION_RE.test(session || "") ? { sessionToken: session } : {}), ...bias(request) }),
+    body: JSON.stringify({
+      input, ...(SESSION_RE.test(session || "") ? { sessionToken: session } : {}), ...bias(request),
+      ...(addr ? { includedPrimaryTypes: ["street_address", "premise", "subpremise"] } : {}),
+    }),
   });
   if (!r.ok) throw new Error("places " + r.status);
   const j = await r.json();
   return (j.suggestions || []).map((s) => s.placePrediction).filter(Boolean).slice(0, 5).map((p) => ({
     id: p.placeId,
-    name: p.structuredFormat?.mainText?.text || p.text?.text || "",
-    area: p.structuredFormat?.secondaryText?.text || "",
+    name: (addr ? p.text?.text : p.structuredFormat?.mainText?.text || p.text?.text) || "",
+    area: addr ? "" : p.structuredFormat?.secondaryText?.text || "",
   })).filter((p) => p.id && p.name);
 }
 

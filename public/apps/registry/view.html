@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Registry · 150ct</title>
+<meta name="description" content="Tap the gift you'll get so nobody buys the same thing. Free, no sign-up.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="150ct">
+<meta property="og:title" content="Registry">
+<meta property="og:description" content="Tap the gift you'll get so nobody buys the same thing. Free, no sign-up.">
+<meta property="og:image" content="https://150ct.com/shared/og-registry.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared/app.css">
+<link rel="stylesheet" href="/apps/registry/style.css">
+<link rel="icon" href="/shared/icon.svg" type="image/svg+xml">
+<script src="/apps/registry/lib.js"></script>
+<style>
+.col{max-width:680px}
+.dl{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.d{background:var(--panel);border:2px solid var(--line);border-radius:10px;padding:10px 10px 10px 14px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;min-height:64px}
+.d .nm{font-weight:600;font-size:17px;overflow-wrap:anywhere}
+.d .by{font-size:14px;color:var(--mute);display:flex;gap:6px;flex-wrap:wrap}
+.d .by a{color:var(--ink);font-weight:600}
+.d.taken{background:var(--done)}
+.d.taken .nm{color:var(--mute)}
+.d.mine{border-color:var(--hero);box-shadow:inset 0 0 0 2px var(--acc)}
+.d.mine .nm{color:var(--ink)}
+.d .act{display:flex;gap:6px;align-items:center}
+.take{min-height:44px;padding:0 14px;border:2px solid var(--hero);background:var(--hero);color:#fff;font:700 13px Silkscreen,monospace;border-radius:8px;white-space:nowrap}
+.undo{min-height:40px;padding:0 12px;border:2px solid var(--line);background:transparent;color:var(--ink);font:600 14px "Work Sans",sans-serif;border-radius:8px}
+.tag{font:700 12px Silkscreen,monospace;color:var(--mute)}
+.count{font-family:Silkscreen,monospace;font-size:14px;color:var(--mute)}
+.head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.admin{display:grid;gap:12px}
+.admin h2{font-size:20px;margin:0}
+.admin .people{display:grid;gap:2px}
+.admin .people div{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px dashed rgba(0,0,0,.2)}
+.admin .rm{color:#21160f}
+.admin .small{font-size:14px}
+.admin .btn{background:#21160f;color:#fff;border-color:#21160f}
+.admin .btn.ghost{background:transparent;color:#21160f}
+</style>
+<script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments)};</script>
+<script defer src="/_vercel/insights/script.js"></script>
+<script src="/shared/send.js"></script>
+</head>
+<body>
+<nav class="top"><div class="wrap"><a href="/">150ct</a></div></nav>
+<div id="admin"></div>
+<header class="band hero">
+  <div class="wrap">
+    <div>
+      <h1 id="title">Loading…</h1>
+      <div class="det" id="det"></div>
+    </div>
+    <div class="sprite" id="sprite" role="img" aria-label="Shopping bag"></div>
+  </div>
+</header>
+
+<main class="band">
+  <div class="wrap col" id="main" hidden>
+    <div class="head"><h2>Gifts</h2><span class="count" id="count"></span></div>
+    <div class="f" id="nameRow" style="display:grid;gap:6px;margin:14px 0 16px">
+      <label for="name">Your name</label>
+      <input id="name" autocomplete="given-name" maxlength="40" placeholder="So the host knows who it's from">
+    </div>
+    <ul class="dl" id="list"></ul>
+    <p class="status" id="status" aria-live="polite"></p>
+    <div class="nudge" id="nudge" hidden><p><b>You're in.</b>Need a list of your own? Make one in a minute.</p><a class="btn" href="/registry">Make your own</a></div>
+  </div>
+  <div class="wrap" id="missing" hidden><p class="hint" id="missingText"></p><p><a href="/registry">Make a registry</a></p></div>
+</main>
+<footer class="band foot"><div class="wrap"><a class="pack" href="/"><span>150</span><span>ct</span></a><span>Free, no accounts, deletes itself 30 days after the event.</span><span class="legal">© 2026 150ct · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a></span><a href="/registry">Make your own</a></div></footer>
+
+<script>
+{
+const {bag,esc,copyText,fmtDay,store}=window.R;
+const $=id=>document.getElementById(id);
+const slug=location.pathname.split("/").filter(Boolean).pop();
+const guestUrl=location.origin+"/registry/"+slug;
+$("sprite").innerHTML=bag();
+
+let hostKey="";
+try{
+  const m=location.hash.match(/host=([a-z0-9]+)/);
+  if(m){hostKey=m[1];localStorage.setItem("150ct-host-"+slug,hostKey);history.replaceState(null,"",location.pathname)}
+  else hostKey=localStorage.getItem("150ct-host-"+slug)||"";
+}catch(e){}
+
+// One identity per browser, shared with the other apps.
+let myId="",myName="";
+try{const s=JSON.parse(localStorage.getItem("150ct-me")||"null");if(s){myId=s.id||"";myName=s.name||""}}catch(e){}
+if(!/^[a-z0-9]{20,40}$/.test(myId))myId=Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>b.toString(36).padStart(2,"0")).join("").slice(0,28);
+let mine={name:myName,take:[]};
+const remember=()=>{try{localStorage.setItem("150ct-me",JSON.stringify({id:myId,name:mine.name}))}catch(e){}};
+remember();$("name").value=mine.name;
+
+let ev=null,docs={},isHost=false,live=false,dirty=false,saving=false,pending=false,saveT=null;
+const hdr=()=>hostKey?{"x-host-key":hostKey}:{};
+const status=t=>$("status").textContent=t;
+const rows=()=>{const all={...docs};if(!isHost)all[myId]={...(docs[myId]||{}),name:mine.name,take:mine.take};return all};
+const takerOf=k=>{for(const [id,r] of Object.entries(rows()))if((r.take||[]).includes(k))return [id,r];return null};
+
+function renderEvent(){
+  document.title=ev.title;$("title").textContent=ev.title;
+  $("det").innerHTML=[
+    ev.address&&`<div><b>Ship</b><span>${esc(ev.address)} <button class="btn ghost" id="copyAddr" type="button" style="min-height:30px;font-size:11px;padding:0 10px;color:inherit;border-color:currentColor;vertical-align:middle">Copy</button></span></div>`,
+    ev.date&&`<div><b>When</b><span>${esc(fmtDay(ev.date))}</span></div>`,
+    ev.note&&`<div><b>Note</b><span style="white-space:pre-line">${esc(ev.note)}</span></div>`,
+  ].filter(Boolean).join("");
+  $("nameRow").hidden=isHost;
+  $("main").hidden=false;
+}
+
+function render(){
+  let taken=0;
+  $("list").innerHTML=ev.items.map(it=>{
+    const t=takerOf(it.k);if(t)taken++;
+    const isMine=t&&t[0]===myId&&!isHost;
+    const meta=[it.price&&`<span>${esc(it.price)}</span>`,it.url&&`<a href="${esc(it.url)}" target="_blank" rel="noopener noreferrer nofollow">${esc(store(it.url)||"Link")} ↗</a>`].filter(Boolean);
+    let act="";
+    if(isHost)act=ev.surprise?"":t?`<span class="tag">${esc(t[1].name||"Someone")}</span>`:"";
+    else act=!t?`<button class="take" data-take="${esc(it.k)}" type="button" ${live?"":"disabled"}>I'll get it</button>`
+      :isMine?`${it.url?`<button class="undo" data-send="${esc(it.k)}" type="button">Send</button>`:""}<button class="undo" data-untake="${esc(it.k)}" type="button">Undo</button>`
+      :`<span class="tag">Taken</span>`;
+    return `<li class="d${t&&!(isHost&&ev.surprise)?" taken":""}${isMine?" mine":""}"><div><div class="nm">${esc(it.n)}</div>${meta.length?`<div class="by">${meta.join("<span>·</span>")}</div>`:""}</div><div class="act">${act}</div></li>`;
+  }).join("");
+  $("count").textContent=isHost&&ev.surprise?`${ev.items.length} gifts`:`${taken} of ${ev.items.length} taken`;
+  if(isHost)renderAdmin();
+}
+
+function renderAdmin(){
+  const people=Object.entries(docs).filter(([,r])=>(r.take||[]).length);
+  const host=guestUrl+"#host="+hostKey;
+  $("admin").innerHTML=`<div class="band" style="padding-block:16px"><div class="wrap notice admin">
+    <h2>Host</h2>
+    <button class="btn send" id="share" type="button">${canShare150?"Send to the group":"Copy the link"}</button>
+    <div class="linkrow copyrow"><span>Or copy it:</span><code>${esc(guestUrl)}</code><button class="btn ghost" data-copy="${esc(guestUrl)}" type="button">Copy</button></div>
+    <div class="linkrow"><a href="/registry?edit=${esc(slug)}">Edit</a>${ev.surprise?"":` · <button class="btn ghost" id="copyList" type="button">Copy who got what</button>`} · <button class="btn ghost" id="delEv" type="button">Delete</button></div>
+    ${ev.surprise?`<div class="small">Surprise is on, so you can't see what's been claimed. Turn it off in Edit if you need to.</div>`
+      :people.length?`<div class="people">${people.map(([id,r])=>`<div><span><b>${esc(r.name||"Someone")}</b> · ${esc(r.take.map(k=>(ev.items.find(i=>i.k===k)||{}).n).filter(Boolean).join(", "))}</span><button class="rm" data-rm="${esc(id)}" type="button">Remove</button></div>`).join("")}</div>`:""}
+    <div class="small">This browser remembers you as host. To manage from another device, open your host link there. <button class="btn ghost" data-copy="${esc(host)}" data-label="Copy host link" type="button" style="min-height:32px;font-size:12px;padding:0 10px">Copy host link</button></div>
+  </div></div>`;
+}
+
+async function load(){
+  try{
+    const r=await fetch(`/api/links?slug=${encodeURIComponent(slug)}&me=${myId}`,{headers:hdr(),cache:"no-store"});
+    const j=await r.json();
+    if(!r.ok){$("title").textContent="Not found";$("missingText").textContent=j.error||"This registry doesn't exist.";$("missing").hidden=false;return}
+    const first=!ev;
+    ev=j.link.data;docs=j.responses||{};
+    if(first){
+      isHost=j.isHost;
+      if(!isHost&&hostKey){hostKey="";try{localStorage.removeItem("150ct-host-"+slug)}catch(e){}}
+      renderEvent();
+      const d=docs[myId];
+      if(d&&!isHost){mine.take=[...(d.take||[])];if(mine.take.length)$("nudge").hidden=false;if(d.name&&!mine.name){mine.name=d.name;$("name").value=d.name;remember()}}
+    }else if(!dirty&&!saving)mine.take=[...((docs[myId]||{}).take||[])];
+    live=true;render();
+  }catch(e){if(!ev)$("title").textContent="Couldn't load this"}
+}
+
+async function save(){
+  if(saving){pending=true;return}
+  saving=true;dirty=false;status("Saving…");
+  try{
+    const r=await fetch(`/api/responses?slug=${encodeURIComponent(slug)}`,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({id:myId,name:mine.name.trim(),take:mine.take})});
+    const j=await r.json().catch(()=>({}));
+    if(r.status===409)status(j.error);else if(!r.ok)throw new Error(j.error);else{status("Saved.");if(mine.take.length)$("nudge").hidden=false}
+    if(j.responses){docs=j.responses;if(!dirty)mine.take=[...((docs[myId]||{}).take||[])];render()}
+  }catch(e){status(e.message||"Couldn't save that. Try again in a sec.")}
+  saving=false;
+  if(pending){pending=false;save()}
+}
+const queue=()=>{dirty=true;clearTimeout(saveT);saveT=setTimeout(save,400)};
+const needName=()=>{if(mine.name.trim())return false;status("Add your name first.");$("name").focus();return true};
+
+$("det").addEventListener("click",async e=>{
+  if(e.target.id!=="copyAddr")return;
+  const ok=await copyText(ev.address);e.target.textContent=ok?"Copied":"Couldn't copy";setTimeout(()=>e.target.textContent="Copy",1800);
+});
+$("list").addEventListener("click",e=>{
+  const t=e.target.closest("[data-take]");
+  if(t){if(needName())return;if(takerOf(t.dataset.take))return;mine.take=[...mine.take,t.dataset.take];render();queue();return}
+  // Send yourself (or whoever's buying) the link to the gift you took.
+  const s=e.target.closest("[data-send]");
+  if(s){const it=ev.items.find(i=>i.k===s.dataset.send);if(it)send150({title:it.n,text:it.n+(it.price?" ("+it.price+")":"")+" for "+ev.title,url:it.url},s);return}
+  const u=e.target.closest("[data-untake]");
+  if(u){mine.take=mine.take.filter(k=>k!==u.dataset.untake);render();queue()}
+});
+$("name").addEventListener("input",e=>{mine.name=e.target.value;remember();if(mine.take.length)queue()});
+
+$("admin").addEventListener("click",async e=>{
+  const c=e.target.closest("[data-copy]");
+  if(c){const ok=await copyText(c.dataset.copy);c.textContent=ok?"Copied":"Couldn't copy";if(!ok){const code=c.parentElement.querySelector("code");if(code)getSelection().selectAllChildren(code)}setTimeout(()=>c.textContent=c.dataset.label||"Copy",1800);return}
+  const rm=e.target.closest("[data-rm]");
+  if(rm){
+    if(rm.dataset.armed!=="1"){rm.dataset.armed="1";rm.textContent="Tap again";return}
+    try{const r=await fetch(`/api/responses?slug=${encodeURIComponent(slug)}&id=${encodeURIComponent(rm.dataset.rm)}`,{method:"DELETE",headers:hdr()});if(!r.ok)throw 0;status("Removed.");load()}
+    catch(err){status("Couldn't remove that.")}
+    return;
+  }
+  if(e.target.id==="share"){await send150({title:ev.title,text:ev.title+": tap the gift you'll get so nobody doubles up.",url:guestUrl},e.target);return}
+  if(e.target.id==="copyList"){
+    const lines=ev.items.map(it=>{const t=takerOf(it.k);return `${it.n}: ${t?t[1].name||"Someone":"open"}`});
+    const ok=await copyText(`${ev.title}\n\n${lines.join("\n")}`);e.target.textContent=ok?"Copied":"Couldn't copy";setTimeout(()=>e.target.textContent="Copy who got what",1800);
+    return;
+  }
+  if(e.target.id==="delEv"){
+    const b=e.target;
+    if(b.dataset.armed!=="1"){b.dataset.armed="1";b.textContent="Tap again to delete for everyone";return}
+    const r=await fetch(`/api/links?slug=${encodeURIComponent(slug)}`,{method:"DELETE",headers:hdr()});
+    if(r.ok){try{localStorage.removeItem("150ct-host-"+slug)}catch(err){}location.href="/registry"}else b.textContent="Couldn't delete";
+  }
+});
+
+load();
+setInterval(()=>{if(!document.hidden&&ev&&!saving&&!dirty)load()},8000);
+}
+</script>
+</body>
+</html>

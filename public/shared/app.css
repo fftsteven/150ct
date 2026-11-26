@@ -96,3 +96,9 @@ a{color:inherit;text-underline-offset:3px}
 
 .foot .legal{font-size:13px}
 .foot .legal a{color:inherit}
+
+/* Host send: the share sheet is the main way out, copy is the backup. */
+.btn.send{min-height:52px;padding:0 24px;font-size:16px;justify-self:start}
+.copyrow{font-size:14px}
+.copyrow code{font-size:13px}
+.copyrow .btn{min-height:36px;font-size:12px;padding:0 12px}
