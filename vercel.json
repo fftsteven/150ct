@@ -29,6 +29,14 @@
     {
       "source": "/gift/:slug",
       "destination": "/api/page?app=gift&slug=:slug"
+    },
+    {
+      "source": "/registry",
+      "destination": "/apps/registry/new"
+    },
+    {
+      "source": "/registry/:slug",
+      "destination": "/api/page?app=registry&slug=:slug"
     }
   ],
   "functions": {
