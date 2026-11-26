@@ -46,6 +46,7 @@
 </style>
 <script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments)};</script>
 <script defer src="/_vercel/insights/script.js"></script>
+<script src="/shared/send.js"></script>
 </head>
 <body>
 <nav class="top"><div class="wrap"><a href="/">150ct</a></div></nav>
@@ -149,8 +150,8 @@ function renderAdmin(){
   const host=guestUrl+"#host="+hostKey;
   $("admin").innerHTML=`<div class="band" style="padding-block:16px"><div class="wrap notice admin">
     <h2>Host</h2>
-    <div><b>Send this link to guests</b></div>
-    <div class="linkrow"><code>${esc(guestUrl)}</code><button class="btn" data-copy="${esc(guestUrl)}" type="button">Copy</button>${navigator.share?`<button class="btn ghost" id="share" type="button">Share</button>`:""}</div>
+    <button class="btn send" id="share" type="button">${canShare150?"Send to the group":"Copy the link"}</button>
+    <div class="linkrow copyrow"><span>Or copy it:</span><code>${esc(guestUrl)}</code><button class="btn ghost" data-copy="${esc(guestUrl)}" type="button">Copy</button></div>
     <div class="linkrow"><a href="/potluck?edit=${esc(slug)}">Edit</a> · <button class="btn ghost" id="copyList" type="button">Copy the list</button> · <button class="btn ghost" id="delEv" type="button">Delete</button></div>
     ${people.length?`<div class="people">${people.map(([id,r])=>`<div><span><b>${esc(r.name||"Someone")}</b> · ${esc([...(r.take||[]).map(k=>(ev.dishes.find(d=>d.k===k)||{}).n).filter(Boolean),...(r.add||[])].join(", "))}</span><button class="rm" data-rm="${esc(id)}" type="button">Remove</button></div>`).join("")}</div>`:""}
     <div class="small">This browser remembers you as host. To manage from another device, open your host link there. <button class="btn ghost" data-copy="${esc(host)}" data-label="Copy host link" type="button" style="min-height:32px;font-size:12px;padding:0 10px">Copy host link</button></div>
@@ -217,7 +218,7 @@ $("admin").addEventListener("click",async e=>{
   if(c){const ok=await copyText(c.dataset.copy);c.textContent=ok?"Copied":"Couldn't copy";if(!ok){const code=c.parentElement.querySelector("code");if(code)getSelection().selectAllChildren(code)}setTimeout(()=>c.textContent=c.dataset.label||"Copy",1800);return}
   const rm=e.target.closest("[data-rm]");
   if(rm)return removePerson(rm.dataset.rm,rm);
-  if(e.target.id==="share"){try{await navigator.share({title:ev.title,url:guestUrl})}catch(err){}return}
+  if(e.target.id==="share"){await send150({title:ev.title,text:ev.title+": claim what you're bringing so nothing doubles up.",url:guestUrl},e.target);return}
   if(e.target.id==="copyList"){
     const all=rows(),lines=[];
     ev.dishes.forEach(d=>{const t=takerOf(d.k);lines.push(`${d.n}: ${t?(t[0]===myId?"Host":t[1].name||"Someone"):"open"}`)});
