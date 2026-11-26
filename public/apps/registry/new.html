@@ -115,7 +115,7 @@ function render(){
     <input class="url" data-i="${i}" data-f="url" value="${esc(g.url)}" placeholder="Paste a link (optional)" aria-label="Gift ${i+1} link" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false">
     <input data-i="${i}" data-f="n" value="${esc(g.n)}" maxlength="80" placeholder="Gift" aria-label="Gift ${i+1} name">
     <input data-i="${i}" data-f="price" value="${esc(g.price)}" maxlength="20" placeholder="Price" aria-label="Gift ${i+1} price" inputmode="decimal">
-    <button class="x" type="button" data-rm="${i}" aria-label="Remove ${esc(g.n||"gift "+(i+1))}">×</button>
+    <button class="x rmx" type="button" data-rm="${i}" aria-label="Remove ${esc(g.n||"gift "+(i+1))}">×</button>
   </div>`).join("");
 }
 $("gifts").addEventListener("input",e=>{

@@ -45,6 +45,12 @@ function sprite(k){
   if(k==="cal")return `<svg class="sp" viewBox="0 0 16 16" aria-hidden="true">${grid(r.map(s=>s.slice(0,8)+"........"))}<g class="slide anim">${grid(r.map(s=>"........"+s.slice(8)))}</g></svg>`;
   if(k==="roast")return `<svg class="sp" viewBox="0 0 16 16" aria-hidden="true"><g class="rise anim">${grid(SP.steam)}</g>${grid(r)}</svg>`;
   if(k==="fox")return `<svg class="sp" viewBox="0 0 16 16" aria-hidden="true"><g class="bob anim">${grid(r.slice(0,8))}</g><g transform="translate(0 8)">${grid(r.slice(8))}</g></svg>`;
+  // Where to eat: the awning flaps and the sign light flickers.
+  if(k==="shop")return `<svg class="sp" viewBox="0 0 16 16" aria-hidden="true">${grid(r.map((s,y)=>y>=4&&y<=6?"................":y===3?s.replace(/y/g,"w"):s))}<g class="flap anim">${grid(r.map((s,y)=>y>=4&&y<=6?s:"................"))}</g><g class="blink anim">${grid(r.map((s,y)=>y===3?s.replace(/[^y]/g,"."):"................"))}</g></svg>`;
+  // Gift exchange: the bow hops.
+  if(k==="gift")return `<svg class="sp" viewBox="0 0 16 16" aria-hidden="true"><g class="bob anim">${grid(r.slice(0,4))}</g><g transform="translate(0 4)">${grid(r.slice(4))}</g></svg>`;
+  // Registry: the heart on the bag beats.
+  if(k==="bag")return `<svg class="sp" viewBox="0 0 16 16" aria-hidden="true">${grid(r.map(s=>s.replace(/r/g,"w")))}<g class="beat anim">${grid(r.map(s=>s.replace(/[^r]/g,".")))}</g></svg>`;
   return `<svg class="sp" viewBox="0 0 16 16" aria-hidden="true">${grid(r)}</svg>`;
 }
 window.SHELF={SITE,SHELF,sprite,burst};

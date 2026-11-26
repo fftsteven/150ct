@@ -122,3 +122,8 @@ a{color:inherit;text-underline-offset:3px}
 .sug button{width:100%;text-align:left;border:0;background:transparent;color:var(--ink);padding:10px 12px;border-radius:6px;font:inherit;display:grid;gap:2px}
 .sug button:hover,.sug button[aria-selected=true]{background:color-mix(in srgb,var(--acc) 30%,transparent)}
 .sug small{color:var(--mute);font-size:13px}
+
+/* Remove buttons: a drawn X, since the pixel font's × reads as a blob. */
+.rmx{position:relative;font-size:0!important;color:var(--ink)!important}
+.rmx::before,.rmx::after{content:"";position:absolute;left:50%;top:50%;width:16px;height:2.5px;border-radius:2px;background:currentColor;transform:translate(-50%,-50%) rotate(45deg)}
+.rmx::after{transform:translate(-50%,-50%) rotate(-45deg)}
