@@ -26,7 +26,7 @@
 .dl{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .d{background:var(--panel);border:2px solid var(--line);border-radius:10px;padding:10px 10px 10px 14px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;min-height:64px}
 .d .nm{font-weight:600;font-size:17px;overflow-wrap:anywhere}
-.d .by{font-size:14px;color:var(--mute);display:flex;gap:6px;flex-wrap:wrap}
+.d .by{font-size:14px;color:var(--mute);display:flex;gap:4px 14px;flex-wrap:wrap}
 .d .by a{color:var(--ink);font-weight:600}
 .d.taken{background:var(--done)}
 .d.taken .nm{color:var(--mute)}
@@ -83,6 +83,7 @@
 <script>
 {
 const {bag,esc,copyText,fmtDay,store}=window.R;
+const money=p=>/^[\d.]/.test(p=String(p).trim())?"$"+p:p;
 const $=id=>document.getElementById(id);
 const slug=location.pathname.split("/").filter(Boolean).pop();
 const guestUrl=location.origin+"/registry/"+slug;
@@ -125,13 +126,13 @@ function render(){
   $("list").innerHTML=ev.items.map(it=>{
     const t=takerOf(it.k);if(t)taken++;
     const isMine=t&&t[0]===myId&&!isHost;
-    const meta=[it.price&&`<span>${esc(it.price)}</span>`,it.url&&`<a href="${esc(it.url)}" target="_blank" rel="noopener noreferrer nofollow">${esc(store(it.url)||"Link")} ↗</a>`].filter(Boolean);
+    const meta=[it.price&&`<span>${esc(money(it.price))}</span>`,it.url&&`<a href="${esc(it.url)}" target="_blank" rel="noopener noreferrer nofollow">${esc(store(it.url)||"Link")} ↗</a>`].filter(Boolean);
     let act="";
     if(isHost)act=ev.surprise?"":t?`<span class="tag">${esc(t[1].name||"Someone")}</span>`:"";
     else act=!t?`<button class="take" data-take="${esc(it.k)}" type="button" ${live?"":"disabled"}>I'll get it</button>`
       :isMine?`${it.url?`<button class="undo" data-send="${esc(it.k)}" type="button">Send</button>`:""}<button class="undo" data-untake="${esc(it.k)}" type="button">Undo</button>`
       :`<span class="tag">Taken</span>`;
-    return `<li class="d${t&&!(isHost&&ev.surprise)?" taken":""}${isMine?" mine":""}"><div><div class="nm">${esc(it.n)}</div>${meta.length?`<div class="by">${meta.join("<span>·</span>")}</div>`:""}</div><div class="act">${act}</div></li>`;
+    return `<li class="d${t&&!(isHost&&ev.surprise)?" taken":""}${isMine?" mine":""}"><div><div class="nm">${esc(it.n)}</div>${meta.length?`<div class="by">${meta.join("")}</div>`:""}</div><div class="act">${act}</div></li>`;
   }).join("");
   $("count").textContent=isHost&&ev.surprise?`${ev.items.length} gifts`:`${taken} of ${ev.items.length} taken`;
   if(isHost)renderAdmin();
@@ -187,7 +188,7 @@ $("list").addEventListener("click",e=>{
   if(t){if(needName())return;if(takerOf(t.dataset.take))return;mine.take=[...mine.take,t.dataset.take];render();queue();return}
   // Send yourself (or whoever's buying) the link to the gift you took.
   const s=e.target.closest("[data-send]");
-  if(s){const it=ev.items.find(i=>i.k===s.dataset.send);if(it)send150({title:it.n,text:it.n+(it.price?" ("+it.price+")":"")+" for "+ev.title,url:it.url},s);return}
+  if(s){const it=ev.items.find(i=>i.k===s.dataset.send);if(it)send150({title:it.n,text:it.n+(it.price?" ("+money(it.price)+")":"")+" for "+ev.title,url:it.url},s);return}
   const u=e.target.closest("[data-untake]");
   if(u){mine.take=mine.take.filter(k=>k!==u.dataset.untake);render();queue()}
 });
