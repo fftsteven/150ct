@@ -15,5 +15,6 @@ import potluck from "./potluck/server.js";
 import meet from "./meet/server.js";
 import gift from "./gift/server.js";
 import registry from "./registry/server.js";
+import squares from "./squares/server.js";
 
-export const APPS = { potluck, meet, gift, registry };
+export const APPS = { potluck, meet, gift, registry, squares };

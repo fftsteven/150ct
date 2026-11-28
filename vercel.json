@@ -39,6 +39,14 @@
       "destination": "/api/page?app=registry&slug=:slug"
     },
     {
+      "source": "/squares",
+      "destination": "/apps/squares/new"
+    },
+    {
+      "source": "/squares/:slug",
+      "destination": "/api/page?app=squares&slug=:slug"
+    },
+    {
       "source": "/mcp",
       "destination": "/api/mcp"
     },

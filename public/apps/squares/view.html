@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Squares · 150ct</title>
+<meta name="description" content="Tap the squares you want. Free, no sign-up.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="150ct">
+<meta property="og:title" content="Squares">
+<meta property="og:description" content="Tap the squares you want. Free, no sign-up.">
+<meta property="og:image" content="https://150ct.com/shared/og-squares.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared/app.css">
+<link rel="stylesheet" href="/apps/squares/style.css">
+<link rel="icon" href="/shared/icon.svg" type="image/svg+xml">
+<script src="/apps/squares/lib.js"></script>
+<style>
+.col{max-width:720px}
+.head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.count{font-family:Silkscreen,monospace;font-size:14px;color:var(--mute)}
+.board{display:grid;grid-template-columns:22px minmax(0,1fr);grid-template-rows:auto auto;gap:6px 4px;margin:14px 0 8px}
+.tTop,.tSide{font:700 13px Silkscreen,monospace;color:light-dark(var(--hero),var(--acc));overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tTop{grid-column:2;text-align:center;padding-left:calc((100% - 20px) / 11)}
+.tSide{grid-row:2;writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;padding-bottom:calc((100% - 20px) / 11)}
+.g{display:grid;grid-template-columns:repeat(11,minmax(0,1fr));gap:2px}
+.g .n{display:grid;place-items:center;aspect-ratio:1;font:700 clamp(13px,3vw,18px) Silkscreen,monospace;color:var(--ink)}
+.g .n.q{color:var(--mute);opacity:.6}
+.c{position:relative;aspect-ratio:1;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);border-radius:4px;padding:0 2px;font:600 clamp(9px,2.1vw,12px)/1.1 "Work Sans",sans-serif;display:grid;place-items:center;overflow:hidden;cursor:pointer}
+.c span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.c .ini{display:none}
+@media(max-width:520px){.c .full{display:none}.c .ini{display:block}}
+.c.open:hover{border-color:var(--hero);background:color-mix(in srgb,var(--acc) 25%,var(--panel))}
+.c.taken{background:var(--done);color:var(--mute)}
+.c.mine{background:var(--acc);border-color:color-mix(in srgb,var(--acc),#000 30%);color:#21160f}
+.c.win{background:var(--hero);border-color:var(--hero);color:#fff;box-shadow:0 0 0 2px var(--acc)}
+.c i{position:absolute;top:1px;right:2px;font:700 8px Silkscreen,monospace;font-style:normal;color:var(--acc)}
+.locked .c{cursor:default}
+.f{display:grid;gap:6px}
+.card{background:var(--panel);border:2px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;gap:10px;margin-top:22px}
+.card p{margin:0}
+.card .btn{justify-self:start}
+.sc{display:grid;gap:8px;margin-top:10px}
+.sr{display:grid;grid-template-columns:52px 64px 64px minmax(0,1fr);gap:10px;align-items:center;min-height:44px}
+.sr b{font:700 14px Silkscreen,monospace}
+.sr .w{font-weight:600;overflow-wrap:anywhere}
+.sr .w.none{color:var(--mute);font-weight:400}
+.sr input{padding:8px;text-align:center}
+.sr .v{font:700 16px Silkscreen,monospace;text-align:center}
+.sh{display:grid;grid-template-columns:52px 64px 64px minmax(0,1fr);gap:10px;font-size:13px;color:var(--mute)}
+.sh span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+.sh span:last-child{text-align:left}
+</style>
+<script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments)};</script>
+<script defer src="/_vercel/insights/script.js"></script>
+<script src="/shared/send.js"></script>
+</head>
+<body>
+<nav class="top"><div class="wrap"><a href="/">150ct</a></div></nav>
+<div id="admin"></div>
+<header class="band hero">
+  <div class="wrap">
+    <div>
+      <h1 id="title">Loading…</h1>
+      <div class="det" id="det"></div>
+    </div>
+    <div class="sprite" id="sprite" role="img" aria-label="Football"></div>
+  </div>
+</header>
+
+<main class="band">
+  <div class="wrap col" id="main" hidden>
+    <div class="f" id="nameRow" style="margin:0 0 6px">
+      <label for="name" id="nameL">Your name</label>
+      <input id="name" autocomplete="given-name" maxlength="24" placeholder="So everyone knows whose square it is">
+      <p class="hint" id="nameHint" hidden>Your name, or someone else's to fill in squares for them.</p>
+    </div>
+    <div class="head"><h2>The grid</h2><span class="count" id="count"></span></div>
+    <div class="board" id="board"></div>
+    <p class="status" id="status" aria-live="polite"></p>
+    <p class="hint" id="howto"></p>
+    <div class="nudge" id="nudge" hidden><p><b>You're in.</b>Want a grid of your own? Make one in a minute.</p><a class="btn" href="/squares">Make your own</a></div>
+    <div class="card" id="lockCard" hidden></div>
+    <div class="card" id="scores" hidden></div>
+  </div>
+  <div class="wrap" id="missing" hidden><p class="hint" id="missingText"></p><p><a href="/squares">Make a grid</a></p></div>
+  <div class="wrap col" id="hostFoot" hidden></div>
+</main>
+<footer class="band foot"><div class="wrap"><a class="pack" href="/"><span>150</span><span>ct</span></a><span>Free, no accounts, deletes itself 30 days after the game.</span><span class="legal">© 2026 150ct · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a></span><a href="/squares">Make your own</a></div></footer>
+
+<script>
+{
+const {ball,esc,copyText,fmtDay,money}=window.Q;
+const $=id=>document.getElementById(id);
+const slug=location.pathname.split("/").filter(Boolean).pop();
+const guestUrl=location.origin+"/squares/"+slug;
+const QS=["Q1","Half","Q3","Final"];
+$("sprite").innerHTML=ball();
+
+let hostKey="";
+try{
+  const m=location.hash.match(/host=([a-z0-9]+)/);
+  if(m){hostKey=m[1];localStorage.setItem("150ct-host-"+slug,hostKey);history.replaceState(null,"",location.pathname)}
+  else hostKey=localStorage.getItem("150ct-host-"+slug)||"";
+}catch(e){}
+
+// One identity per browser, shared with the other apps.
+let myId="",myName="";
+try{const s=JSON.parse(localStorage.getItem("150ct-me")||"null");if(s){myId=s.id||"";myName=s.name||""}}catch(e){}
+if(!/^[a-z0-9]{20,40}$/.test(myId))myId=Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>b.toString(36).padStart(2,"0")).join("").slice(0,28);
+const remember=()=>{try{localStorage.setItem("150ct-me",JSON.stringify({id:myId,name:myName}))}catch(e){}};
+remember();$("name").value=myName;
+
+// mine: this browser's squares, index -> name. A guest's are all their own name; the host can use any name.
+let ev=null,docs={},mine={},isHost=false,live=false,dirty=false,saving=false,pending=false,saveT=null;
+const hdr=()=>hostKey?{"x-host-key":hostKey}:{};
+const status=t=>$("status").textContent=t;
+const teamTop=()=>ev.top||"Team 1",teamSide=()=>ev.side||"Team 2";
+function owners(){
+  const o={};
+  for(const [id,r] of Object.entries(docs))if(id!==myId)for(const [i,n] of Object.entries(r.cells||{}))o[i]={id,n};
+  for(const [i,n] of Object.entries(mine))o[i]={id:myId,n};
+  return o;
+}
+const initials=n=>{const w=String(n).trim().split(/\s+/);return (w.length>1?w[0][0]+w[w.length-1][0]:w[0].slice(0,3)).toUpperCase()};
+// Winning square for a quarter's score: last digit of each team's score.
+const winIdx=s=>!ev.locked||!s?-1:ev.rows.indexOf(s.b%10)*10+ev.cols.indexOf(s.a%10);
+
+function renderEvent(){
+  document.title=ev.title;$("title").textContent=ev.title;
+  $("det").innerHTML=[
+    (ev.top||ev.side)&&`<div><b>Teams</b><span>${esc(teamTop())} and ${esc(teamSide())}</span></div>`,
+    ev.cost&&`<div><b>Cost</b><span>${esc(money(ev.cost))} a square</span></div>`,
+    ev.date&&`<div><b>When</b><span>${esc(fmtDay(ev.date))}</span></div>`,
+  ].filter(Boolean).join("");
+  $("nameRow").hidden=!!ev.locked;
+  if(isHost){$("nameL").textContent="Name on the squares you tap";$("nameHint").hidden=false;$("name").placeholder="Name"}
+  $("main").hidden=false;
+}
+
+function render(){
+  const o=owners(),wins={};
+  ev.scores.forEach((s,q)=>{const w=winIdx(s);if(w>=0)(wins[w]=wins[w]||[]).push(QS[q])});
+  const head=i=>ev.locked?`<div class="n">${ev.cols[i]}</div>`:`<div class="n q">?</div>`;
+  const side=r=>ev.locked?`<div class="n">${ev.rows[r]}</div>`:`<div class="n q">?</div>`;
+  let cells=`<div></div>`+Array.from({length:10},(_,i)=>head(i)).join("");
+  for(let r=0;r<10;r++){
+    cells+=side(r);
+    for(let c=0;c<10;c++){
+      const i=r*10+c,w=o[i],won=wins[i];
+      const cls=won?"win":!w?"open":w.id===myId?"mine":"taken";
+      const label=w?`<span class="full">${esc(w.n)}</span><span class="ini">${esc(initials(w.n))}</span>`:"";
+      const what=ev.locked?`${esc(teamTop())} ${ev.cols[c]}, ${esc(teamSide())} ${ev.rows[r]}`:`Row ${r+1}, column ${c+1}`;
+      cells+=`<button class="c ${cls}" type="button" data-i="${i}" aria-label="${what}: ${w?esc(w.n):"open"}${won?", won "+won.join(" and "):""}">${won?`<i>${won[won.length-1]}</i>`:""}${label}</button>`;
+    }
+  }
+  $("board").className="board"+(ev.locked?" locked":"");
+  $("board").innerHTML=`<div class="tTop">${esc(teamTop())}</div><div class="tSide">${esc(teamSide())}</div><div class="g">${cells}</div>`;
+  const taken=Object.keys(o).length,n=Object.keys(mine).length;
+  $("count").textContent=`${taken} of 100 taken`+(n&&!isHost?` · you have ${n}`:"");
+  $("howto").textContent=ev.locked?"Numbers are drawn. Tap a square to see whose it is."
+    :isHost?"Tap open squares to put the name above on them. Tap one of yours again to clear it. Numbers get drawn when you lock the grid."
+    :"Tap open squares to make them yours. Tap again to give one back. Numbers get drawn when the host locks the grid.";
+  renderLock(taken);renderScores(o);
+  if(isHost)renderAdmin(o);
+}
+
+function renderLock(taken){
+  const show=isHost&&!ev.locked;
+  $("lockCard").hidden=!show;if(!show)return;
+  $("lockCard").innerHTML=`<p><b>Ready to play?</b> Locking draws the numbers and stops changes.${taken<100?` ${100-taken} square${100-taken===1?" is":"s are"} still open.`:""}</p><button class="btn" id="lockBtn" type="button">Lock and draw numbers</button>`;
+}
+
+function renderScores(o){
+  $("scores").hidden=!ev.locked;if(!ev.locked)return;
+  const keep=document.activeElement&&document.activeElement.dataset.s;
+  if(isHost&&keep)return; // don't redraw while the host is typing
+  const rows=ev.scores.map((s,q)=>{
+    const w=winIdx(s),who=w>=0?(o[w]?o[w].n:"Open square"):"";
+    const v=k=>isHost?`<input type="number" inputmode="numeric" min="0" max="199" data-s="${q}${k}" value="${s?s[k]:""}" aria-label="${QS[q]} ${esc(k==="a"?teamTop():teamSide())} score">`:`<span class="v">${s?s[k]:""}</span>`;
+    return `<div class="sr"><b>${QS[q]}</b>${v("a")}${v("b")}<span class="w${w>=0&&o[w]?"":" none"}">${esc(who)}</span></div>`;
+  }).join("");
+  $("scores").innerHTML=`<h2 style="margin:0">Scores</h2><div class="sc"><div class="sh"><span></span><span>${esc(teamTop())}</span><span>${esc(teamSide())}</span><span>Winner</span></div>${rows}</div>`
+    +(isHost?`<div class="linkrow"><button class="btn" id="saveScores" type="button">Save scores</button><span class="hint">Enter the score at the end of each quarter.</span></div>`:"");
+}
+
+function people(o){
+  const by={};
+  for(const {id,n} of Object.values(o)){const k=id+"\u0000"+n;(by[k]=by[k]||{id,n,c:0}).c++}
+  return Object.values(by).sort((a,b)=>b.c-a.c||a.n.localeCompare(b.n));
+}
+function renderAdmin(o){
+  $("admin").innerHTML=hostPanel({url:guestUrl,hostUrl:guestUrl+"#host="+hostKey,edit:{href:"/squares?edit="+slug},extra:[{id:"copyList",label:"Copy who's in"}]});
+  $("hostFoot").hidden=false;
+  const list=people(o);
+  $("hostFoot").innerHTML=`<div class="foothost"><h3>Who's in</h3>${list.length?`<div class="people">${list.map(p=>`<div><span><b>${esc(p.n)}</b> · ${p.c} square${p.c>1?"s":""}</span>${p.id!==myId&&!ev.locked?`<button class="rm" data-rm="${esc(p.id)}" type="button">Remove</button>`:""}</div>`).join("")}</div>`:`<p class="hint">No one yet.</p>`}</div>`;
+}
+
+async function load(){
+  try{
+    const r=await fetch(`/api/links?slug=${encodeURIComponent(slug)}&me=${myId}`,{headers:hdr(),cache:"no-store"});
+    const j=await r.json();
+    if(!r.ok){$("title").textContent="Not found";$("missingText").textContent=j.error||"This grid doesn't exist.";$("missing").hidden=false;return}
+    const first=!ev;
+    ev=j.link.data;docs=j.responses||{};
+    if(first){
+      isHost=j.isHost;
+      if(!isHost&&hostKey){hostKey="";try{localStorage.removeItem("150ct-host-"+slug)}catch(e){}}
+      mine={...((docs[myId]||{}).cells||{})};
+      if(Object.keys(mine).length&&!isHost)$("nudge").hidden=false;
+      if(!isHost&&!myName){const n=Object.values(mine)[0];if(n){myName=n;$("name").value=n;remember()}}
+    }else if(!dirty&&!saving)mine={...((docs[myId]||{}).cells||{})};
+    renderEvent();
+    live=true;render();
+  }catch(e){if(!ev)$("title").textContent="Couldn't load this"}
+}
+
+async function save(){
+  if(saving){pending=true;return}
+  saving=true;dirty=false;status("Saving…");
+  try{
+    const r=await fetch(`/api/responses?slug=${encodeURIComponent(slug)}`,{method:"POST",headers:{"content-type":"application/json",...hdr()},body:JSON.stringify({id:myId,name:myName.trim(),cells:mine})});
+    const j=await r.json().catch(()=>({}));
+    if(r.status===409)status(j.error);else if(!r.ok)throw new Error(j.error);else{status("Saved.");if(Object.keys(mine).length&&!isHost)$("nudge").hidden=false}
+    if(j.responses){docs=j.responses;if(!dirty)mine={...((docs[myId]||{}).cells||{})};render()}
+  }catch(e){status(e.message||"Couldn't save that. Try again in a sec.");load()}
+  saving=false;
+  if(pending){pending=false;save()}
+}
+const queue=()=>{dirty=true;clearTimeout(saveT);saveT=setTimeout(save,400)};
+
+$("board").addEventListener("click",e=>{
+  const b=e.target.closest("[data-i]");if(!b||!live)return;
+  const i=b.dataset.i,w=owners()[i];
+  if(ev.locked||(w&&w.id!==myId)){status(w?`${w.n} has this one.`:"Nobody took this one.");return}
+  if(w){delete mine[i];render();queue();return}
+  if(!myName.trim()){status("Add your name first.");$("name").focus();return}
+  mine[i]=myName.trim();render();queue();
+});
+$("name").addEventListener("input",e=>{
+  myName=e.target.value;remember();
+  // A guest's squares carry their name, so renaming renames them. The host's name box is just the pen.
+  if(!isHost&&myName.trim()&&Object.keys(mine).length){for(const k in mine)mine[k]=myName.trim();render();queue()}
+});
+
+async function put(data){
+  const r=await fetch(`/api/links?slug=${encodeURIComponent(slug)}`,{method:"PUT",headers:{"content-type":"application/json",...hdr()},body:JSON.stringify({data})});
+  if(!r.ok)throw new Error((await r.json().catch(()=>({}))).error||"Couldn't save.");
+}
+$("main").addEventListener("click",async e=>{
+  if(e.target.id==="lockBtn"){
+    const b=e.target;
+    if(b.dataset.armed!=="1"){b.dataset.armed="1";b.textContent="Tap again to lock";return}
+    b.disabled=true;b.textContent="Drawing…";
+    try{await put({lock:true});status("Locked. Numbers are drawn.");await load()}catch(err){status(err.message);b.disabled=false;b.textContent="Lock and draw numbers"}
+    return;
+  }
+  if(e.target.id==="saveScores"){
+    const b=e.target,val=k=>{const x=$("scores").querySelector(`[data-s="${k}"]`).value;return x===""?null:Number(x)};
+    const scores=QS.map((_,q)=>{const a=val(q+"a"),c=val(q+"b");return a==null||c==null?null:{a,b:c}});
+    b.disabled=true;b.textContent="Saving…";
+    try{await put({scores});document.activeElement.blur();await load();status("Scores saved.")}catch(err){status(err.message)}
+    b.disabled=false;b.textContent="Save scores";
+  }
+});
+
+const hostClick=async e=>{
+  const c=e.target.closest("[data-copy]");
+  if(c){const ok=await copyText(c.dataset.copy);c.textContent=ok?"Copied":"Couldn't copy";if(!ok){const code=c.parentElement.querySelector("code");if(code)getSelection().selectAllChildren(code)}setTimeout(()=>c.textContent=c.dataset.label||"Copy",1800);return}
+  const rm=e.target.closest("[data-rm]");
+  if(rm){
+    if(rm.dataset.armed!=="1"){rm.dataset.armed="1";rm.textContent="Tap again";return}
+    try{const r=await fetch(`/api/responses?slug=${encodeURIComponent(slug)}&id=${encodeURIComponent(rm.dataset.rm)}`,{method:"DELETE",headers:hdr()});if(!r.ok)throw 0;status("Removed.");load()}
+    catch(err){status("Couldn't remove that.")}
+    return;
+  }
+  if(e.target.id==="share"){await send150({title:ev.title,text:ev.title+": pick your squares.",url:guestUrl},e.target);return}
+  if(e.target.id==="copyList"){
+    const lines=people(owners()).map(p=>`${p.n}: ${p.c}`);
+    const ok=await copyText(`${ev.title}\n\n${lines.join("\n")||"No one yet"}`);e.target.textContent=ok?"Copied":"Couldn't copy";setTimeout(()=>e.target.textContent="Copy who's in",1800);
+    return;
+  }
+  if(e.target.id==="delEv"){
+    const b=e.target;
+    if(b.dataset.armed!=="1"){b.dataset.armed="1";b.textContent="Tap again to delete for everyone";return}
+    const r=await fetch(`/api/links?slug=${encodeURIComponent(slug)}`,{method:"DELETE",headers:hdr()});
+    if(r.ok){try{localStorage.removeItem("150ct-host-"+slug)}catch(err){}location.href="/squares"}else b.textContent="Couldn't delete";
+  }
+};
+$("admin").addEventListener("click",hostClick);$("hostFoot").addEventListener("click",hostClick);
+
+load();
+setInterval(()=>{if(!document.hidden&&ev&&!saving&&!dirty)load()},8000);
+}
+</script>
+</body>
+</html>
