@@ -20,7 +20,7 @@
 
 ## Use from AI apps
 
-- MCP server: https://150ct.com/mcp (Streamable HTTP, no sign-in). Tools make potluck sheets, date polls, gift exchanges and registries, and convert cups to grams. Each returns a link for the group and a private host link.
+- MCP server: https://150ct.com/mcp (Streamable HTTP, no sign-in). Tools make potluck sheets, date polls, gift exchanges and registries, and convert cups to grams. Each returns a link for the group and a private host link. Setup: https://150ct.com/ai
 
 ## Guides
 
