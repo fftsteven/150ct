@@ -32,9 +32,9 @@ async function serveFile(path) {
 
 http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://localhost");
+  const chunks = [];
+  for await (const c of req) chunks.push(c);
   if (url.pathname.startsWith("/api/")) {
-    const chunks = [];
-    for await (const c of req) chunks.push(c);
     const request = new Request(url, {
       method: req.method,
       headers: { ...req.headers, "x-real-ip": req.socket.remoteAddress || "?" },
@@ -49,7 +49,10 @@ http.createServer(async (req, res) => {
   if (rule) {
     const to = rule.to.replace(/:([a-z]+)/gi, (_, k) => url.pathname.match(rule.re).groups[k]);
     if (to.startsWith("/api/")) {
-      const r = await (to.startsWith("/api/page") ? page : handle)(new Request(new URL(to, url), { headers: req.headers }));
+      const r = await (to.startsWith("/api/page") ? page : handle)(new Request(new URL(to, url), {
+        method: req.method, headers: req.headers,
+        body: ["GET", "HEAD"].includes(req.method) ? undefined : Buffer.concat(chunks),
+      }));
       res.writeHead(r.status, Object.fromEntries(r.headers));
       return res.end(Buffer.from(await r.arrayBuffer()));
     }

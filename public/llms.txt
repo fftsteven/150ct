@@ -18,6 +18,10 @@
 - Gift exchange: names are drawn when the link is made. Each person sees only who they're buying for. The organizer can see who has looked, never who has who.
 - Registry: other guests see a gift as taken, never who took it. The host sees who's getting what, unless surprise is on.
 
+## Use from AI apps
+
+- MCP server: https://150ct.com/mcp (Streamable HTTP, no sign-in). Tools make potluck sheets, date polls, gift exchanges and registries, and convert cups to grams. Each returns a link for the group and a private host link.
+
 ## Guides
 
 - [How to do Secret Santa without anyone knowing who has who](https://150ct.com/guides/secret-santa-without-anyone-knowing): The easiest way to draw Secret Santa names so nobody, including the organizer, sees the pairs. Works over text with no sign-up.
