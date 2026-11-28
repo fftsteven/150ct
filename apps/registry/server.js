@@ -2,7 +2,7 @@
 // they'll get it, so nothing is bought twice. Other guests only see "Taken", never who.
 // The host sees who's getting what, unless they turned on surprise, then they see nothing at all.
 //
-// data  { title, address, date, note, surprise, items: [{ k, n, url, price }] }
+// data  { title, address, date, note, surprise, items: [{ k, n, url, price, note }] }
 // row   { name, take: [k], at }
 import { str, rand } from "../../core/util.js";
 
@@ -42,7 +42,7 @@ export default {
       if (!n) return null;
       const k = typeof i?.k === "string" && prevKeys.has(i.k) && !seen.has(i.k) ? i.k : "i" + rand(6);
       seen.add(k);
-      return { k, n, url: cleanUrl(i?.url), price: str(i?.price, 20) };
+      return { k, n, url: cleanUrl(i?.url), price: str(i?.price, 20), note: str(i?.note, 140) };
     }).filter(Boolean).slice(0, MAX_ITEMS);
     if (!e.items.length) return [null, "Add at least one gift."];
     return [e, null];

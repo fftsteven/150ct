@@ -32,7 +32,7 @@
 .f{display:grid;gap:6px}
 .gifts{display:grid;gap:10px;margin:4px 0 0}
 .g{background:var(--panel);border:2px solid var(--line);border-radius:10px;padding:10px;display:grid;grid-template-columns:minmax(0,1fr) 96px 44px;gap:8px}
-.g .url{grid-column:1/-1}
+.g .url,.g .inote{grid-column:1/-1}
 .money{position:relative}
 .money::before{content:"$";position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--mute);pointer-events:none}
 .money input{padding-left:24px}
@@ -110,7 +110,7 @@ let hostKey="";
 try{hostKey=editSlug?localStorage.getItem("150ct-host-"+editSlug)||"":""}catch(e){}
 $("sprite").innerHTML=bag();
 
-const blank=()=>({k:"",url:"",n:"",price:"",auto:false});
+const blank=()=>({k:"",url:"",n:"",price:"",note:"",auto:false});
 let gifts=[blank(),blank(),blank()];
 
 function render(){
@@ -119,6 +119,7 @@ function render(){
     <input data-i="${i}" data-f="n" value="${esc(g.n)}" maxlength="80" placeholder="Gift" aria-label="Gift ${i+1} name">
     <span class="money"><input data-i="${i}" data-f="price" value="${esc(g.price)}" maxlength="20" placeholder="Price" aria-label="Gift ${i+1} price in dollars" inputmode="decimal"></span>
     <button class="x rmx" type="button" data-rm="${i}" aria-label="Remove ${esc(g.n||"gift "+(i+1))}">×</button>
+    <input class="inote" data-i="${i}" data-f="note" value="${esc(g.note)}" maxlength="140" placeholder="Note (optional), e.g. size M, any color" aria-label="Gift ${i+1} note">
   </div>`).join("");
 }
 $("gifts").addEventListener("input",e=>{
@@ -144,7 +145,7 @@ $("form").addEventListener("submit",async e=>{
   if(!$("title").value.trim()){st("Give it a name.");$("title").focus();return}
   const noName=gifts.findIndex(g=>g.url.trim()&&!g.n.trim());
   if(noName>=0){st("Give that gift a name.");$("gifts").querySelector(`[data-i="${noName}"][data-f="n"]`).focus();return}
-  const items=gifts.filter(g=>g.n.trim()).map(g=>({k:g.k,n:g.n,url:g.url,price:g.price}));
+  const items=gifts.filter(g=>g.n.trim()).map(g=>({k:g.k,n:g.n,url:g.url,price:g.price,note:g.note}));
   if(!items.length){st("Add at least one gift.");return}
   const payload={title:$("title").value,address:$("address").value,date:$("date").value,note:$("note").value,surprise:$("surprise").checked,items};
   $("submit").disabled=true;st("Saving…");
@@ -171,7 +172,7 @@ async function init(){
       if(!r.ok||!j.isHost)throw 0;
       const ev=j.link.data;
       $("title").value=ev.title||"";$("address").value=ev.address||"";$("date").value=ev.date||"";$("note").value=ev.note||"";$("surprise").checked=!!ev.surprise;
-      gifts=(ev.items||[]).map(i=>({k:i.k,url:i.url||"",n:i.n,price:(i.price||"").replace(/^\$+\s*/,""),auto:false}));
+      gifts=(ev.items||[]).map(i=>({k:i.k,url:i.url||"",n:i.n,price:(i.price||"").replace(/^\$+\s*/,""),note:i.note||"",auto:false}));
       gifts.push(blank());
     }catch(e){$("status").textContent="Only the host can edit this.";$("submit").disabled=true}
   }
