@@ -191,7 +191,12 @@ async function init(){
       dishes=ev.dishes.map(d=>({...d}));tpl="";
       renderDishes();preview();
     }catch(e){$("status").textContent="Only the host can edit this.";$("submit").disabled=true}
-  }else useTemplate("thanksgiving");
+  }else{
+    // ?t=christmas picks a template; otherwise pick the one for the season.
+    const q=new URLSearchParams(location.search).get("t"),d=new Date(),m=d.getMonth(),day=d.getDate();
+    const season=m===10&&day>=28||m===11&&day<=25?"christmas":m===11?"nye":"thanksgiving";
+    useTemplate(TEMPLATES[q]?q:season);
+  }
 }
 init();
 }
