@@ -1,5 +1,5 @@
 # Search engines and AI answer engines are welcome on public pages.
-# Event links (/potluck/..., /meet/..., /gift/..., /registry/...) are private and marked noindex.
+# Event links (/potluck/..., /meet/..., /gift/..., /registry/..., /squares/...) are private and marked noindex.
 User-agent: *
 Allow: /
 Disallow: /api/

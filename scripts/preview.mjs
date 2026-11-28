@@ -78,6 +78,8 @@ const pages = {
   giftView: await page("apps/gift/view.html"),
   registryCreate: await page("apps/registry/new.html"),
   registryView: await page("apps/registry/view.html"),
+  squaresCreate: await page("apps/squares/new.html"),
+  squaresView: await page("apps/squares/view.html"),
   grams: await page("apps/grams/new.html"),
 };
 for (const f of await readdir("public/compare")) if (f.endsWith(".html")) pages["c_" + f.slice(0, -5)] = await page("compare/" + f);
@@ -108,7 +110,7 @@ function route(u){
   var x=new URL(u, __ORIGIN);
   window.__ROUTE={path:x.pathname,search:x.search,hash:x.hash};
   var p=x.pathname.replace(/\\/$/,"")||"/";
-  var key=p==="/compare"?"c_index":/^\\/compare\\/[a-z0-9-]+$/.test(p)&&PAGES["c_"+p.slice(9)]?"c_"+p.slice(9):p==="/guides"?"g_index":/^\\/guides\\/[a-z0-9-]+$/.test(p)&&PAGES["g_"+p.slice(8)]?"g_"+p.slice(8):p==="/about"?"about":p==="/terms"?"terms":p==="/privacy"?"privacy":p==="/potluck"?"create":/^\\/potluck\\/[a-z0-9]+$/.test(p)?"view":p==="/eat"?"eatCreate":p==="/meet"?"meetCreate":/^\\/meet\\/[a-z0-9]+$/.test(p)?"meetView":p==="/gift"?"giftCreate":/^\\/gift\\/[a-z0-9]+$/.test(p)?"giftView":p==="/grams"?"grams":p==="/registry"?"registryCreate":/^\\/registry\\/[a-z0-9]+$/.test(p)?"registryView":"landing";
+  var key=p==="/compare"?"c_index":/^\\/compare\\/[a-z0-9-]+$/.test(p)&&PAGES["c_"+p.slice(9)]?"c_"+p.slice(9):p==="/guides"?"g_index":/^\\/guides\\/[a-z0-9-]+$/.test(p)&&PAGES["g_"+p.slice(8)]?"g_"+p.slice(8):p==="/about"?"about":p==="/terms"?"terms":p==="/privacy"?"privacy":p==="/potluck"?"create":/^\\/potluck\\/[a-z0-9]+$/.test(p)?"view":p==="/eat"?"eatCreate":p==="/meet"?"meetCreate":/^\\/meet\\/[a-z0-9]+$/.test(p)?"meetView":p==="/gift"?"giftCreate":/^\\/gift\\/[a-z0-9]+$/.test(p)?"giftView":p==="/grams"?"grams":p==="/squares"?"squaresCreate":/^\\/squares\\/[a-z0-9]+$/.test(p)?"squaresView":p==="/registry"?"registryCreate":/^\\/registry\\/[a-z0-9]+$/.test(p)?"registryView":"landing";
   document.getElementById("url").textContent="150ct.com"+(p==="/"?"/":p)+x.search;
   document.getElementById("f").srcdoc=PAGES[key];
 }

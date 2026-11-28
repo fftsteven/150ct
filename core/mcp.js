@@ -14,7 +14,7 @@ const VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"];
 const INFO = { name: "150ct", title: "150ct", version: "1.0.0", websiteUrl: SITE };
 const INSTRUCTIONS =
   "150ct makes free, no sign-up links for getting together: potluck sign-up sheets, group date polls, " +
-  "Secret Santa name draws and gift registries. Use only the names, dates and items the user gave; don't invent guests or decide for them. " +
+  "Secret Santa name draws, gift registries and football squares grids. Use only the names, dates and items the user gave; don't invent guests or decide for them. " +
   "Each create tool returns a guest link to send to the group and a host link that only the user should keep (it lets them edit). " +
   "Guests open the link in any browser and make their own choices there.";
 
@@ -146,6 +146,23 @@ const TOOLS = [
       ...pick(a, "title", "date", "address", "note"), surprise: a.surprise === true,
       items: list(a.items).map((i) => ({ n: i?.name, url: i?.url, price: i?.price, note: i?.note })),
     }),
+  },
+  {
+    name: "create_squares",
+    title: "Make a football squares grid",
+    description: "Make a 10x10 football squares grid, like for a Super Bowl party. Guests open the link and tap their own squares. The host locks the grid to draw the numbers at random, then enters the score each quarter to show the winning square. This tool doesn't pick squares for anyone and 150ct never handles money.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        title: { type: "string", maxLength: 80, description: "What it's for, like \"Game day at Sam's\" (optional)" },
+        topTeam: { type: "string", maxLength: 30, description: "Team across the top (optional, can be added later)" },
+        sideTeam: { type: "string", maxLength: 30, description: "Team down the side (optional, can be added later)" },
+        cost: { type: "string", maxLength: 30, description: "Cost per square, shown as text only, like \"$5\" (optional)" },
+        date: { ...DATE, description: "Game day, YYYY-MM-DD (optional)" },
+      },
+    },
+    app: "squares",
+    data: (a) => ({ ...pick(a, "title", "cost", "date"), top: a.topTeam, side: a.sideTeam }),
   },
   {
     name: "cups_to_grams",

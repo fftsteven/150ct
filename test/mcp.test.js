@@ -28,7 +28,7 @@ test("handshake and tool list", async () => {
   assert.equal(r.headers.get("access-control-allow-origin"), "*");
   assert.equal((await rpc(null, null, { jsonrpc: "2.0", method: "notifications/initialized" })).status, 202);
   const tools = (await rpc("tools/list", {})).j.result.tools;
-  assert.deepEqual(tools.map((t) => t.name), ["create_potluck", "create_date_poll", "create_gift_exchange", "create_registry", "cups_to_grams"]);
+  assert.deepEqual(tools.map((t) => t.name), ["create_potluck", "create_date_poll", "create_gift_exchange", "create_registry", "create_squares", "cups_to_grams"]);
   for (const t of tools) assert.ok(t.title && t.annotations.title === t.title && t.inputSchema.type === "object", t.name);
   assert.equal((await rpc("nope", {})).j.error.code, -32601);
   assert.equal((await handle(new Request("http://x/api/mcp"))).status, 405);
