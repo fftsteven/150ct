@@ -57,6 +57,30 @@ dialog.how::backdrop{background:rgba(60,58,79,.35)}
 dialog.how b{display:block;font-size:18px;margin-bottom:6px}
 dialog.how p{margin:0 0 14px}
 dialog.how button{min-height:44px;width:100%;border:0;border-radius:12px;background:var(--ink);color:#fff;font:600 15px Quicksand,sans-serif;cursor:pointer}
+.mine{width:min(560px,calc(100% - 32px));margin:clamp(22px,3.5vw,36px) auto 0;padding:14px 16px 6px;border-radius:18px;background:rgba(255,255,255,.6);border:1px solid rgba(60,58,79,.1)}
+.mine h2{font:700 13px Quicksand,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--soft);margin:0 0 4px}
+.mine .grp{padding:6px 0 4px}
+.mine .grp+.grp{border-top:1px solid rgba(60,58,79,.08)}
+.mine .gh{display:flex;align-items:center;gap:8px;font:600 13px Quicksand,sans-serif;color:var(--soft);margin:2px 0}
+.mine .gh i{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;flex:none}
+.mine .gh i svg{width:15px;height:15px}
+.mine ul{list-style:none;margin:0;padding:0}
+.mine li{display:flex;align-items:center;gap:6px;min-height:44px;margin:0 -8px;padding:0 0 0 38px;border-radius:10px}
+.mine li>a{flex:1;display:flex;gap:10px;min-height:44px;align-items:center;text-decoration:none;padding-right:4px}
+.mine li>a:hover b{text-decoration:underline}
+.mine li b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 1 auto}
+.mine li small{color:var(--soft);font-size:13px;white-space:nowrap;margin-left:auto}
+.mine li.past b{opacity:.55}
+.mine .x{all:unset;cursor:pointer;flex:none;width:36px;height:36px;display:grid;place-items:center;border-radius:50%;color:var(--soft);font-size:20px;line-height:1;opacity:.6}
+.mine .x:hover,.mine .x:focus-visible{opacity:1;background:rgba(60,58,79,.07)}
+.mine li.ask{background:rgba(60,58,79,.05);flex-wrap:wrap;padding:8px 8px 8px 38px;gap:6px}
+.mine li.ask span{flex:1 1 100%;font-size:14px}
+.mine .opt{all:unset;cursor:pointer;min-height:36px;padding:0 12px;border-radius:999px;background:#fff;border:1px solid rgba(60,58,79,.18);font:600 14px Quicksand,sans-serif;display:inline-flex;align-items:center}
+.mine .opt.del{color:#c0392b;border-color:rgba(192,57,43,.35)}
+.mine .opt.no{background:none;border-color:transparent;color:var(--soft)}
+.mine .more{all:unset;cursor:pointer;display:block;width:100%;text-align:center;min-height:40px;border-top:1px solid rgba(60,58,79,.08);font:600 14px Quicksand,sans-serif;color:var(--soft)}
+.mine .more:hover{color:var(--ink)}
+.mine .more:focus-visible,.mine .opt:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 .shelf{flex:none;width:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(14px,2.4vw,28px);max-width:1180px;margin:clamp(24px,4vw,48px) auto 0;padding:0 max(4vw,16px) 64px}
 .tile{all:unset;cursor:pointer;display:grid;gap:10px;text-align:center;align-content:start;color:inherit}
 .tile .box{aspect-ratio:1;border-radius:22px;position:relative;overflow:hidden;box-shadow:0 10px 30px rgba(60,58,79,.12),inset 0 -40px 0 rgba(255,255,255,.18);transition:transform .25s}
@@ -114,6 +138,7 @@ footer nav span{opacity:.6}
   <button class="install" id="install" type="button"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="1.5" width="8" height="13" rx="1.5"/><path d="M8 5v5M5.8 7.8 8 10l2.2-2.2"/></svg>Add to home</button>
 </header>
 <dialog class="how" id="how"><b>Add to home screen</b><p id="howText"></p><form method="dialog"><button>Got it</button></form></dialog>
+<section class="mine" id="mine" aria-labelledby="mineH" hidden></section>
 <main class="shelf" id="shelf"></main>
 <footer>
   <div>no accounts · no ads · gone when you're done</div>
@@ -133,6 +158,84 @@ document.getElementById("shelf").innerHTML=SHELF.map(a=>a.status==="live"
 const link=(url,label)=>url?`<a href="${esc(url)}" target="_blank" rel="noopener">${label}</a>`:`<span>${label} · soon</span>`;
 if(SITE.donate){const t=document.getElementById("tip");t.href=SITE.donate;t.hidden=false}
 document.getElementById("links").innerHTML=`<a href="/about">About</a>`+link(SITE.donate,"Chip in")+link(SITE.discord,"Discord")+`<a href="/terms">Terms</a><a href="/privacy">Privacy</a>`;
+
+// Your lists: things this browser made. Host keys are already saved per link; the server
+// is the source of truth (gone or not host = dropped). Eat and To Grams live only here.
+(()=>{
+const box=document.getElementById("mine");
+const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}},keys(){try{return Object.keys(localStorage)}catch(e){return[]}}};
+const read=(k,d)=>{try{return JSON.parse(ls.get(k)||"null")??d}catch(e){return d}};
+const TOOLS={potluck:"potluck",meet:"when",eat:"eat",gift:"santa",registry:"registry",grams:"grams"};
+const shelfOf=t=>SHELF.find(a=>a.id===TOOLS[t]);
+let cache=read("150ct-lists",{}),hidden=read("150ct-lists-hidden",[]);
+const saveCache=()=>ls.set("150ct-lists",JSON.stringify(cache)),saveHidden=()=>ls.set("150ct-lists-hidden",JSON.stringify(hidden));
+const hosted=()=>ls.keys().filter(k=>k.startsWith("150ct-host-")).map(k=>k.slice(11)).filter(s=>/^[a-z0-9]{8}$/.test(s)&&!hidden.includes(s));
+const M=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const md=d=>{const[y,m,dd]=String(d).split("-").map(Number);return m?M[m-1]+" "+dd:""};
+const span=(a,b)=>!a?"":!b||a===b?md(a):a.slice(0,7)===b.slice(0,7)?md(a)+"–"+Number(b.slice(8)):md(a)+" – "+md(b);
+const today=new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
+function summarize(link){
+  const d=link.data||{},days=Array.isArray(d.days)?d.days:[];
+  return {t:link.type,n:d.title||"",d:d.date||days[0]||"",e:d.date||days[days.length-1]||"",x:link.expiresAt||0};
+}
+let asking="",open=false;const CAP=4;
+function items(){
+  const out=[],now=Date.now();
+  for(const s of hosted()){const c=cache[s];if(c&&TOOLS[c.t]&&(!c.x||c.x>now))out.push({id:s,...c,href:"/"+c.t+"/"+s,server:true})}
+  const eat=read("150ct-eat",null);
+  if(eat&&Array.isArray(eat.places)&&eat.places.length){const n=eat.places.map(p=>p.n).filter(Boolean);out.push({id:"eat",t:"eat",n:n.slice(0,2).join(", ")+(n.length>2?" +"+(n.length-2):""),href:"/eat"})}
+  const g=read("150ct-grams-list",[]);
+  if(Array.isArray(g)&&g.length)out.push({id:"grams",t:"grams",n:"Recipe",meta:g.length+" ingredient"+(g.length>1?"s":""),href:"/grams"});
+  return out;
+}
+function row(it){
+  const past=it.e&&it.e<today;
+  if(asking===it.id)return it.server
+    ?`<li class="ask" data-id="${it.id}"><span>Remove <b>${esc(it.n||span(it.d,it.e)||"this")}</b>?</span><button class="opt" data-act="hide" type="button">Just from this list</button><button class="opt del" data-act="del" type="button">Delete for everyone</button><button class="opt no" data-act="no" type="button">Keep</button></li>`
+    :`<li class="ask" data-id="${it.id}"><span>Clear <b>${esc(it.n)}</b> from this browser?</span><button class="opt del" data-act="clear" type="button">Clear</button><button class="opt no" data-act="no" type="button">Keep</button></li>`;
+  const when=it.meta||span(it.d,it.e),name=it.n||when||"No name";
+  return `<li class="${past?"past":""}" data-id="${it.id}"><a href="${esc(it.href)}"><b>${esc(name)}</b><small>${esc(it.n?when:"")}</small></a><button class="x" type="button" data-act="ask" aria-label="Remove ${esc(it.n||"list")}">×</button></li>`;
+}
+function render(){
+  const all=items();
+  box.hidden=!all.length;
+  if(!all.length){box.innerHTML="";return}
+  const order=Object.keys(TOOLS);
+  const groups=order.map(t=>[t,all.filter(i=>i.t===t).sort((a,b)=>{const ap=!!(a.e&&a.e<today),bp=!!(b.e&&b.e<today);return (ap-bp)||((a.d||"9")<(b.d||"9")?-1:(a.d||"9")>(b.d||"9")?1:0)})]).filter(([,l])=>l.length);
+  let left=open||all.length<=CAP+1?Infinity:CAP;
+  box.innerHTML=`<h2 id="mineH">Your lists</h2>`+groups.map(([t,l])=>{if(left<=0)return "";const show=l.slice(0,left);left-=show.length;const a=shelfOf(t);return `<div class="grp"><div class="gh"><i style="background:${a.bg}">${sprite(a.sp)}</i>${esc(a.name)}</div><ul>${show.map(row).join("")}</ul></div>`}).join("")
+    +(all.length>CAP+1?`<button class="more" type="button" data-act="more">${open?"Show less":"Show all "+all.length}</button>`:"");
+}
+box.addEventListener("click",async e=>{
+  const b=e.target.closest("[data-act]");if(!b)return;
+  if(b.dataset.act==="more"){open=!open;render();return}
+  const li=b.closest("li"),id=li.dataset.id,act=b.dataset.act;
+  if(act==="ask"){asking=id;render();box.querySelector(`li[data-id="${id}"] .opt`)?.focus();return}
+  if(act==="no"){asking="";render();return}
+  if(act==="hide"){hidden.push(id);saveHidden();asking="";render();return}
+  if(act==="clear"){ls.del(id==="eat"?"150ct-eat":"150ct-grams-list");asking="";render();return}
+  if(act==="del"){
+    b.textContent="Deleting…";b.disabled=true;
+    try{
+      const r=await fetch("/api/links?slug="+id,{method:"DELETE",headers:{"x-host-key":ls.get("150ct-host-"+id)||""}});
+      if(r.ok||r.status===404){ls.del("150ct-host-"+id);delete cache[id];saveCache();asking="";render()}
+      else b.textContent="Couldn't delete";
+    }catch(err){b.textContent="Couldn't delete"}
+  }
+});
+render();
+// Check each with the server: refresh names and dates, drop what's gone.
+Promise.all(hosted().map(async s=>{
+  try{
+    const r=await fetch("/api/links?slug="+s,{headers:{"x-host-key":ls.get("150ct-host-"+s)||""}});
+    if(r.status===404){ls.del("150ct-host-"+s);delete cache[s];return}
+    if(!r.ok)return;
+    const j=await r.json();
+    if(!j.isHost){delete cache[s];return}
+    cache[s]=summarize(j.link);
+  }catch(e){}
+})).then(()=>{for(const s of Object.keys(cache))if(!ls.get("150ct-host-"+s))delete cache[s];saveCache();render()});
+})();
 // Add to home screen, phones only.
 const ua=navigator.userAgent;
 const ios=/iPhone|iPad|iPod/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1);
