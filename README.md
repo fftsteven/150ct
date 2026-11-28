@@ -19,6 +19,7 @@ apps/                       server side of each app (validation, responses)
   potluck/server.js
   gift/server.js            the draw; pairs never leave the server, responder ids hidden even from the host
 core/unfurl.js              Google Maps share link -> place name (no API key), GET /api/unfurl
+core/mcp.js                 MCP server for AI apps, POST /mcp (see below)
 core/places.js              Google Places search for Where to eat, GET /api/places (needs GOOGLE_MAPS_API_KEY)
 dev.js                      local server, in-memory Redis
 scripts/preview.mjs         one-file clickable preview (dist/preview.html)
@@ -55,6 +56,10 @@ API (`core/handler.js`):
 2. `public/apps/<type>/new.html` and `view.html`.
 3. Two rewrites in `vercel.json`: `/<type>` and `/<type>/:slug`.
 4. Flip its tile in `public/shared/shelf.js` to `status: "live"` with `href: "/<type>"`.
+
+## MCP server
+
+`https://150ct.com/mcp` is a remote MCP server (Streamable HTTP, stateless, no auth) so ChatGPT, Claude and other AI apps can make real links. Tools: `create_potluck`, `create_date_poll`, `create_gift_exchange`, `create_registry`, `cups_to_grams`. Each create tool runs the app's own `clean()` and returns a guest link and a `#host=` link. The AI only makes the link; people still claim, vote and draw. Gift pairs are never returned. Rate limit: 300 links per hour per IP (shared by everyone on one AI provider's IPs). When a new app is added, add a tool in `core/mcp.js`. If an ingredient changes on /grams, update `GRAMS` there too (a test checks).
 
 ## Run
 

@@ -9,6 +9,7 @@
 // DELETE /api/responses?slug=&id=                    host only (gift: &k=<name key>)
 // GET    /api/unfurl?u=<google maps link>  -> { name }
 // GET    /api/places?q=|id=&s=             Google Places search (see core/places.js)
+// POST   /api/mcp  (public at /mcp)        MCP server for AI apps (see core/mcp.js)
 //
 // Host key travels in the x-host-key header.
 
@@ -17,6 +18,7 @@ import { json } from "./util.js";
 import { limited } from "./ratelimit.js";
 import { unfurl, isMapsUrl } from "./unfurl.js";
 import { placesKey, autocomplete, details } from "./places.js";
+import { mcp } from "./mcp.js";
 import {
   loadLink, isHostOf, createLink, updateLink, deleteLink, loadResponses, saveResponse,
   removeResponse, publicLink, maskResponses, RESPONDER_RE,
@@ -142,6 +144,7 @@ export async function handle(request) {
     if (url.pathname === "/api/responses") return await responses(request, url.searchParams, hostKey);
     if (url.pathname === "/api/unfurl") return await unfurlRoute(request, url.searchParams);
     if (url.pathname === "/api/places") return await placesRoute(request, url.searchParams);
+    if (url.pathname === "/api/mcp") return await mcp(request);
     return json(404, { error: "Not found" });
   } catch (e) {
     console.error(e);

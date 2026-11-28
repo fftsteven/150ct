@@ -39,6 +39,10 @@
       "destination": "/api/page?app=registry&slug=:slug"
     },
     {
+      "source": "/mcp",
+      "destination": "/api/mcp"
+    },
+    {
       "source": "/grams",
       "destination": "/apps/grams/new"
     }
