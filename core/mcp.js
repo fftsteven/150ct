@@ -204,8 +204,9 @@ async function make(tool, args, request) {
   );
 }
 
+// The directory reads annotations.title, older clients read the top-level title. Send both.
 const listed = TOOLS.map(({ name, title, description, inputSchema, outputSchema, annotations }) =>
-  ({ name, title, description, inputSchema, outputSchema, annotations }));
+  ({ name, title, description, inputSchema, outputSchema, annotations: { title, ...annotations } }));
 
 const reply = (id, result) => ({ jsonrpc: "2.0", id, result });
 const error = (id, code, message) => ({ jsonrpc: "2.0", id: id ?? null, error: { code, message } });
