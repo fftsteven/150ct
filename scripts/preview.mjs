@@ -64,6 +64,7 @@ const pages = {
   "g_secret-santa-rules-for-families": await page("guides/secret-santa-rules-for-families.html"),
   "g_potluck-without-duplicates": await page("guides/potluck-without-duplicates.html"),
   "g_index": await page("guides/index.html"),
+  "g_holiday-potluck-sign-up-sheet": await page("guides/holiday-potluck-sign-up-sheet.html"),
   "g_find-a-date-for-a-group": await page("guides/find-a-date-for-a-group.html"),
   "g_secret-santa-without-anyone-knowing": await page("guides/secret-santa-without-anyone-knowing.html"),
   "g_office-gift-exchange-ideas": await page("guides/office-gift-exchange-ideas.html"),
